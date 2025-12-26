@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         }
 
         // 2. Call eBay API
-        await updateEbayListingTitle(user.id, listing.ebay_item_id, listing.optimized_title);
+        await updateEbayListingTitle(user.id, listing.ebay_item_id, listing.optimized_title, supabase);
 
         // 3. Update listing status in DB
         await supabase

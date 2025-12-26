@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const accessToken = await getValidAccessToken(user.id);
+        const accessToken = await getValidAccessToken(user.id, supabase);
 
         // Call eBay Trading API (GetMyeBaySelling)
         const clientId = process.env.EBAY_CLIENT_ID;

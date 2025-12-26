@@ -1,13 +1,18 @@
-import { supabase } from '@/lib/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { refreshAccessToken } from './ebay';
 
-export async function getValidAccessToken(userId: string) {
+export async function getValidAccessToken(userId: string, supabase: SupabaseClient) {
     // 1. Get Token from DB
     const { data: tokenData, error: tokenError } = await supabase
         .from('ebay_tokens')
         .select('*')
         .eq('user_id', userId)
         .single();
+
+    if (tokenError) {
+        console.error('[ValidAccess] DB Error:', tokenError);
+    }
+    // ... rest of function
 
     if (tokenError || !tokenData) {
         throw new Error('eBay account not connected');
@@ -38,10 +43,10 @@ export async function getValidAccessToken(userId: string) {
     return accessToken;
 }
 
-export async function updateEbayListingTitle(userId: string, itemId: string, newTitle: string) {
+export async function updateEbayListingTitle(userId: string, itemId: string, newTitle: string, supabase: SupabaseClient) {
     console.log(`[eBay Push] Starting update for User: ${userId}, Item: ${itemId}`);
 
-    const accessToken = await getValidAccessToken(userId);
+    const accessToken = await getValidAccessToken(userId, supabase);
 
     // 3. Call eBay Trading API (ReviseFixedPriceItem)
     const clientId = process.env.EBAY_CLIENT_ID;
