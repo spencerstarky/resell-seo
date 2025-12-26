@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     if (error || !code) {
         console.error('eBay Callback Error:', error);
-        return NextResponse.redirect(new URL('/account?error=ebay_denied', process.env.NEXT_PUBLIC_BASE_URL));
+        return NextResponse.redirect(new URL('/dashboard?error=ebay_denied', process.env.NEXT_PUBLIC_BASE_URL));
     }
 
     const supabase = await createClient();
@@ -36,9 +36,9 @@ export async function GET(request: NextRequest) {
 
         if (dbError) throw dbError;
 
-        return NextResponse.redirect(new URL('/account?connected=ebay', process.env.NEXT_PUBLIC_BASE_URL));
+        return NextResponse.redirect(new URL('/dashboard?connected=ebay', process.env.NEXT_PUBLIC_BASE_URL));
     } catch (err: any) {
         console.error('Token Exchange Error:', err);
-        return NextResponse.redirect(new URL(`/account?error=token_exchange_failed&details=${encodeURIComponent(err.message)}`, process.env.NEXT_PUBLIC_BASE_URL));
+        return NextResponse.redirect(new URL(`/dashboard?error=token_exchange_failed&details=${encodeURIComponent(err.message)}`, process.env.NEXT_PUBLIC_BASE_URL));
     }
 }

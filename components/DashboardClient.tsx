@@ -14,7 +14,9 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialListings = [], userId }: DashboardClientProps) {
-    const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>('empty');
+    const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>(
+        initialListings.length > 0 ? 'upload' : (initialIsConnected ? 'ebay' : 'empty')
+    );
     const [listings, setListings] = useState(initialListings);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -148,9 +150,9 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     }
 
     return (
-        <ListingEditor 
-            listings={listings} 
-            userId={userId} 
+        <ListingEditor
+            listings={listings}
+            userId={userId}
             autoSaveOnMount={false}
             onClear={handleClearListings}
         />
