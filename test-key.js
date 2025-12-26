@@ -6,7 +6,7 @@ async function testKey() {
     console.log('--- Testing Gemini API Key ---');
 
     // Manually load .env.local since we are running with just 'node'
-    const envPath = path.join(__dirname, '.env.local');
+    const envPath = path.join(process.cwd(), '.env.local');
     if (!fs.existsSync(envPath)) {
         console.error('❌ .env.local not found');
         return;

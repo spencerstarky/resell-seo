@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const envPath = path.join(__dirname, '..', '.env.local');
+const envPath = path.join(process.cwd(), '.env.local');
 
 console.log('--- eBay Environment Check ---');
 
