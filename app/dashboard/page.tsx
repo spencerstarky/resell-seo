@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase-server';
-import { getEbayAuthUrl } from '@/lib/ebay-auth';
+import { getEbayAuthUrl } from '@/lib/ebay';
 import DashboardClient from '@/components/DashboardClient';
 import Header from '@/components/Header';
 
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
         .order('sort_index', { ascending: true });
 
     const isConnected = !!token;
-    const authUrl = getEbayAuthUrl();
+    const authUrl = await getEbayAuthUrl();
 
     return (
         <div className="container" style={{ padding: '0 1.5rem' }}>

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { refreshAccessToken } from './ebay-auth';
+import { refreshAccessToken } from './ebay';
 
 export async function updateEbayListingTitle(userId: string, itemId: string, newTitle: string) {
     console.log(`[eBay Push] Starting update for User: ${userId}, Item: ${itemId}`);
@@ -38,7 +38,8 @@ export async function updateEbayListingTitle(userId: string, itemId: string, new
     }
 
     // 3. Call eBay Trading API (ReviseFixedPriceItem)
-    const isSandbox = process.env.EBAY_API_BASE_URL?.includes('sandbox');
+    const clientId = process.env.EBAY_CLIENT_ID;
+    const isSandbox = clientId?.includes('-SBX-');
     const endpoint = isSandbox
         ? 'https://api.sandbox.ebay.com/ws/api.dll'
         : 'https://api.ebay.com/ws/api.dll';

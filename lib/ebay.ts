@@ -1,4 +1,3 @@
-
 export const EBAY_SCOPES = [
     'https://api.ebay.com/oauth/api_scope',
     'https://api.ebay.com/oauth/api_scope/sell.inventory',
@@ -52,6 +51,36 @@ export async function exchangeCodeForTokens(code: string) {
         const err = await response.json();
         console.error('--- eBay Token Exchange Detailed Error ---', err);
         throw new Error(`eBay Token Exchange Failed: ${err.error_description || JSON.stringify(err)}`);
+    }
+
+    return response.json();
+}
+
+export async function refreshAccessToken(refreshToken: string) {
+    const clientId = process.env.EBAY_CLIENT_ID;
+    const clientSecret = process.env.EBAY_CLIENT_SECRET;
+    const isSandbox = clientId?.includes('-SBX-');
+    const apiHost = isSandbox ? 'api.sandbox.ebay.com' : 'api.ebay.com';
+
+    const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+    const response = await fetch(`https://${apiHost}/identity/v1/oauth2/token`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${authHeader}`
+        },
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+            scope: EBAY_SCOPES,
+        })
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        console.error('--- eBay Token Refresh Detailed Error ---', err);
+        throw new Error(`eBay Token Refresh Failed: ${err.error_description || JSON.stringify(err)}`);
     }
 
     return response.json();
