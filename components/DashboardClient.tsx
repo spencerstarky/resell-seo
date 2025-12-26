@@ -54,6 +54,11 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         }
     };
 
+    const handleClearListings = () => {
+        setListings([]);
+        setMode('empty');
+    };
+
     if (mode === 'empty') {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
@@ -142,5 +147,12 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         );
     }
 
-    return <ListingEditor initialListings={listings} userId={userId} userProfile={userProfile} />;
+    return (
+        <ListingEditor 
+            listings={listings} 
+            userId={userId} 
+            autoSaveOnMount={false}
+            onClear={handleClearListings}
+        />
+    );
 }
