@@ -61,6 +61,38 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         setMode('empty');
     };
 
+    const [fetching, setFetching] = useState(false);
+
+    const handleFetchEbay = async () => {
+        setFetching(true);
+        try {
+            const res = await fetch('/api/ebay/fetch', { method: 'POST' });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Failed to fetch items');
+
+            const ebayListings = data.listings.map((item: any) => ({
+                id: `ebay-${item.ebay_item_id}`,
+                original_title: item.title,
+                optimized_title: null,
+                source: 'ebay',
+                ebay_item_id: item.ebay_item_id,
+                image_url: item.image_url
+            }));
+
+            if (ebayListings.length === 0) {
+                alert('No active listings found on your eBay account.');
+            } else {
+                setListings(ebayListings);
+                // The mode is already 'ebay', so it will fall through to ListingEditor
+            }
+        } catch (e: any) {
+            console.error(e);
+            alert('Error fetching listings: ' + e.message);
+        }
+        setFetching(false);
+    };
+
     if (mode === 'empty') {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
@@ -85,7 +117,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         className="btn btn-primary"
                         style={{ width: '100%', marginBottom: '1rem', cursor: 'pointer' }}
                     >
-                        Connect eBay
+                        Connect eBay Account
                     </button>
                     <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem' }}>
                         <button
@@ -100,6 +132,50 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                             Upload CSV Instead
                         </button>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (mode === 'ebay' && listings.length === 0) {
+        return (
+            <div className="container" style={{ padding: '2rem 0' }}>
+                <div
+                    style={{
+                        maxWidth: '600px',
+                        margin: '0 auto',
+                        textAlign: 'center',
+                        padding: '3rem 2rem',
+                        background: 'var(--color-card-bg)',
+                        borderRadius: 'var(--border-radius-lg)',
+                        border: '1px solid var(--color-border)',
+                    }}
+                >
+                    <div style={{ width: 64, height: 64, background: 'rgba(76, 175, 80, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Monitor size={32} style={{ color: '#4caf50' }} />
+                    </div>
+                    <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem' }}>eBay Connected!</h2>
+                    <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
+                        We're ready to fetch your active listings.
+                    </p>
+
+                    <button
+                        onClick={handleFetchEbay}
+                        className="btn btn-primary"
+                        disabled={fetching}
+                        style={{ width: '100%', marginBottom: '1rem', cursor: 'pointer' }}
+                    >
+                        {fetching ? 'Fetching items...' : 'Import from eBay'}
+                    </button>
+
+                    <button
+                        onClick={() => setMode('upload')}
+                        className="btn btn-secondary"
+                        style={{ width: '100%' }}
+                    >
+                        <Upload size={16} style={{ marginRight: '0.5rem' }} />
+                        Actually, let me upload a CSV
+                    </button>
                 </div>
             </div>
         );
@@ -139,11 +215,18 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         <Upload size={16} style={{ marginRight: '0.5rem' }} />
                         Choose CSV File
                     </button>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                        <button className="btn btn-secondary" style={{ flex: 1, fontSize: '0.8rem' }}><Upload size={14} /> eBay</button>
-                        <button className="btn btn-secondary" style={{ flex: 1, fontSize: '0.8rem' }}><Upload size={14} /> Poshmark</button>
-                        <button className="btn btn-secondary" style={{ flex: 1, fontSize: '0.8rem' }}><Upload size={14} /> Mercari</button>
-                    </div>
+
+                    {/* If connected, allow switching back to eBay import */}
+                    {initialIsConnected && (
+                        <button
+                            onClick={() => setMode('ebay')}
+                            className="btn btn-secondary"
+                            style={{ width: '100%', marginTop: '0.5rem' }}
+                        >
+                            <Monitor size={16} style={{ marginRight: '0.5rem' }} />
+                            Import from eBay instead
+                        </button>
+                    )}
                 </div>
             </div>
         );

@@ -1,9 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { refreshAccessToken } from './ebay';
 
-export async function updateEbayListingTitle(userId: string, itemId: string, newTitle: string) {
-    console.log(`[eBay Push] Starting update for User: ${userId}, Item: ${itemId}`);
-
+export async function getValidAccessToken(userId: string) {
     // 1. Get Token from DB
     const { data: tokenData, error: tokenError } = await supabase
         .from('ebay_tokens')
@@ -20,7 +18,7 @@ export async function updateEbayListingTitle(userId: string, itemId: string, new
 
     // 2. Check if token is expired (with 5 min buffer)
     if (expiresAt.getTime() <= Date.now() + 5 * 60 * 1000) {
-        console.log('[eBay Push] Token expired or expiring soon, refreshing...');
+        console.log('[eBay Auth] Token expired or expiring soon, refreshing...');
         const refreshed = await refreshAccessToken(tokenData.refresh_token);
 
         accessToken = refreshed.access_token;
@@ -36,6 +34,14 @@ export async function updateEbayListingTitle(userId: string, itemId: string, new
             })
             .eq('user_id', userId);
     }
+
+    return accessToken;
+}
+
+export async function updateEbayListingTitle(userId: string, itemId: string, newTitle: string) {
+    console.log(`[eBay Push] Starting update for User: ${userId}, Item: ${itemId}`);
+
+    const accessToken = await getValidAccessToken(userId);
 
     // 3. Call eBay Trading API (ReviseFixedPriceItem)
     const clientId = process.env.EBAY_CLIENT_ID;
