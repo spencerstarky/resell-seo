@@ -1,0 +1,21 @@
+
+# 🔑 eBay SEO Setup Guide
+# Copy and paste the block below into your .env.local file
+
+# --- COPY BELOW THIS LINE ---
+
+# eBay API Keys (From developer.ebay.com)
+EBAY_CLIENT_ID=PASTE_YOUR_CLIENT_ID_HERE
+EBAY_CLIENT_SECRET=PASTE_YOUR_CLIENT_SECRET_HERE
+EBAY_RUNAME=PASTE_YOUR_RUNAME_HERE
+
+# Your ngrok URL (From your terminal)
+# Example: https://a1b2-c3d4.ngrok-free.app (NO slash at the end!)
+NEXT_PUBLIC_BASE_URL=PASTE_YOUR_NGROK_URL_HERE
+
+# --- COPY ABOVE THIS LINE ---
+
+# Instructions:
+# 1. Run 'code .env.local' in your terminal to open the secret file.
+# 2. Paste the block above into that file and save.
+# 3. Visit your app using the ngrok URL and click "Connect eBay".
