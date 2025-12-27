@@ -10,11 +10,21 @@ export async function POST(request: NextRequest) {
         if (body.challengeCode) {
             console.log('[eBay Notification] Received Verification Challenge');
 
-            const verificationToken = process.env.EBAY_VERIFICATION_TOKEN;
-            const endpoint = `${process.env.NEXT_PUBLIC_BASE_URL}/api/ebay/notification`;
+            // Trim token to avoid copy-paste errors
+            const verificationToken = process.env.EBAY_VERIFICATION_TOKEN?.trim();
+
+            // Robust endpoint calculation to prevent mismatch errors
+            const host = request.headers.get('host') || 'resell-seo.vercel.app';
+            const protocol = request.headers.get('x-forwarded-proto') || 'https';
+            // IMPORTANT: eBay requires the endpoint to match EXACTLY what is in the portal.
+            // Ensure no trailing slash is being used.
+            const endpoint = `${protocol}://${host}/api/ebay/notification`;
+
+            console.log(`[eBay Notification] Verifying for endpoint: ${endpoint}`);
+            console.log(`[eBay Notification] Using Verification Token: ${verificationToken ? '*** (Found)' : 'MISSING'}`);
 
             if (!verificationToken) {
-                console.error('Missing EBAY_VERIFICATION_TOKEN');
+                console.error('Missing EBAY_VERIFICATION_TOKEN in Vercel');
                 return NextResponse.json({ error: 'Configuration Error' }, { status: 500 });
             }
 
@@ -30,7 +40,6 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. Handle Actual Notifications (Account Deletion, etc.)
-        // For now, we just log it to comply with the requirement.
         console.log('[eBay Notification] Received Event:', JSON.stringify(body, null, 2));
 
         return NextResponse.json({ status: 'ok' }, { status: 200 });
