@@ -49,7 +49,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
 
     const handleConnectEbay = () => {
         if (authUrl) {
-            window.location.href = authUrl;
+            window.open(authUrl, '_blank');
         } else {
             console.error('Auth URL is not available');
             alert('Unable to connect to eBay. Please try again later.');
