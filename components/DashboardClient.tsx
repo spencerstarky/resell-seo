@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Upload, FileText, Trash2, Download, Monitor } from 'lucide-react';
+import { Upload, FileText, Trash2, Download, Monitor, RefreshCw } from 'lucide-react';
 import Papa from 'papaparse';
 import ListingEditor from './ListingEditor';
 
@@ -166,6 +166,15 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         style={{ width: '100%', marginBottom: '1rem', cursor: 'pointer' }}
                     >
                         {fetching ? 'Fetching items...' : 'Import from eBay'}
+                    </button>
+
+                    <button
+                        onClick={handleConnectEbay}
+                        className="btn btn-secondary"
+                        style={{ width: '100%', marginBottom: '1rem', cursor: 'pointer', borderColor: '#ff4444', color: '#ff4444' }}
+                    >
+                        <RefreshCw size={16} style={{ marginRight: '0.5rem' }} />
+                        Reconnect / Fix Connection
                     </button>
 
                     <button
