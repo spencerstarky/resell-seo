@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Upload, FileText, Trash2, Download, Monitor, RefreshCw } from 'lucide-react';
+import { Upload, FileText, Trash2, Download, Monitor, RefreshCw, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
 import ListingEditor from './ListingEditor';
 
@@ -159,14 +159,36 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         We're ready to fetch your active listings.
                     </p>
 
-                    <button
-                        onClick={handleFetchEbay}
-                        className="btn btn-primary"
-                        disabled={fetching}
-                        style={{ width: '100%', marginBottom: '1rem', cursor: 'pointer' }}
-                    >
-                        {fetching ? 'Fetching items...' : 'Import from eBay'}
-                    </button>
+                    {!fetching ? (
+                        <button
+                            onClick={handleFetchEbay}
+                            className="btn btn-primary"
+                            style={{ width: '100%', marginBottom: '1rem', cursor: 'pointer' }}
+                        >
+                            Import from eBay
+                        </button>
+                    ) : (
+                        <div style={{
+                            padding: '1.5rem',
+                            background: 'var(--color-bg-subtle, #f5f5f5)',
+                            borderRadius: '8px',
+                            marginBottom: '1rem',
+                            textAlign: 'center'
+                        }}>
+                            <Loader2 size={32} style={{
+                                animation: 'spin 1.5s linear infinite',
+                                margin: '0 auto 1rem',
+                                color: 'var(--color-primary)'
+                            }} />
+                            <h3 style={{ marginBottom: '0.5rem', fontWeight: 600 }}>Syncing your inventory...</h3>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                This may take a moment depending on how many listings you have.
+                            </p>
+                            <style jsx>{`
+                                @keyframes spin { 100% { transform: rotate(360deg); } }
+                            `}</style>
+                        </div>
+                    )}
 
                     <button
                         onClick={handleConnectEbay}
