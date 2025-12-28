@@ -14,67 +14,86 @@ export async function POST(request: NextRequest) {
     try {
         const accessToken = await getValidAccessToken(user.id, supabase);
 
-        // Call eBay Trading API (GetMyeBaySelling)
+        // API Endpoint Setup
         const clientId = process.env.EBAY_CLIENT_ID;
         const isSandbox = clientId?.includes('-SBX-');
         const endpoint = isSandbox
             ? 'https://api.sandbox.ebay.com/ws/api.dll'
             : 'https://api.ebay.com/ws/api.dll';
 
-        const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
+        let allItems: any[] = [];
+        let pageNumber = 1;
+        let hasMorePages = true;
+        const MAX_PAGES = 20; // Safety limit to prevent infinite loops (approx 4000 items)
+
+        while (hasMorePages && pageNumber <= MAX_PAGES) {
+            console.log(`[eBay Fetch] Fetching page ${pageNumber}...`);
+
+            const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
 <GetMyeBaySellingRequest xmlns="urn:ebay:apis:eBLBaseComponents">
   <ErrorLanguage>en_US</ErrorLanguage>
   <WarningLevel>High</WarningLevel>
   <ActiveList>
     <Include>true</Include>
     <Pagination>
-      <EntriesPerPage>100</EntriesPerPage>
-      <PageNumber>1</PageNumber>
+      <EntriesPerPage>200</EntriesPerPage>
+      <PageNumber>${pageNumber}</PageNumber>
     </Pagination>
   </ActiveList>
 </GetMyeBaySellingRequest>`;
 
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'X-EBAY-API-SITEID': '0', // US
-                'X-EBAY-API-COMPATIBILITY-LEVEL': '1111',
-                'X-EBAY-API-CALL-NAME': 'GetMyeBaySelling',
-                'X-EBAY-API-IAF-TOKEN': accessToken,
-                'Content-Type': 'text/xml',
-            },
-            body: xmlBody
-        });
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-EBAY-API-SITEID': '0', // US
+                    'X-EBAY-API-COMPATIBILITY-LEVEL': '1111',
+                    'X-EBAY-API-CALL-NAME': 'GetMyeBaySelling',
+                    'X-EBAY-API-IAF-TOKEN': accessToken,
+                    'Content-Type': 'text/xml',
+                },
+                body: xmlBody
+            });
 
-        const resultText = await response.text();
+            const resultText = await response.text();
 
-        if (!response.ok || resultText.includes('<Ack>Failure</Ack>')) {
-            console.error('eBay Fetch Error:', resultText);
-            throw new Error('Failed to fetch listings from eBay');
-        }
+            if (!response.ok || resultText.includes('<Ack>Failure</Ack>')) {
+                console.error('eBay Fetch Error:', resultText);
+                throw new Error(`Failed to fetch listings from eBay (Page ${pageNumber})`);
+            }
 
-        // Parse XML (Simple Regex parsing or use a library if available, but regex is lighter for 1 call)
-        // We need Title, ItemID, PictureDetails.GalleryURL
+            // Parse Items
+            const itemMatches = resultText.match(/<Item>[\s\S]*?<\/Item>/g) || [];
 
-        const items = [];
-        const itemMatches = resultText.match(/<Item>[\s\S]*?<\/Item>/g) || [];
+            for (const itemXml of itemMatches) {
+                const titleMatch = itemXml.match(/<Title>(.*?)<\/Title>/);
+                const idMatch = itemXml.match(/<ItemID>(.*?)<\/ItemID>/);
+                const picMatch = itemXml.match(/<GalleryURL>(.*?)<\/GalleryURL>/);
 
-        for (const itemXml of itemMatches) {
-            const titleMatch = itemXml.match(/<Title>(.*?)<\/Title>/);
-            const idMatch = itemXml.match(/<ItemID>(.*?)<\/ItemID>/);
-            const picMatch = itemXml.match(/<GalleryURL>(.*?)<\/GalleryURL>/);
+                if (titleMatch && idMatch) {
+                    allItems.push({
+                        title: titleMatch[1],
+                        ebay_item_id: idMatch[1],
+                        image_url: picMatch ? picMatch[1] : null,
+                        status: 'active'
+                    });
+                }
+            }
 
-            if (titleMatch && idMatch) {
-                items.push({
-                    title: titleMatch[1],
-                    ebay_item_id: idMatch[1],
-                    image_url: picMatch ? picMatch[1] : null,
-                    status: 'active'
-                });
+            // Check Pagination Logic
+            const totalPagesMatch = resultText.match(/<TotalNumberOfPages>(\d+)<\/TotalNumberOfPages>/);
+            const totalPages = totalPagesMatch ? parseInt(totalPagesMatch[1], 10) : 1;
+
+            console.log(`[eBay Fetch] Page ${pageNumber} done. Found ${itemMatches.length} items. Total Pages likely: ${totalPages}`);
+
+            if (pageNumber >= totalPages) {
+                hasMorePages = false;
+            } else {
+                pageNumber++;
             }
         }
 
-        return NextResponse.json({ listings: items });
+        console.log(`[eBay Fetch] Completed. Total items fetched: ${allItems.length}`);
+        return NextResponse.json({ listings: allItems });
 
     } catch (error: any) {
         console.error('Fetch Handler Error:', error);
