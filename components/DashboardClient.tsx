@@ -170,19 +170,20 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                     ) : (
                         <div style={{
                             padding: '1.5rem',
-                            background: 'var(--color-bg-subtle, #f5f5f5)',
                             borderRadius: '8px',
                             marginBottom: '1rem',
-                            textAlign: 'center'
+                            textAlign: 'center',
+                            border: '1px solid var(--color-border)',
+                            background: 'rgba(255, 255, 255, 0.05)'
                         }}>
                             <Loader2 size={32} style={{
                                 animation: 'spin 1.5s linear infinite',
                                 margin: '0 auto 1rem',
                                 color: 'var(--color-primary)'
                             }} />
-                            <h3 style={{ marginBottom: '0.5rem', fontWeight: 600 }}>Syncing your inventory...</h3>
+                            <h3 style={{ marginBottom: '0.5rem', fontWeight: 500, color: 'var(--color-text)' }}>Fetching listings, please wait...</h3>
                             <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                                This may take a moment depending on how many listings you have.
+                                This may take a moment for large stores.
                             </p>
                             <style jsx>{`
                                 @keyframes spin { 100% { transform: rotate(360deg); } }
