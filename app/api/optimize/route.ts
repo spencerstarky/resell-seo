@@ -27,39 +27,41 @@ export async function POST(request: NextRequest) {
         const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
 
         const prompt = `
-      Current Date: ${new Date().toISOString()}
-      
-      ROLE:
-      You are an expert eBay SEO copywriter with deep knowledge of the Cassini Search Algorithm (2025). Your goal is to maximize search visibility and click-through rate (CTR).
+        Current Date: ${new Date().toISOString()}
 
-      TASK:
-      Rewrite the provided eBay listing title following the "Golden Formula" and best practices below.
+        ROLE:
+        You are an expert eBay SEO copywriter powered by the official 2025 eBay Growth Strategies. Your goal is to maximize visibility and CTR by strictly following eBay's documentation.
 
-      INPUT:
-      - Original Title: "${title}"
-      - Additional Info: "${itemInfo || 'None provided'}"
+        TASK:
+        Rewrite the provided eBay listing title using the official eBay Title Format and SEO rules.
 
-      THE GOLDEN FORMULA (Prioritize this order):
-      [Main Brand] + [Sub-brand/Line] + [Gender/Age] + [Style/Name] + [Material] + [Product Type] + [Color] + [Size]
+        INPUT:
+        - Original Title: "${title}"
+        - Additional Info: "${itemInfo || 'None provided'}"
 
-      CLOTHING SPECIFIC RULES:
-      1. **Brand Placement:** Always start with the Brand. Use "Vintage" if the input suggests it.
-      2. **Style Keywords:** Include descriptors like "Graphic", "Y2K", "Boho", "Slim Fit", "High Rise", "Distressed".
-      3. **Neckline/Sleeve:** Use "V-Neck", "Crewneck", "Long Sleeve", "Short Sleeve" if space allows.
-      4. **Pattern:** Include "Floral", "Striped", "Solid", "Plaid".
-      5. **Material Logic:** Use "Cotton", "Linen", "Denim", "Silk", "Wool" - these are high-value search terms.
-      
-      CRITICAL RULES:
-      1. **Character Limit:** MAX 80 characters.
-      2. **Keywords:** Prioritize high-search volume keywords. Do NOT repeat words.
-      3. **Abbreviations:** Use standard ones: Sz (Size), NWT, Vtg (Vintage), V-Neck.
-      4. **Banned Words:** REMOVE spam/filler words: "L@@K", "Wow", "Stunning", "Cute", "Free Shipping", "Cheap", "Sale", "Great Condition".
-      5. **Capitalization:** Use Title Case. No all-caps.
-      6. **Synonyms:** Do NOT stack (e.g., use "T-Shirt", not "Tee Shirt Top Tunic").
+        OFFICIAL EBAY TITLE FORMULA:
+        [Brand] + [Product Name/Type] + [Model/Style] + [Gender] + [Size] + [Material] + [Color] + [Keywords]
 
-      OUTPUT:
-      Return ONLY the optimized title string. No explanations, no quotes.
-    `;
+        STRICT EBAY RULES (From Documentation):
+        1. **NO ALL CAPS**: Avoid writing entire words in capital letters (except standard acronyms like NWT, Vtg).
+        2. **No Symbols**: Do NOT use asterisks (*), dashes (-), or other markers between words. Use spaces only.
+        3. **Redundancy IS Okay**: Explicitly state the Product Name (e.g. "T-Shirt") even if it repeats the Category name.
+        4. **New Items**: If the item is New with Tags (NWT), start the title with "NEW" or "NWT".
+
+        CLOTHING SPECIFIC OPTIMIZATION:
+        1. **Brand First:** Always start with the Brand.
+        2. **Style Keywords:** Include descriptors (Y2K, Boho, Slim Fit, etc.) in the [Keywords] section.
+        3. **Material:** Always include if known (Cotton, Silk, Wool).
+        4. **Abbreviations:** Use standard ones only: Sz (Size), Vtg (Vintage).
+
+        CRITICAL CONSTRAINTS:
+        1. **Character Limit:** MAX 80 characters.
+        2. **No Spam**: Remove words like "L@@K", "Wow", "Cute", "Free Shipping".
+        3. **Maximize Meaning:** Use every character for descriptive keywords.
+
+        OUTPUT:
+        Return ONLY the optimized title string. No explanations.
+        `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
