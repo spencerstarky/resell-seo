@@ -81,28 +81,37 @@ export async function POST(request: NextRequest) {
         Return ONLY the optimized title string.
         `;
 
-        inputParts.push(promptText);
+        inputParts.push({ text: promptText });
 
         // Image Part (if URL provided)
         if (imageUrl) {
             try {
                 console.log(`[Level 3] Fetching image for vision analysis: ${imageUrl}`);
                 const imgRes = await fetch(imageUrl);
-                const imgBuffer = await imgRes.arrayBuffer();
-                const base64Image = Buffer.from(imgBuffer).toString('base64');
 
-                inputParts.push({
-                    inlineData: {
-                        data: base64Image,
-                        mimeType: 'image/jpeg' // eBay images are typically JPEGs
-                    }
-                });
+                if (imgRes.ok) {
+                    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+                    const imgBuffer = await imgRes.arrayBuffer();
+                    const base64Image = Buffer.from(imgBuffer).toString('base64');
+
+                    console.log(`[Level 3] Image fetched. Type: ${contentType}, Size: ${imgBuffer.byteLength}`);
+
+                    inputParts.push({
+                        inlineData: {
+                            data: base64Image,
+                            mimeType: contentType
+                        }
+                    });
+                } else {
+                    console.warn(`[Level 3] Failed to fetch image content: ${imgRes.status}`);
+                }
             } catch (imgErr) {
                 console.warn('[Level 3] Failed to fetch image:', imgErr);
             }
         }
 
         // 3. Generate
+        console.log('[Level 3] Sending request to Gemini...');
         const result = await model.generateContent(inputParts);
         const response = await result.response;
         let optimizedTitle = response.text().trim().replace(/^"|"$/g, '');
