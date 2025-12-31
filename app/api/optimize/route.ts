@@ -74,48 +74,66 @@ export async function POST(request: NextRequest) {
         Return ONLY the optimized title string.
         `;
 
-        // 3. Generate using DIRECT FETCH (Bypassing SDK to debug)
+        // 3. Generate using DIRECT FETCH with Model Failover Strategy
         const apiKey = process.env.GEMINI_API_KEY;
-        // Using 'gemini-1.5-flash-latest' to verify if this key supports it.
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-        console.log('[Direct Fetch] Sending request to:', url.replace(apiKey, 'HIDDEN_KEY'));
+        // List of models to try in order of preference
+        const candidateModels = [
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-001',
+            'gemini-1.5-flash-latest',
+            'gemini-pro' // Text-only fallback
+        ];
 
-        const payload = {
-            contents: [{
-                parts: [{ text: promptText }]
-            }]
-        };
+        let optimizedTitle = '';
+        let lastError = '';
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const debugStatus = response.status;
-        const debugText = await response.text();
-
-        console.log(`[Direct Fetch] Status: ${debugStatus}`);
-        console.log(`[Direct Fetch] Response: ${debugText.slice(0, 500)}`);
-
-        if (!response.ok) {
-            let errorMsg = `Google API Error: ${debugStatus}`;
+        for (const modelName of candidateModels) {
             try {
-                const errJson = JSON.parse(debugText);
-                if (errJson.error && errJson.error.message) {
-                    errorMsg += ` - ${errJson.error.message}`;
-                } else {
-                    errorMsg += ` - ${debugText}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                console.log(`[Attempt] Trying model: ${modelName}`);
+
+                const payload = {
+                    contents: [{
+                        parts: [{ text: promptText }]
+                    }]
+                };
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    // If 404, specific model not found -> continue to next
+                    if (response.status === 404) {
+                        console.warn(`[Skip] Model ${modelName} not found (404).`);
+                        lastError = `Model ${modelName} 404`;
+                        continue;
+                    }
+                    throw new Error(`${response.status} - ${errText}`);
                 }
-            } catch (e) {
-                errorMsg += ` - ${debugText}`;
+
+                // If success, parse and break
+                const data = await response.json();
+                optimizedTitle = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                console.log(`[Success] Generated with ${modelName}`);
+                break; // Stop loop
+
+            } catch (err: any) {
+                console.warn(`[Fail] Model ${modelName} failed: ${err.message}`);
+                lastError = err.message;
+                // If it's a 403 or 400 (Auth/Quota), trying other models won't help, usually. 
+                // But we continue just in case it's a model-specific permission.
             }
-            throw new Error(errorMsg);
         }
 
-        const data = JSON.parse(debugText);
-        let optimizedTitle = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (!optimizedTitle) {
+            throw new Error(`All models failed. Last error: ${lastError}`);
+        }
+
         optimizedTitle = optimizedTitle.trim().replace(/^"|"$/g, '');
 
         if (optimizedTitle.length > 80) {
