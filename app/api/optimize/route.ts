@@ -81,8 +81,9 @@ export async function POST(request: NextRequest) {
         const candidateModels = [
             'gemini-1.5-flash',
             'gemini-1.5-flash-001',
-            'gemini-1.5-flash-latest',
-            'gemini-pro' // Text-only fallback
+            'gemini-1.5-flash-002',
+            'gemini-1.0-pro', // Stable 1.0 Pro
+            'gemini-pro'      // Alias
         ];
 
         let optimizedTitle = '';
