@@ -181,7 +181,23 @@ export async function POST(request: NextRequest) {
         }
 
         if (!optimizedTitle) {
-            throw new Error(`All models failed. Last error: ${lastError}. Ensure API Key has access to 'Generative Language API'.`);
+            // Debugging: Try to list models to see what IS available
+            let debugInfo = '';
+            try {
+                const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+                const listRes = await fetch(listUrl);
+                if (listRes.ok) {
+                    const listData = await listRes.json();
+                    const modelNames = listData.models ? listData.models.map((m: any) => m.name.replace('models/', '')) : [];
+                    debugInfo = `Available Models: ${modelNames.join(', ')}`;
+                } else {
+                    debugInfo = `ListModels Query Failed: ${listRes.status}`;
+                }
+            } catch (dbgErr) {
+                debugInfo = 'ListModels Exception';
+            }
+
+            throw new Error(`All models failed. Last error: ${lastError}. ${debugInfo}`);
         }
 
         optimizedTitle = optimizedTitle.trim().replace(/^"|"$/g, '');
