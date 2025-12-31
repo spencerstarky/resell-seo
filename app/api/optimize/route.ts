@@ -38,10 +38,9 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // 2. Prepare Multimodal Input (Level 3 - Vision)
-        // Switch to specific version to avoid alias issues
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' });
-        const inputParts: any[] = [];
+        // DEBUG RESTORATION: Revert to simplest possible config (Gemini Pro Text-Only)
+        // This is to verify the API Key and connectivity are working, ruling out Model/Image issues.
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
         // Prompt Text
         const promptText = `
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
 
         TASK:
         Generate the PERFECT 80-character eBay title.
-        Use the provided IMAGE (if available) and ITEM SPECIFICS to truthfully describe the item.
+        Use the provided ITEM SPECIFICS to truthfully describe the item.
         
         INPUT DATA:
         - Original Title: "${title}"
@@ -64,79 +63,29 @@ export async function POST(request: NextRequest) {
         STRICT RULES:
         1. **NO ALL CAPS**: Title Case only.
         2. **No Symbols**: Spaces only. No "-", "*", "+".
-        3. **Truthful**: Do NOT invent features not visible in the image or listed in specifics.
+        3. **Truthful**: Do NOT invent features listed in specifics.
         4. **Redundancy IS Okay**: State "T-Shirt" even if implied.
         5. **New Items**: If NWT, start with "NEW".
 
         CLOTHING SPECIFIC OPTIMIZATION:
-        1. **Brand First:** Check specifics/image for Brand (e.g. Nike, Ralph Lauren).
-        2. **Visual Details:** If you see "Graphic", "Striped", "V-Neck" in the image, include it!
-        3. **Material:** Use "Cotton", "Silk", "Wool" ONLY if confident.
-        4. **Abbreviations:** Sz (Size), Vtg (Vintage).
+        1. **Brand First:** Check specifics for Brand.
+        2. **Material:** Use "Cotton", "Silk", "Wool" ONLY if confident.
+        3. **Abbreviations:** Sz (Size), Vtg (Vintage).
 
         CRITICAL CONSTRAINTS:
         1. **Character Limit:** MAX 80 characters.
-        2. **No Spam:** Remove "L@@K", "Cute", "Free Shipping".
+        2. **No Spam**: Remove "L@@K", "Cute", "Free Shipping".
 
         OUTPUT:
         Return ONLY the optimized title string.
         `;
 
-        inputParts.push({ text: promptText });
+        // Simple Text-Only Part
+        const inputParts = [{ text: promptText }];
 
-        // Image Part (if URL provided)
-        if (imageUrl) {
-            try {
-                console.log(`[Level 3] Fetching image for vision analysis: ${imageUrl}`);
-                const imgRes = await fetch(imageUrl);
-
-                if (imgRes.ok) {
-                    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-                    const imgBuffer = await imgRes.arrayBuffer();
-                    const base64Image = Buffer.from(imgBuffer).toString('base64');
-
-                    console.log(`[Level 3] Image fetched. Type: ${contentType}, Size: ${imgBuffer.byteLength}`);
-
-                    inputParts.push({
-                        inlineData: {
-                            data: base64Image,
-                            mimeType: contentType
-                        }
-                    });
-                } else {
-                    console.warn(`[Level 3] Failed to fetch image content: ${imgRes.status}`);
-                }
-            } catch (imgErr) {
-                console.warn('[Level 3] Failed to fetch image:', imgErr);
-            }
-        }
-
-        // 3. Generate with Fallback Strategy
-        console.log('[Level 3] Sending request to Gemini (gemini-1.5-flash-001)...');
-        let result;
-
-        try {
-            result = await model.generateContent(inputParts);
-        } catch (visionError: any) {
-            console.error('[Level 3] Vision Model Failed:', visionError.message);
-
-            // Check if it's a 404 (Model Not Found) -> Fallback to gemini-pro (Text Only)
-            if (visionError.message.includes('404') || visionError.message.includes('not found')) {
-                console.warn('[Level 3] Flash model not found, falling back to gemini-pro (Text Only)...');
-                const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
-                const textOnlyParts = [{ text: promptText }];
-                result = await fallbackModel.generateContent(textOnlyParts);
-            }
-            // Else if it's just image issue, try Flash text-only
-            else if (inputParts.length > 1) {
-                console.warn('[Level 3] Retrying with Flash Text-Only...');
-                const textOnlyParts = [{ text: promptText }];
-                result = await model.generateContent(textOnlyParts);
-            } else {
-                throw visionError;
-            }
-        }
-
+        // 3. Generate
+        console.log('[Debug] Sending Text-Only request to Gemini Pro...');
+        const result = await model.generateContent(inputParts);
         const response = await result.response;
         let optimizedTitle = response.text().trim().replace(/^"|"$/g, '');
 
