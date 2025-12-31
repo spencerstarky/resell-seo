@@ -527,7 +527,11 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             const res = await fetch('/api/optimize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: listing.original_title })
+                body: JSON.stringify({
+                    title: listing.original_title,
+                    itemId: listing.ebay_item_id,
+                    imageUrl: listing.image_url
+                })
             });
 
             const data = await res.json();

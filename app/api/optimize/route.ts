@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@/lib/supabase-server';
+import { getValidAccessToken, getDetailedItemInfo } from '@/lib/ebay-api';
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: NextRequest) {
     try {
-        const { title, itemInfo } = await request.json();
+        const { title, itemId, imageUrl } = await request.json();
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 500 });
         }
 
-        if (!title) {
-            return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+        if (!title && !itemId) {
+            return NextResponse.json({ error: 'Title or Item ID is required' }, { status: 400 });
         }
 
         const supabase = await createClient();
@@ -24,66 +25,94 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+        // 1. Fetch Item Specifics from eBay (Level 2)
+        let additionalInfo = '';
+        if (itemId) {
+            try {
+                const accessToken = await getValidAccessToken(user.id, supabase);
+                additionalInfo = await getDetailedItemInfo(itemId, accessToken);
+                console.log(`[Level 3] Fetched specifics for ${itemId}: ${additionalInfo.slice(0, 100)}...`);
+            } catch (err: any) {
+                console.warn(`[Level 3] Failed to fetch specifics: ${err.message}`);
+                // Fallback to title-only if fetch fails
+            }
+        }
 
-        const prompt = `
+        // 2. Prepare Multimodal Input (Level 3 - Vision)
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const inputParts: any[] = [];
+
+        // Prompt Text
+        const promptText = `
         Current Date: ${new Date().toISOString()}
 
         ROLE:
-        You are an expert eBay SEO copywriter powered by the official 2025 eBay Growth Strategies. Your goal is to maximize visibility and CTR by strictly following eBay's documentation.
+        You are an expert eBay SEO copywriter powered by the official 2025 eBay Growth Strategies. Your goal is to maximize visibility and CTR.
 
         TASK:
-        Rewrite the provided eBay listing title using the official eBay Title Format and SEO rules.
-
-        INPUT:
+        Generate the PERFECT 80-character eBay title.
+        Use the provided IMAGE (if available) and ITEM SPECIFICS to truthfully describe the item.
+        
+        INPUT DATA:
         - Original Title: "${title}"
-        - Additional Info: "${itemInfo || 'None provided'}"
-
+        - Item Specifics: "${additionalInfo || 'None provided'}"
+        
         OFFICIAL EBAY TITLE FORMULA:
         [Brand] + [Product Name/Type] + [Model/Style] + [Gender] + [Size] + [Material] + [Color] + [Keywords]
 
-        STRICT EBAY RULES (From Documentation):
-        1. **NO ALL CAPS**: Avoid writing entire words in capital letters (except standard acronyms like NWT, Vtg).
-        2. **No Symbols**: Do NOT use asterisks (*), dashes (-), or other markers between words. Use spaces only.
-        3. **Redundancy IS Okay**: Explicitly state the Product Name (e.g. "T-Shirt") even if it repeats the Category name.
-        4. **New Items**: If the item is New with Tags (NWT), start the title with "NEW" or "NWT".
+        STRICT RULES:
+        1. **NO ALL CAPS**: Title Case only.
+        2. **No Symbols**: Spaces only. No "-", "*", "+".
+        3. **Truthful**: Do NOT invent features not visible in the image or listed in specifics.
+        4. **Redundancy IS Okay**: State "T-Shirt" even if implied.
+        5. **New Items**: If NWT, start with "NEW".
 
         CLOTHING SPECIFIC OPTIMIZATION:
-        1. **Brand First:** Always start with the Brand.
-        2. **Style Keywords:** Include descriptors (Y2K, Boho, Slim Fit, etc.) in the [Keywords] section.
-        3. **Material:** Always include if known (Cotton, Silk, Wool).
-        4. **Abbreviations:** Use standard ones only: Sz (Size), Vtg (Vintage).
+        1. **Brand First:** Check specifics/image for Brand (e.g. Nike, Ralph Lauren).
+        2. **Visual Details:** If you see "Graphic", "Striped", "V-Neck" in the image, include it!
+        3. **Material:** Use "Cotton", "Silk", "Wool" ONLY if confident.
+        4. **Abbreviations:** Sz (Size), Vtg (Vintage).
 
         CRITICAL CONSTRAINTS:
         1. **Character Limit:** MAX 80 characters.
-        2. **No Spam**: Remove words like "L@@K", "Wow", "Cute", "Free Shipping".
-        3. **Maximize Meaning:** Use every character for descriptive keywords.
+        2. **No Spam:** Remove "L@@K", "Cute", "Free Shipping".
 
         OUTPUT:
-        Return ONLY the optimized title string. No explanations.
+        Return ONLY the optimized title string.
         `;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let optimizedTitle = response.text().trim().replace(/^"|"$/g, ''); // Remove quotes if model adds them
+        inputParts.push(promptText);
 
-        // Hard stop character limit enforcement
+        // Image Part (if URL provided)
+        if (imageUrl) {
+            try {
+                console.log(`[Level 3] Fetching image for vision analysis: ${imageUrl}`);
+                const imgRes = await fetch(imageUrl);
+                const imgBuffer = await imgRes.arrayBuffer();
+                const base64Image = Buffer.from(imgBuffer).toString('base64');
+
+                inputParts.push({
+                    inlineData: {
+                        data: base64Image,
+                        mimeType: 'image/jpeg' // eBay images are typically JPEGs
+                    }
+                });
+            } catch (imgErr) {
+                console.warn('[Level 3] Failed to fetch image:', imgErr);
+            }
+        }
+
+        // 3. Generate
+        const result = await model.generateContent(inputParts);
+        const response = await result.response;
+        let optimizedTitle = response.text().trim().replace(/^"|"$/g, '');
+
         if (optimizedTitle.length > 80) {
-            console.log(`Title truncated from: ${optimizedTitle}`);
             optimizedTitle = optimizedTitle.substring(0, 80);
         }
 
-        // Increment Usage Count
-        const { error: rpcError } = await supabase.rpc('increment_usage', { user_id: user.id });
-
-        if (rpcError) {
-            console.warn('RPC failed, falling back to direct update:', rpcError);
-            // Fallback if RPC doesn't exist (e.g. user hasn't run migration)
-            const { data: profile } = await supabase.from('profiles').select('usage_count').eq('id', user.id).single();
-            if (profile) {
-                await supabase.from('profiles').update({ usage_count: (profile.usage_count || 0) + 1 }).eq('id', user.id);
-            }
-        }
+        // Increment Usage
+        await supabase.rpc('increment_usage', { user_id: user.id });
 
         return NextResponse.json({ optimizedTitle });
     } catch (error: any) {

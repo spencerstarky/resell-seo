@@ -12,7 +12,6 @@ export async function getValidAccessToken(userId: string, supabase: SupabaseClie
     if (tokenError) {
         console.error('[ValidAccess] DB Error:', tokenError);
     }
-    // ... rest of function
 
     if (tokenError || !tokenData) {
         throw new Error('eBay account not connected');
@@ -88,4 +87,52 @@ export async function updateEbayListingTitle(userId: string, itemId: string, new
     }
 
     return { success: true };
+}
+
+export async function getDetailedItemInfo(itemId: string, accessToken: string) {
+    const clientId = process.env.EBAY_CLIENT_ID;
+    const isSandbox = clientId?.includes('-SBX-');
+    const endpoint = isSandbox
+        ? 'https://api.sandbox.ebay.com/ws/api.dll'
+        : 'https://api.ebay.com/ws/api.dll';
+
+    const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
+<GetItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <ErrorLanguage>en_US</ErrorLanguage>
+  <WarningLevel>High</WarningLevel>
+  <ItemID>${itemId}</ItemID>
+  <DetailLevel>ItemReturnAttributes</DetailLevel>
+  <IncludeItemSpecifics>true</IncludeItemSpecifics>
+</GetItemRequest>`;
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'X-EBAY-API-SITEID': '0', // US
+            'X-EBAY-API-COMPATIBILITY-LEVEL': '1111',
+            'X-EBAY-API-CALL-NAME': 'GetItem',
+            'X-EBAY-API-IAF-TOKEN': accessToken,
+            'Content-Type': 'text/xml',
+        },
+        body: xmlBody
+    });
+
+    const resultText = await response.text();
+
+    if (!response.ok || resultText.includes('<Ack>Failure</Ack>')) {
+        console.error('[GetItem] Failed:', resultText);
+        throw new Error(`Failed to fetch item specifics for ID ${itemId}`);
+    }
+
+    // Parse Item Specifics
+    const specifics: string[] = [];
+    const nameValueMatches = resultText.matchAll(/<Name>(.*?)<\/Name>[\s\S]*?<Value>(.*?)<\/Value>/g);
+
+    for (const match of nameValueMatches) {
+        const name = match[1];
+        const value = match[2];
+        specifics.push(`${name}: ${value}`);
+    }
+
+    return specifics.join(', ');
 }
