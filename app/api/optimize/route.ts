@@ -80,11 +80,12 @@ export async function POST(request: NextRequest) {
         // List of models to try in order of preference
         // We prioritize Flash (multimodal) then fallback to Pro (text-only)
         const candidateModels = [
-            'gemini-1.5-flash',
+            'gemini-2.5-flash',      // Detected available model
+            'gemini-2.0-flash',      // Detected available model
+            'gemini-2.0-flash-exp',  // Detected available model
+            'gemini-1.5-flash',      // Fallback
             'gemini-1.5-flash-001',
-            'gemini-1.5-flash-002',
-            'gemini-1.0-pro', // Stable 1.0 Pro
-            'gemini-pro'      // Alias
+            'gemini-pro'
         ];
 
         // Prepare Image Data (Level 3)
