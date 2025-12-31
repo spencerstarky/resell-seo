@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@/lib/supabase-server';
 import { getValidAccessToken, getDetailedItemInfo } from '@/lib/ebay-api';
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// NOTE: Bypassing Google Generative AI SDK temporarily to debug connectivity/Key issues directly.
+// We use native 'fetch' to control the exact request and see the raw response.
 
 export async function POST(request: NextRequest) {
     try {
@@ -34,15 +33,10 @@ export async function POST(request: NextRequest) {
                 console.log(`[Level 3] Fetched specifics for ${itemId}: ${additionalInfo.slice(0, 100)}...`);
             } catch (err: any) {
                 console.warn(`[Level 3] Failed to fetch specifics: ${err.message}`);
-                // Fallback to title-only if fetch fails
             }
         }
 
-        // DEBUG RESTORATION: Revert to simplest possible config (Gemini Pro Text-Only)
-        // This is to verify the API Key and connectivity are working, ruling out Model/Image issues.
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-        // Prompt Text
+        // 2. Prepare Prompt
         const promptText = `
         Current Date: ${new Date().toISOString()}
 
@@ -80,14 +74,49 @@ export async function POST(request: NextRequest) {
         Return ONLY the optimized title string.
         `;
 
-        // Simple Text-Only Part
-        const inputParts = [{ text: promptText }];
+        // 3. Generate using DIRECT FETCH (Bypassing SDK to debug)
+        const apiKey = process.env.GEMINI_API_KEY;
+        // Using 'gemini-1.5-flash-latest' to verify if this key supports it.
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-        // 3. Generate
-        console.log('[Debug] Sending Text-Only request to Gemini Pro...');
-        const result = await model.generateContent(inputParts);
-        const response = await result.response;
-        let optimizedTitle = response.text().trim().replace(/^"|"$/g, '');
+        console.log('[Direct Fetch] Sending request to:', url.replace(apiKey, 'HIDDEN_KEY'));
+
+        const payload = {
+            contents: [{
+                parts: [{ text: promptText }]
+            }]
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const debugStatus = response.status;
+        const debugText = await response.text();
+
+        console.log(`[Direct Fetch] Status: ${debugStatus}`);
+        console.log(`[Direct Fetch] Response: ${debugText.slice(0, 500)}`);
+
+        if (!response.ok) {
+            let errorMsg = `Google API Error: ${debugStatus}`;
+            try {
+                const errJson = JSON.parse(debugText);
+                if (errJson.error && errJson.error.message) {
+                    errorMsg += ` - ${errJson.error.message}`;
+                } else {
+                    errorMsg += ` - ${debugText}`;
+                }
+            } catch (e) {
+                errorMsg += ` - ${debugText}`;
+            }
+            throw new Error(errorMsg);
+        }
+
+        const data = JSON.parse(debugText);
+        let optimizedTitle = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        optimizedTitle = optimizedTitle.trim().replace(/^"|"$/g, '');
 
         if (optimizedTitle.length > 80) {
             optimizedTitle = optimizedTitle.substring(0, 80);
@@ -97,13 +126,12 @@ export async function POST(request: NextRequest) {
         await supabase.rpc('increment_usage', { user_id: user.id });
 
         return NextResponse.json({ optimizedTitle });
+
     } catch (error: any) {
         console.error('Gemini Optimization Error:', error);
-        const apiKeyHint = process.env.GEMINI_API_KEY ? `(Key ends in ...${process.env.GEMINI_API_KEY.slice(-4)})` : '(No Key Configured)';
 
-        let detailedError = error.message || 'Unknown Error';
-        if (detailedError.includes('403')) detailedError += ' - Check API Key permissions or quota.';
-        if (detailedError.includes('404')) detailedError += ' - Model not found. API Key might lack access to Gemini Pro.';
+        const apiKeyHint = process.env.GEMINI_API_KEY ? `(Key ends in ...${process.env.GEMINI_API_KEY.slice(-4)})` : '(No Key Configured)';
+        let detailedError = error.message;
 
         return NextResponse.json({
             error: `Gemini Error: ${detailedError} ${apiKeyHint}`
