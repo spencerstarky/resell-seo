@@ -99,6 +99,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ optimizedTitle });
     } catch (error: any) {
         console.error('Gemini Optimization Error:', error);
-        return NextResponse.json({ error: `Failed to optimize title: ${error.message}` }, { status: 500 });
+        const apiKeyHint = process.env.GEMINI_API_KEY ? `(Key ends in ...${process.env.GEMINI_API_KEY.slice(-4)})` : '(No Key Configured)';
+
+        let detailedError = error.message || 'Unknown Error';
+        if (detailedError.includes('403')) detailedError += ' - Check API Key permissions or quota.';
+        if (detailedError.includes('404')) detailedError += ' - Model not found. API Key might lack access to Gemini Pro.';
+
+        return NextResponse.json({
+            error: `Gemini Error: ${detailedError} ${apiKeyHint}`
+        }, { status: 500 });
     }
 }
