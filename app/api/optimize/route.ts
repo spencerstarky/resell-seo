@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
         const apiKey = process.env.GEMINI_API_KEY;
 
         // List of models to try in order of preference
+        // We prioritize Flash (multimodal) then fallback to Pro (text-only)
         const candidateModels = [
             'gemini-1.5-flash',
             'gemini-1.5-flash-001',
@@ -85,6 +86,29 @@ export async function POST(request: NextRequest) {
             'gemini-1.0-pro', // Stable 1.0 Pro
             'gemini-pro'      // Alias
         ];
+
+        // Prepare Image Data (Level 3)
+        let imagePart: any = null;
+        if (imageUrl) {
+            try {
+                const imgRes = await fetch(imageUrl);
+                if (imgRes.ok) {
+                    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+                    const imgBuffer = await imgRes.arrayBuffer();
+                    const base64Image = Buffer.from(imgBuffer).toString('base64');
+                    console.log(`[Level 3] Image fetched. Type: ${contentType}, Size: ${imgBuffer.byteLength}`);
+
+                    imagePart = {
+                        inline_data: {
+                            mime_type: contentType,
+                            data: base64Image
+                        }
+                    };
+                }
+            } catch (err) {
+                console.warn('[Level 3] Failed to fetch image:', err);
+            }
+        }
 
         let optimizedTitle = '';
         let lastError = '';
@@ -94,10 +118,16 @@ export async function POST(request: NextRequest) {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
                 console.log(`[Attempt] Trying model: ${modelName}`);
 
+                // Construct Payload
+                const parts: any[] = [{ text: promptText }];
+
+                // Add image ONLY if model supports it (Flash) and image exists
+                if (imagePart && modelName.includes('flash')) {
+                    parts.push(imagePart);
+                }
+
                 const payload = {
-                    contents: [{
-                        parts: [{ text: promptText }]
-                    }]
+                    contents: [{ parts }]
                 };
 
                 const response = await fetch(url, {
@@ -108,12 +138,33 @@ export async function POST(request: NextRequest) {
 
                 if (!response.ok) {
                     const errText = await response.text();
-                    // If 404, specific model not found -> continue to next
+
+                    // If 404, specific model not found -> continue
                     if (response.status === 404) {
                         console.warn(`[Skip] Model ${modelName} not found (404).`);
                         lastError = `Model ${modelName} 404`;
                         continue;
                     }
+
+                    // If 400/500 on a Flash model with Image, maybe image format is bad?
+                    // Retry SAME model without image if it was a multimodal attempt
+                    if (parts.length > 1 && (response.status === 400 || response.status === 500)) {
+                        console.warn(`[Retry] Model ${modelName} failed with image. Retrying Text-Only...`);
+                        const textPayload = { contents: [{ parts: [{ text: promptText }] }] };
+                        const textResponse = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(textPayload)
+                        });
+
+                        if (textResponse.ok) {
+                            const data = await textResponse.json();
+                            optimizedTitle = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                            console.log(`[Success] Generated with ${modelName} (Text-Only Fallback)`);
+                            break;
+                        }
+                    }
+
                     throw new Error(`${response.status} - ${errText}`);
                 }
 
@@ -126,13 +177,11 @@ export async function POST(request: NextRequest) {
             } catch (err: any) {
                 console.warn(`[Fail] Model ${modelName} failed: ${err.message}`);
                 lastError = err.message;
-                // If it's a 403 or 400 (Auth/Quota), trying other models won't help, usually. 
-                // But we continue just in case it's a model-specific permission.
             }
         }
 
         if (!optimizedTitle) {
-            throw new Error(`All models failed. Last error: ${lastError}`);
+            throw new Error(`All models failed. Last error: ${lastError}. Ensure API Key has access to 'Generative Language API'.`);
         }
 
         optimizedTitle = optimizedTitle.trim().replace(/^"|"$/g, '');
