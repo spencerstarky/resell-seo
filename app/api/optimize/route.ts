@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. Prepare Multimodal Input (Level 3 - Vision)
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+        // Switch to specific version to avoid alias issues
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-001' });
         const inputParts: any[] = [];
 
         // Prompt Text
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 3. Generate with Fallback Strategy
-        console.log('[Level 3] Sending request to Gemini...');
+        console.log('[Level 3] Sending request to Gemini (gemini-1.5-flash-001)...');
         let result;
 
         try {
@@ -119,13 +120,20 @@ export async function POST(request: NextRequest) {
         } catch (visionError: any) {
             console.error('[Level 3] Vision Model Failed:', visionError.message);
 
-            // Fallback: If image caused issues, try text-only
-            if (inputParts.length > 1) {
-                console.warn('[Level 3] Retrying with Text-Only (Level 2)...');
-                const textOnlyParts = [inputParts[0]]; // Keep prompt, drop image
+            // Check if it's a 404 (Model Not Found) -> Fallback to gemini-pro (Text Only)
+            if (visionError.message.includes('404') || visionError.message.includes('not found')) {
+                console.warn('[Level 3] Flash model not found, falling back to gemini-pro (Text Only)...');
+                const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-pro' });
+                const textOnlyParts = [{ text: promptText }];
+                result = await fallbackModel.generateContent(textOnlyParts);
+            }
+            // Else if it's just image issue, try Flash text-only
+            else if (inputParts.length > 1) {
+                console.warn('[Level 3] Retrying with Flash Text-Only...');
+                const textOnlyParts = [{ text: promptText }];
                 result = await model.generateContent(textOnlyParts);
             } else {
-                throw visionError; // It wasn't the image, it was something else
+                throw visionError;
             }
         }
 
