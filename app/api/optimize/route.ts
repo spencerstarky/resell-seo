@@ -110,9 +110,25 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // 3. Generate
+        // 3. Generate with Fallback Strategy
         console.log('[Level 3] Sending request to Gemini...');
-        const result = await model.generateContent(inputParts);
+        let result;
+
+        try {
+            result = await model.generateContent(inputParts);
+        } catch (visionError: any) {
+            console.error('[Level 3] Vision Model Failed:', visionError.message);
+
+            // Fallback: If image caused issues, try text-only
+            if (inputParts.length > 1) {
+                console.warn('[Level 3] Retrying with Text-Only (Level 2)...');
+                const textOnlyParts = [inputParts[0]]; // Keep prompt, drop image
+                result = await model.generateContent(textOnlyParts);
+            } else {
+                throw visionError; // It wasn't the image, it was something else
+            }
+        }
+
         const response = await result.response;
         let optimizedTitle = response.text().trim().replace(/^"|"$/g, '');
 
