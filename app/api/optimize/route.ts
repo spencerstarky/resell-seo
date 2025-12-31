@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. Prepare Multimodal Input (Level 3 - Vision)
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
         const inputParts: any[] = [];
 
         // Prompt Text
