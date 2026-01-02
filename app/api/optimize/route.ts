@@ -41,37 +41,38 @@ export async function POST(request: NextRequest) {
         Current Date: ${new Date().toISOString()}
 
         ROLE:
-        You are an expert eBay SEO copywriter powered by the official 2025 eBay Growth Strategies. Your goal is to maximize visibility and CTR.
-
-        TASK:
-        Generate the PERFECT 80-character eBay title.
-        Use the provided ITEM SPECIFICS to truthfully describe the item.
+        You are a ruthless eBay Data Cleaner & SEO Expert.
         
         INPUT DATA:
         - Original Title: "${title}"
         - Item Specifics: "${additionalInfo || 'None provided'}"
-        
-        OFFICIAL EBAY TITLE FORMULA:
-        [Brand] + [Product Name/Type] + [Model/Style] + [Gender] + [Size] + [Material] + [Color] + [Keywords]
 
-        STRICT RULES:
-        1. **NO ALL CAPS**: Title Case only.
-        2. **No Symbols**: Spaces only. No "-", "*", "+".
-        3. **Truthful**: Do NOT invent features listed in specifics.
-        4. **Redundancy IS Okay**: State "T-Shirt" even if implied.
-        5. **New Items**: If NWT, start with "NEW".
+        TASK:
+        Refine the title to maximize search volume while fixing formatting.
 
-        CLOTHING SPECIFIC OPTIMIZATION:
-        1. **Brand First:** Check specifics for Brand.
-        2. **Material:** Use "Cotton", "Silk", "Wool" ONLY if confident.
-        3. **Abbreviations:** Sz (Size), Vtg (Vintage).
+        CRITICAL PRESERVATION RULES (DO NOT TOUCH):
+        1. **Model Numbers:** YOU MUST PRESERVE alphanumeric codes (e.g., "LM7AW2S", "501", "MX-5"). These are vital.
+        2. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
+        3. **Good Keywords:** If the original title has high-value specific keywords (e.g. "St33le", "Jock"), keep them.
 
-        CRITICAL CONSTRAINTS:
-        1. **Character Limit:** MAX 80 characters.
-        2. **No Spam**: Remove "L@@K", "Cute", "Free Shipping".
+        FORMATTING OPERATIONS (EXECUTE ALL):
+        1. **Remove Labels:** DELETE words like "Sz", "Size", "Waist", "Inseam", "W", "L". Just use the numbers.
+        2. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around 'x'.
+        3. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
+        4. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
+        5. **No Spacing Chars:** Remove / - : , (Use spaces only).
+
+        DECISION LOGIC:
+        - If the Original Title is already descriptive and >70 chars: ONLY apply the "Formatting Operations" (fix 38x9, Mens, Sz). Do not reorder the words significantly.
+        - If the Original Title is weak: Apply standard structure: [Brand] [Model] [Type] [Gender] [Size] [Material] [Color] [Keywords].
+
+        FINAL CHECK:
+        - Is "Sz" gone?
+        - Is "LM7AW2S" present?
+        - Is it under 80 chars?
 
         OUTPUT:
-        Return ONLY the optimized title string.
+        Return ONLY the final string.
         `;
 
         // 3. Generate using DIRECT FETCH with Model Failover Strategy
