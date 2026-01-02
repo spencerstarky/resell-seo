@@ -78,23 +78,25 @@ export async function POST(request: NextRequest) {
         3. **Good Keywords:** If the original title has high-value specific keywords (e.g. "St33le", "Jock"), keep them.
 
         FORMATTING OPERATIONS (EXECUTE ALL):
-        1. **Remove Labels:** DELETE words like "Sz", "Size", "Waist", "Inseam", "W", "L". Just use the numbers.
-        2. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around 'x'.
+        1. **Remove Labels:** DELETE words like "Sz", "Size", "Waist", "W", "L". 
+           - **EXCEPTION:** For Shorts/Inseams, use the inch symbol " (e.g. 3" or 5"). IF clarity is needed, use "3 Inseam".
+           - **PANTS:** Use compact "34x30".
+        2. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around "x".
         3. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
         4. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
         5. **No Spacing Chars:** Remove / - : , (Use spaces only).
 
         DECISION LOGIC:
-        - If the Original Title is already descriptive and >70 chars: ONLY apply the "Formatting Operations" (fix 38x9, Mens, Sz). Do not reorder the words significantly.
-        - If the Original Title is weak: Apply standard structure: [Brand] [Model] [Type] [Gender] [Size] [Material] [Color] [Keywords].
+        - If the Original Title is already descriptive and > 70 chars: ONLY apply the "Formatting Operations"(fix 38x9, Mens, Sz).Do not reorder the words significantly.
+        - If the Original Title is weak: Apply standard structure: [Brand][Model][Type][Gender][Size][Material][Color][Keywords].
 
         FINAL CHECK:
-        - Is "Sz" gone?
-        - Is "LM7AW2S" present?
-        - Is it under 80 chars?
+        - Is "Sz" gone ?
+            - Is "LM7AW2S" present ?
+                - Is it under 80 chars ?
 
-        OUTPUT:
-        Return ONLY the final string.
+                    OUTPUT :
+                    Return ONLY the final string.
         `;
 
         // 3. Generate using DIRECT FETCH with Model Failover Strategy
@@ -120,7 +122,7 @@ export async function POST(request: NextRequest) {
                     const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
                     const imgBuffer = await imgRes.arrayBuffer();
                     const base64Image = Buffer.from(imgBuffer).toString('base64');
-                    console.log(`[Level 3] Image fetched. Type: ${contentType}, Size: ${imgBuffer.byteLength}`);
+                    console.log(`[Level 3] Image fetched.Type: ${contentType}, Size: ${imgBuffer.byteLength} `);
 
                     imagePart = {
                         inline_data: {
