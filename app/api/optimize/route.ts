@@ -24,6 +24,28 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // --- SAFEGUARD: Daily Limit ---
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of day
+
+        // Count listings updated today (Approximate Daily Limit)
+        const { count: dailyCount } = await supabase
+            .from('listings')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            // Check for activity today. 
+            // Note: This tracks database activity. Pure API spam without DB saves requires a dedicated log table.
+            .gte('updated_at', today.toISOString());
+
+        if (dailyCount !== null && dailyCount >= 1000) {
+            console.warn(`[Limit Reached] User ${user.id} hit daily limit of 1000.`);
+            return NextResponse.json(
+                { error: 'Daily optimization limit reached (1000). Please contact support.' },
+                { status: 429 }
+            );
+        }
+        // ------------------------------
+
         // 1. Fetch Item Specifics from eBay (Level 2)
         let additionalInfo = '';
         if (itemId) {
