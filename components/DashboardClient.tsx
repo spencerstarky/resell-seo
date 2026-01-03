@@ -322,7 +322,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         <ListingEditor
             listings={listings}
             userId={userId}
-            autoSaveOnMount={false}
+            autoSaveOnMount={true}
             onClear={handleClearListings}
         />
     );
