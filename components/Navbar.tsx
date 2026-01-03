@@ -1,8 +1,30 @@
 'use client';
 
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+import { useState, useEffect } from 'react';
 
 export default function Navbar() {
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        // Check initial user
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        getUser();
+
+        // Listen for changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (_event, session) => {
+                setUser(session?.user ?? null);
+            }
+        );
+
+        return () => subscription.unsubscribe();
+    }, []);
+
     return (
         <nav style={{
             display: 'flex',
@@ -24,7 +46,7 @@ export default function Navbar() {
                 </Link>
             </div>
 
-            {/* Desktop Links (Hidden on mobile for now, or just simple) */}
+            {/* Desktop Links */}
             <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                 <Link href="#features" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Features
@@ -42,12 +64,20 @@ export default function Navbar() {
 
             {/* Auth Buttons */}
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <Link href="/login" style={{ color: 'var(--color-text-main)', fontSize: '0.9rem', fontWeight: 500 }}>
-                    Log in
-                </Link>
-                <Link href="/login" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
-                    Get Started
-                </Link>
+                {user ? (
+                    <Link href="/dashboard" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
+                        Go to Dashboard
+                    </Link>
+                ) : (
+                    <>
+                        <Link href="/login" style={{ color: 'var(--color-text-main)', fontSize: '0.9rem', fontWeight: 500 }}>
+                            Log in
+                        </Link>
+                        <Link href="/login" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
+                            Get Started
+                        </Link>
+                    </>
+                )}
             </div>
         </nav>
     );
