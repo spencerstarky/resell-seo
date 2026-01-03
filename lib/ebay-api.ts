@@ -54,22 +54,30 @@ export async function updateEbayListingTitle(userId: string, itemId: string, new
         ? 'https://api.sandbox.ebay.com/ws/api.dll'
         : 'https://api.ebay.com/ws/api.dll';
 
+    // Escape special XML characters
+    const escapedTitle = newTitle.slice(0, 80)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+
     const xmlBody = `<?xml version="1.0" encoding="utf-8"?>
-<ReviseFixedPriceItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+<ReviseItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
   <ErrorLanguage>en_US</ErrorLanguage>
   <WarningLevel>High</WarningLevel>
   <Item>
     <ItemID>${itemId}</ItemID>
-    <Title>${newTitle.slice(0, 80)}</Title>
+    <Title>${escapedTitle}</Title>
   </Item>
-</ReviseFixedPriceItemRequest>`;
+</ReviseItemRequest>`;
 
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
             'X-EBAY-API-SITEID': '0', // US
             'X-EBAY-API-COMPATIBILITY-LEVEL': '1111',
-            'X-EBAY-API-CALL-NAME': 'ReviseFixedPriceItem',
+            'X-EBAY-API-CALL-NAME': 'ReviseItem',
             'X-EBAY-API-IAF-TOKEN': accessToken,
             'Content-Type': 'text/xml',
         },
