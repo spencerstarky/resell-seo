@@ -18,7 +18,12 @@ export async function POST(request: Request) {
             .eq('id', user.id)
             .single();
 
-        const tier = profile?.plan_tier || 'free';
+        let tier = profile?.plan_tier || 'free';
+
+        // Admin Override for spencer@resellseo.com
+        if (user.email === 'spencer@resellseo.com') {
+            tier = 'pro';
+        }
 
         if (tier !== 'pro') {
             return NextResponse.json(

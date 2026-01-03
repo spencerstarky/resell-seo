@@ -47,6 +47,7 @@ export default async function DashboardPage() {
                 userProfile={profile}
                 initialListings={savedListings || []}
                 userId={user.id}
+                userEmail={user.email}
             />
         </div>
     );

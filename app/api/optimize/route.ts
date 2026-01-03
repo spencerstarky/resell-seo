@@ -32,7 +32,12 @@ export async function POST(request: NextRequest) {
             .eq('id', user.id)
             .single();
 
-        const tier = profile?.plan_tier || 'free';
+        let tier = profile?.plan_tier || 'free';
+
+        // Admin Override for spencer@resellseo.com
+        if (user.email === 'spencer@resellseo.com') {
+            tier = 'pro';
+        }
 
         // Define Limits
         let limit = 25; // Free: 25 Lifetime
