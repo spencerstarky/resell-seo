@@ -40,6 +40,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         original_title: row.title || row.Title || '',
                         optimized_title: null,
                         source: 'csv',
+                        ebay_item_id: row['Item ID'] || row['ItemID'] || row['item_id'] || row['ebay_item_id'] || null, // Capture eBay ID if present
                     }));
 
                 setListings(parsedListings);
