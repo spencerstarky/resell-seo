@@ -238,14 +238,30 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         </div>
                     )}
 
-                    <button
-                        onClick={() => setMode('upload')}
-                        className="btn btn-secondary"
-                        style={{ width: '100%' }}
-                    >
-                        <Upload size={16} style={{ marginRight: '0.5rem' }} />
-                        Upload CSV File
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                        <button
+                            onClick={async () => {
+                                if (confirm('Are you sure you want to disconnect your eBay account?')) {
+                                    await fetch('/api/ebay/disconnect', { method: 'POST' });
+                                    window.location.reload();
+                                }
+                            }}
+                            className="btn btn-secondary"
+                            style={{ flex: 1, borderColor: '#ff4444', color: '#ff4444' }}
+                        >
+                            <Trash2 size={16} style={{ marginRight: '0.5rem' }} />
+                            Disconnect
+                        </button>
+
+                        <button
+                            onClick={() => setMode('upload')}
+                            className="btn btn-secondary"
+                            style={{ flex: 1 }}
+                        >
+                            <Upload size={16} style={{ marginRight: '0.5rem' }} />
+                            Upload CSV
+                        </button>
+                    </div>
                 </div>
             </div>
         );
