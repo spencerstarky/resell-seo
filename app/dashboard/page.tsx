@@ -54,10 +54,9 @@ export default async function DashboardPage() {
     }
 
     const query = supabase
-        .from('listings')
+        .from('optimization_history')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .in('status', ['optimized', 'uploaded']);
+        .eq('user_id', user.id);
 
     if (isMonthly) {
         const startOfMonth = new Date();
