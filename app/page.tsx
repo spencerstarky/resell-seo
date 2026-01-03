@@ -137,42 +137,61 @@ export default function Home() {
         <div className="container">
           <h2 className="section-title">Simple, Transparent <span className="text-gradient">Pricing</span></h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 400px))', gap: '2rem', justifyContent: 'center' }}>
-            {/* Free Tier */}
-            <div className="card glass" style={{ padding: '3rem 2.5rem', position: 'relative' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Starter</h3>
-              <div style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '2rem' }}>$0 <span style={{ fontSize: '1rem', color: 'var(--color-text-dim)', fontWeight: 400 }}>/ month</span></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', justifyContent: 'center' }}>
+
+            {/* Tier 1: Free */}
+            <div className="card glass" style={{ padding: '3rem 2rem', position: 'relative' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Free</h3>
+              <div style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '2rem' }}>$0 <span style={{ fontSize: '1rem', color: 'var(--color-text-dim)', fontWeight: 400 }}>/ forever</span></div>
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Perfect for testing output quality risk-free.</p>
 
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '3rem' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> 50 Optimizations / Month</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> CSV Upload Support</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Standard AI Model</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', opacity: 0.5 }}><Check size={18} /> Priority Support</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> 25 Total Rewrites</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> CSV Upload & Download</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Manual Workflow</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', opacity: 0.5 }}><ShieldCheck size={18} /> No eBay Connection</li>
               </ul>
 
-              <Link href="/login" className="btn btn-secondary" style={{ width: '100%' }}>Get Started</Link>
+              <Link href="/login" className="btn btn-secondary" style={{ width: '100%' }}>Try ResellSEO Free</Link>
             </div>
 
-            {/* Pro Tier */}
+            {/* Tier 2: Starter */}
+            <div className="card glass" style={{ padding: '3rem 2rem', position: 'relative' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Starter</h3>
+              <div style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '2rem' }}>$19 <span style={{ fontSize: '1rem', color: 'var(--color-text-dim)', fontWeight: 400 }}>/ month</span></div>
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Manual but powerful. Best for small batches.</p>
+
+              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '3rem' }}>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> 400 Rewrites / Month</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Bulk CSV (50 items/batch)</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Manual Workflow</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem', opacity: 0.5 }}><ShieldCheck size={18} /> No eBay Connection</li>
+              </ul>
+
+              <Link href="/login" className="btn btn-secondary" style={{ width: '100%', background: 'rgba(255,255,255,0.1)' }}>Get Starter</Link>
+            </div>
+
+            {/* Tier 3: Pro */}
             <div className="card glass" style={{
-              padding: '3rem 2.5rem',
+              padding: '3rem 2rem',
               border: '2px solid var(--color-primary)',
               position: 'relative',
               boxShadow: '0 0 40px rgba(156, 85, 213, 0.15)'
             }}>
-              <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--color-primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>MOST POPULAR</div>
+              <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--color-primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>AUTOMATION</div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Pro</h3>
-              <div style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '2rem' }}>$19 <span style={{ fontSize: '1rem', color: 'var(--color-text-dim)', fontWeight: 400 }}>/ month</span></div>
+              <div style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '2rem' }}>$59 <span style={{ fontSize: '1rem', color: 'var(--color-text-dim)', fontWeight: 400 }}>/ month</span></div>
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>No CSVs. No copy/paste. Full automation.</p>
 
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '3rem' }}>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Unlimited Optimizations</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Priority API Access (Faster)</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Premium "Big Brain" Models</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Priority Email Support</li>
-                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Direct eBay Push (Coming Soon)</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> 1,200 Rewrites / Month</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Direct eBay Sync</b></li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> Auto Pull & Push</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> No Batch Limits</li>
+                <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Priority Processing</li>
               </ul>
 
-              <Link href="/login" className="btn btn-primary" style={{ width: '100%', boxShadow: '0 4px 20px rgba(156, 85, 213, 0.4)' }}>Upgrade to Pro</Link>
+              <Link href="/login" className="btn btn-primary" style={{ width: '100%', boxShadow: '0 4px 20px rgba(156, 85, 213, 0.4)' }}>Go Pro</Link>
             </div>
           </div>
         </div>

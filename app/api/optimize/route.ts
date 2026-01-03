@@ -24,23 +24,50 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // --- SAFEGUARD: Daily Limit ---
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Start of day
+        // --- SAFEGUARD: Tier Limits ---
+        // 1. Get User Profile for Tier
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan_tier')
+            .eq('id', user.id)
+            .single();
 
-        // Count listings updated today (Approximate Daily Limit)
-        const { count: dailyCount } = await supabase
+        const tier = profile?.plan_tier || 'free';
+
+        // Define Limits
+        let limit = 25; // Free: 25 Lifetime
+        let isMonthly = false;
+
+        if (tier === 'starter') {
+            limit = 400;
+            isMonthly = true;
+        } else if (tier === 'pro') {
+            limit = 1200;
+            isMonthly = true;
+        }
+
+        // 2. Count Usage
+        const query = supabase
             .from('listings')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
-            // Check for activity today. 
-            // Note: This tracks database activity. Pure API spam without DB saves requires a dedicated log table.
-            .gte('updated_at', today.toISOString());
+            .in('status', ['optimized', 'uploaded']); // Count all optimized work
 
-        if (dailyCount !== null && dailyCount >= 1000) {
-            console.warn(`[Limit Reached] User ${user.id} hit daily limit of 1000.`);
+        if (isMonthly) {
+            // Reset on 1st of month
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+            query.gte('updated_at', startOfMonth.toISOString());
+        }
+
+        const { count: usageCount } = await query;
+
+        if (usageCount !== null && usageCount >= limit) {
+            console.warn(`[Limit Reached] User ${user.id} (${tier}) hit limit: ${usageCount}/${limit}`);
+            const period = isMonthly ? 'this month' : 'total';
             return NextResponse.json(
-                { error: 'Daily optimization limit reached (1000). Please contact support.' },
+                { error: `You have reached your ${tier} plan limit of ${limit} rewrites ${period}. Please upgrade to continue.` },
                 { status: 429 }
             );
         }

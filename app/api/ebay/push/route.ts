@@ -11,6 +11,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // --- GATE: Pro Only ---
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan_tier')
+            .eq('id', user.id)
+            .single();
+
+        const tier = profile?.plan_tier || 'free';
+
+        if (tier !== 'pro') {
+            return NextResponse.json(
+                { error: 'Direct eBay Sync is a Pro feature. Please upgrade to unlock.' },
+                { status: 403 }
+            );
+        }
+        // ----------------------
+
         const { listingId } = await request.json();
 
         if (!listingId) {

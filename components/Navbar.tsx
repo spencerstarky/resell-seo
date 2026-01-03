@@ -29,11 +29,14 @@ export default function Navbar() {
                 <Link href="#features" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Features
                 </Link>
-                <Link href="/blog" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                    Blog
+                <Link href="#pricing" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                    Pricing
                 </Link>
                 <Link href="#how-it-works" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     How it Works
+                </Link>
+                <Link href="/blog" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                    Blog
                 </Link>
             </div>
 
