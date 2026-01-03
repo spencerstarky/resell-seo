@@ -20,8 +20,8 @@ export async function POST(request: Request) {
 
         let tier = profile?.plan_tier || 'free';
 
-        // Admin Override for spencer@resellseo.com
-        if (user.email === 'spencer@resellseo.com') {
+        // Admin Override for resellseo@gmail.com
+        if (user.email === 'resellseo@gmail.com') {
             tier = 'pro';
         }
 

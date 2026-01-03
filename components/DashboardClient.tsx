@@ -16,7 +16,7 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialListings = [], userId, userEmail }: DashboardClientProps) {
-    const isPro = userProfile?.plan_tier === 'pro' || userEmail === 'spencer@resellseo.com';
+    const isPro = userProfile?.plan_tier === 'pro' || userEmail === 'resellseo@gmail.com';
 
     const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>(
         initialListings.length > 0 ? 'upload' : (initialIsConnected && isPro ? 'ebay' : 'empty')
