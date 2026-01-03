@@ -95,36 +95,45 @@ export default function Home() {
       {/* Features Section */}
       <section id="features" className="section-padding">
         <div className="container">
-          <h2 className="section-title">Sell <span className="text-gradient">Smarter</span>, Not Harder</h2>
+          <h2 className="section-title">Optimize eBay Titles. <span className="text-gradient">Sell More.</span> Faster.</h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+
+            {/* Card 1: Visibility */}
             <div className="card glass animate-fade-in delay-100" style={{ padding: '2.5rem' }}>
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
                 <Sparkles size={24} color="var(--color-primary)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Maximize Search Visibility</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Rank Where Buyers Are Searching</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Stop guessing keywords. Get professionally optimized titles that capture more buyers in seconds. We handle the tricky details like sizing and abbreviations automatically.
+                Stop guessing keywords. ResellSEO rewrites your titles using proven eBay search patterns so your listings surface more often and attract the right buyers faster.
               </p>
             </div>
 
-            <div className="card glass animate-fade-in delay-200" style={{ padding: '2.5rem' }}>
+            {/* Card 2: Speed (Visual Anchor) */}
+            <div className="card glass animate-fade-in delay-200" style={{
+              padding: '2.5rem',
+              border: '1px solid var(--color-secondary)',
+              boxShadow: '0 0 30px rgba(78, 205, 196, 0.15)', // Highlight effect
+              transform: 'scale(1.02)' // Subtle pop
+            }}>
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
                 <Zap size={24} color="var(--color-secondary)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Fix 100 Listings in Minutes</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Update 100 Listings in Minutes</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Watch as hours of manual typing turns into a few clicks. Upload a CSV or connect directly to eBay to bulk revise your entire store before your morning coffee is finished.
+                Replace hours of manual edits with a few clicks. Upload a CSV or connect directly to eBay and bulk optimize your titles before your coffee gets cold.
               </p>
             </div>
 
+            {/* Card 3: Safety */}
             <div className="card glass animate-fade-in delay-300" style={{ padding: '2.5rem' }}>
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
                 <ShieldCheck size={24} color="var(--color-accent)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Safe & eBay Compliant</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Built for eBay. Safe by Design.</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                We strictly follow eBay's 2025 formatting rules—removing spammy words and ensuring every title is clean, professional, and ready to sell. Your data and SKUs are always safe.
+                Every title follows eBay’s formatting rules. No keyword stuffing, no spammy phrases. Your listings stay compliant, professional, and ready to sell.
               </p>
             </div>
           </div>
