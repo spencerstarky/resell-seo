@@ -41,11 +41,14 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
             header: true,
             complete: (results) => {
                 const parsedListings = results.data
-                    .filter((row: any) => row.title && row.title.trim())
+                    .filter((row: any) => {
+                        const t = row.title || row.Title || row['Item Name'] || row['Item Name'] || '';
+                        return t && t.trim().length > 0;
+                    })
                     .map((row: any, index: number) => ({
                         id: crypto.randomUUID(), // Generate UUID for new CSV item
-                        title: row.title || row.Title || '',
-                        original_title: row.title || row.Title || '',
+                        title: row.title || row.Title || row['Item Name'] || '',
+                        original_title: row.title || row.Title || row['Item Name'] || '',
                         optimized_title: null,
                         source: 'csv',
                         ebay_item_id: row['Item ID'] || row['ItemID'] || row['item_id'] || row['ebay_item_id'] || null, // Capture eBay ID if present
