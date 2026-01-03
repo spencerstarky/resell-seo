@@ -96,26 +96,26 @@ export default function Home() {
       {/* Features Section */}
       <section id="features" className="section-padding">
         <div className="container">
-          <h2 className="section-title">Built for the <span className="text-gradient">Next Generation</span> of Sellers</h2>
+          <h2 className="section-title">Sell <span className="text-gradient">Smarter</span>, Not Harder</h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
             <div className="card glass animate-fade-in delay-100" style={{ padding: '2.5rem' }}>
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
-                <Zap size={24} color="var(--color-primary)" />
+                <Sparkles size={24} color="var(--color-primary)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Instant Bulk Rewrite</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Your Expert AI Copywriter</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Upload 100 listings and watch the AI optimize them in seconds. No more manual keyword research or typing.
+                Stop guessing keywords. Our AI analyzes your item and writes the perfect, search-optimized title in seconds. It even handles tricky details like sizing and abbreviations automatically.
               </p>
             </div>
 
             <div className="card glass animate-fade-in delay-200" style={{ padding: '2.5rem' }}>
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
-                <BarChart3 size={24} color="var(--color-secondary)" />
+                <Zap size={24} color="var(--color-secondary)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>SEO Algorithm Dominance</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Fix 100 Listings in Minutes</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Our models are trained on eBay's "Cassini" search engine logic. We target the keywords that buyers are actually typing.
+                Watch as hours of manual typing turns into a few clicks. Upload a CSV or connect directly to eBay to bulk revise your entire store before your morning coffee is finished.
               </p>
             </div>
 
@@ -123,9 +123,9 @@ export default function Home() {
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
                 <ShieldCheck size={24} color="var(--color-accent)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Risk-Free Imports</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Safe & eBay Compliant</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                We preserve every field in your original CSV. Export your data knowing your prices, SKUs, and Item IDs are 100% safe.
+                We strictly follow eBay's 2025 formatting rules—removing spammy words and ensuring every title is clean, professional, and ready to sell. Your data and SKUs are always safe.
               </p>
             </div>
           </div>
