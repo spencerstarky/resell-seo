@@ -47,6 +47,7 @@ function EbayStatus() {
 }
 
 export default function AccountClient({ user, profile, hasEbayConnected: initialHasEbayConnected }: AccountClientProps) {
+    const isPro = profile?.plan_tier === 'pro' || user?.email === 'resellseo@gmail.com';
     const router = useRouter();
     const [hasEbayConnected, setHasEbayConnected] = useState(initialHasEbayConnected);
     const [progressWidth, setProgressWidth] = useState(0);
@@ -131,57 +132,29 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                     </div>
                 </section>
 
-                {/* Usage Section */}
-                <section className="card glass" style={{ padding: '2rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <Zap size={20} style={{ color: 'var(--color-accent)' }} />
-                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Trial Credits</h2>
+                {/* Pro Call to Action - Standalone */}
+                {!isPro && (
+                    <section className="card glass" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
+                        <div style={{
+                            padding: '2rem',
+                            background: 'linear-gradient(135deg, rgba(156, 85, 213, 0.2), rgba(121, 40, 202, 0.2))',
+                            border: '1px solid var(--color-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '1rem',
+                            borderRadius: 'var(--radius-sm)'
+                        }}>
+                            <div>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>Upgrade to ResellSEO Pro</h3>
+                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>Unlimited listings, priority support, and expert SEO keywords.</p>
+                            </div>
+                            <button className="btn btn-primary" style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(156, 85, 213, 0.4)' }}>
+                                Go Pro Only $59/mo
+                            </button>
                         </div>
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: (profile?.usage_count || 0) >= 40 ? '#ff4444' : 'var(--color-primary)' }}>
-                            {50 - (profile?.usage_count || 0)} Credits Remaining
-                        </span>
-                    </div>
-
-                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                            <span style={{ color: 'var(--color-text-muted)' }}>Free optimizations used</span>
-                            <span style={{ fontWeight: 600 }}>{profile?.usage_count || 0} / 50</span>
-                        </div>
-                        <div style={{ width: '100%', height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <div style={{
-                                width: `${progressWidth}%`,
-                                height: '100%',
-                                background: (profile?.usage_count || 0) >= 40 ? 'linear-gradient(90deg, #ff4444, #ff8888)' : 'var(--gradient-primary)',
-                                transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }} />
-                        </div>
-                        <p style={{ marginTop: '1.25rem', fontSize: '0.9rem', lineHeight: '1.5', color: 'var(--color-text-dim)' }}>
-                            You are currently on the <strong style={{ color: 'white' }}>Free Starter Plan</strong>. Upgrade today to unlock unlimited bulk optimizations and priority AI processing.
-                        </p>
-                    </div>
-
-                    {/* Pro Call to Action */}
-                    <div style={{
-                        marginTop: '1.5rem',
-                        padding: '1.5rem',
-                        borderRadius: 'var(--radius-sm)',
-                        background: 'linear-gradient(135deg, rgba(156, 85, 213, 0.2), rgba(121, 40, 202, 0.2))',
-                        border: '1px solid var(--color-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '1rem'
-                    }}>
-                        <div>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>Upgrade to ResellSEO Pro</h3>
-                            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>Unlimited listings, priority support, and expert SEO keywords.</p>
-                        </div>
-                        <button className="btn btn-primary" style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(156, 85, 213, 0.4)' }}>
-                            Go Pro Only $19/mo
-                        </button>
-                    </div>
-                </section>
+                    </section>
+                )}
 
                 {/* Connections Section */}
                 <section className="card glass" style={{ padding: '2rem' }}>
@@ -252,6 +225,6 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                     </div>
                 </section>
             </div>
-        </div>
+        </div >
     );
 }
