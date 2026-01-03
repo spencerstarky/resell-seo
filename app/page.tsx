@@ -30,7 +30,6 @@ export default function Home() {
         }} />
 
         <div className="container animate-fade-in">
-          <div className="badge">AI-Powered Optimization</div>
           <h1 style={{
             fontSize: 'max(4rem, 5vw)',
             fontWeight: 900,
@@ -50,15 +49,15 @@ export default function Home() {
             marginInline: 'auto',
             lineHeight: 1.6
           }}>
-            ResellSEO uses advanced AI to rewrite your eBay titles for maximum visibility and clicks. Reach the top of the search results instantly.
+            Rewrite and optimize your eBay titles in bulk so your listings are clearer, cleaner, and easier for buyers to find.
           </p>
 
-          <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/login" className="btn btn-primary" style={{ fontSize: '1.1rem', padding: '1.25rem 2.5rem', boxShadow: '0 0 40px rgba(156, 85, 213, 0.4)' }}>
-              Launch for Free <ArrowRight size={20} />
+              Start Free <ArrowRight size={20} />
             </Link>
             <Link href="#pricing" className="btn btn-secondary" style={{ fontSize: '1.1rem', padding: '1.25rem 2.5rem' }}>
-              View Pricing
+              See Pricing
             </Link>
           </div>
 
