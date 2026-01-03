@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { getValidAccessToken, getDetailedItemInfo } from '@/lib/ebay-api';
+import crypto from 'crypto';
 
 // NOTE: Bypassing Google Generative AI SDK temporarily to debug connectivity/Key issues directly.
 // We use native 'fetch' to control the exact request and see the raw response.
@@ -23,6 +24,29 @@ export async function POST(request: NextRequest) {
         if (!user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+
+        // --- HISTORY CHECK (Free Cache) ---
+        // Create a consistent hash of the input to detect duplicates
+        // We normalize by trimming and lowercasing.
+        const normalizedInput = (title || '').trim().toLowerCase();
+        const inputHash = crypto.createHash('sha256').update(normalizedInput).digest('hex');
+
+        // Check if we've already optimized this exact title for this user
+        const { data: historyMatch } = await supabase
+            .from('optimization_history')
+            .select('optimized_title')
+            .eq('user_id', user.id)
+            .eq('original_title_hash', inputHash)
+            .maybeSingle();
+
+        if (historyMatch) {
+            console.log(`[Cache Hit] Returning history for: "${title}"`);
+            return NextResponse.json({
+                optimizedTitle: historyMatch.optimized_title,
+                fromCache: true
+            });
+        }
+        // ----------------------------------
 
         // --- SAFEGUARD: Tier Limits ---
         // 1. Get User Profile for Tier
@@ -53,17 +77,16 @@ export async function POST(request: NextRequest) {
 
         // 2. Count Usage
         const query = supabase
-            .from('listings')
+            .from('optimization_history')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .in('status', ['optimized', 'uploaded']); // Count all optimized work
+            .eq('user_id', user.id);
 
         if (isMonthly) {
             // Reset on 1st of month
             const startOfMonth = new Date();
             startOfMonth.setDate(1);
             startOfMonth.setHours(0, 0, 0, 0);
-            query.gte('updated_at', startOfMonth.toISOString());
+            query.gte('created_at', startOfMonth.toISOString());
         }
 
         const { count: usageCount } = await query;
@@ -263,6 +286,16 @@ export async function POST(request: NextRequest) {
         if (optimizedTitle.length > 80) {
             optimizedTitle = optimizedTitle.substring(0, 80);
         }
+
+        // --- SAVE TO HISTORY ---
+        // Store result so next time it is free
+        await supabase.from('optimization_history').insert({
+            user_id: user.id,
+            original_title: title,
+            original_title_hash: inputHash,
+            optimized_title: optimizedTitle
+        });
+        // -----------------------
 
         // Increment Usage
         await supabase.rpc('increment_usage', { user_id: user.id });

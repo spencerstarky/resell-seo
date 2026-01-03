@@ -62,7 +62,7 @@ export default async function DashboardPage() {
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
-        query.gte('updated_at', startOfMonth.toISOString());
+        query.gte('created_at', startOfMonth.toISOString());
     }
 
     const { count: usageCount } = await query;
