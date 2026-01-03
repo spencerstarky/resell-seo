@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Upload, FileText, Trash2, Download, Monitor, RefreshCw, Loader2, Lock } from 'lucide-react';
 import Papa from 'papaparse';
 import ListingEditor from './ListingEditor';
+import Header from './Header';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
@@ -14,10 +15,17 @@ interface DashboardClientProps {
     initialListings?: any[];
     userId: string;
     userEmail?: string;
+    usageStats?: {
+        count: number;
+        limit: number;
+        tier: string;
+        isMonthly: boolean;
+    };
 }
 
-export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialListings = [], userId, userEmail }: DashboardClientProps) {
+export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialListings = [], userId, userEmail, usageStats }: DashboardClientProps) {
     const isPro = userProfile?.plan_tier === 'pro' || userEmail === 'resellseo@gmail.com';
+    const [usageCount, setUsageCount] = useState(usageStats?.count || 0);
 
     const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>(
         initialListings.length > 0 ? 'upload' : (initialIsConnected && isPro ? 'ebay' : 'empty')
@@ -121,83 +129,90 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         setFetching(false);
     };
 
+    const headerElement = (
+        <Header usageStats={usageStats ? { ...usageStats, count: usageCount } : undefined} />
+    );
+
     if (mode === 'empty') {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
-                <h2 style={{ marginBottom: '2rem', textAlign: 'center' }}>Choose an Import Method</h2>
+                {headerElement}
+                <div style={{ paddingBottom: '2rem' }}>
+                    <h2 style={{ marginBottom: '2rem', textAlign: 'center' }}>Choose an Import Method</h2>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-                    {/* Option 1: CSV Upload (Always Active) */}
-                    <div style={{
-                        padding: '2.5rem',
-                        background: 'var(--color-card-bg)',
-                        borderRadius: 'var(--border-radius-lg)',
-                        border: '1px solid var(--color-border)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s, border-color 0.2s'
-                    }}
-                        onClick={() => setMode('upload')}
-                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-                    >
-                        <div style={{ width: 64, height: 64, background: 'rgba(255, 255, 255, 0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                            <FileText size={32} style={{ color: 'var(--color-text)' }} />
-                        </div>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Upload CSV File</h3>
-                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                            Upload your listings via CSV. Free & Starter supported.
-                        </p>
-                        <button className="btn btn-secondary" style={{ width: '100%' }}>Select CSV</button>
-                    </div>
-
-                    {/* Option 2: eBay Connect (Pro Only) */}
-                    <div style={{
-                        padding: '2.5rem',
-                        background: isPro ? 'var(--color-card-bg)' : 'rgba(156, 85, 213, 0.05)',
-                        borderRadius: 'var(--border-radius-lg)',
-                        border: isPro ? '1px solid var(--color-border)' : '1px solid rgba(156, 85, 213, 0.2)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        cursor: isPro ? 'pointer' : 'default',
-                        transition: 'transform 0.2s, border-color 0.2s',
-                        position: 'relative',
-                        opacity: isPro ? 1 : 0.9
-                    }}
-                        onClick={() => {
-                            if (isPro) {
-                                if (initialIsConnected) {
-                                    setMode('ebay');
-                                } else {
-                                    handleConnectEbay();
-                                }
-                            }
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+                        {/* Option 1: CSV Upload (Always Active) */}
+                        <div style={{
+                            padding: '2.5rem',
+                            background: 'var(--color-card-bg)',
+                            borderRadius: 'var(--border-radius-lg)',
+                            border: '1px solid var(--color-border)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s, border-color 0.2s'
                         }}
-                        onMouseEnter={(e) => { if (isPro) { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--color-secondary)'; } }}
-                        onMouseLeave={(e) => { if (isPro) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; } }}
-                    >
-                        {!isPro && (
-                            <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'var(--color-primary)', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <Lock size={12} /> PRO
+                            onClick={() => setMode('upload')}
+                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                        >
+                            <div style={{ width: 64, height: 64, background: 'rgba(255, 255, 255, 0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                                <FileText size={32} style={{ color: 'var(--color-text)' }} />
                             </div>
-                        )}
-                        <div style={{ width: 64, height: 64, background: isPro ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                            <Monitor size={32} style={{ color: isPro ? '#4caf50' : 'var(--color-text-muted)' }} />
+                            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Upload CSV File</h3>
+                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                                Upload your listings via CSV. Free & Starter supported.
+                            </p>
+                            <button className="btn btn-secondary" style={{ width: '100%' }}>Select CSV</button>
                         </div>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Import from eBay</h3>
-                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                            {isPro ? 'Sync active listings directly.' : 'Upgrade to sync active listings automatically.'}
-                        </p>
-                        {isPro ? (
-                            <button className="btn btn-primary" style={{ width: '100%' }}>{initialIsConnected ? 'View Listings' : 'Connect eBay'}</button>
-                        ) : (
-                            <Link href="/#pricing" className="btn btn-primary" style={{ width: '100%', opacity: 1 }}>Upgrade to Unlock</Link>
-                        )}
+
+                        {/* Option 2: eBay Connect (Pro Only) */}
+                        <div style={{
+                            padding: '2.5rem',
+                            background: isPro ? 'var(--color-card-bg)' : 'rgba(156, 85, 213, 0.05)',
+                            borderRadius: 'var(--border-radius-lg)',
+                            border: isPro ? '1px solid var(--color-border)' : '1px solid rgba(156, 85, 213, 0.2)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            cursor: isPro ? 'pointer' : 'default',
+                            transition: 'transform 0.2s, border-color 0.2s',
+                            position: 'relative',
+                            opacity: isPro ? 1 : 0.9
+                        }}
+                            onClick={() => {
+                                if (isPro) {
+                                    if (initialIsConnected) {
+                                        setMode('ebay');
+                                    } else {
+                                        handleConnectEbay();
+                                    }
+                                }
+                            }}
+                            onMouseEnter={(e) => { if (isPro) { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--color-secondary)'; } }}
+                            onMouseLeave={(e) => { if (isPro) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; } }}
+                        >
+                            {!isPro && (
+                                <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'var(--color-primary)', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <Lock size={12} /> PRO
+                                </div>
+                            )}
+                            <div style={{ width: 64, height: 64, background: isPro ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                                <Monitor size={32} style={{ color: isPro ? '#4caf50' : 'var(--color-text-muted)' }} />
+                            </div>
+                            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Import from eBay</h3>
+                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                                {isPro ? 'Sync active listings directly.' : 'Upgrade to sync active listings automatically.'}
+                            </p>
+                            {isPro ? (
+                                <button className="btn btn-primary" style={{ width: '100%' }}>{initialIsConnected ? 'View Listings' : 'Connect eBay'}</button>
+                            ) : (
+                                <Link href="/#pricing" className="btn btn-primary" style={{ width: '100%', opacity: 1 }}>Upgrade to Unlock</Link>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -207,6 +222,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     if (mode === 'ebay' && listings.length === 0) {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
+                {headerElement}
                 <div
                     style={{
                         maxWidth: '600px',
@@ -290,7 +306,8 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     if (mode === 'upload' && listings.length === 0) {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
-                {/* ... (Existing upload card logic, but updated if needed) ... Reuse existing, just copy/paste to be safe */}
+                {headerElement}
+                {/* ... Reuse existing upload card logic ... */}
                 <div
                     style={{
                         maxWidth: '600px',
@@ -339,11 +356,15 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     }
 
     return (
-        <ListingEditor
-            listings={listings}
-            userId={userId}
-            autoSaveOnMount={true}
-            onClear={handleClearListings}
-        />
+        <>
+            {headerElement}
+            <ListingEditor
+                listings={listings}
+                userId={userId}
+                autoSaveOnMount={true}
+                onClear={handleClearListings}
+                onUsageIncrement={() => setUsageCount(c => c + 1)}
+            />
+        </>
     );
 }

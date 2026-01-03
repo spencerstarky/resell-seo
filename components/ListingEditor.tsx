@@ -22,9 +22,10 @@ interface ListingEditorProps {
     userId: string;
     autoSaveOnMount?: boolean;
     onClear?: () => void;
+    onUsageIncrement?: () => void;
 }
 
-export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear }: ListingEditorProps) {
+export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear, onUsageIncrement }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
     const [saving, setSaving] = useState(false);
 
@@ -553,15 +554,9 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 // TRIGGER AUTOSAVE immediately for this row
                 saveSingleRow(index, newItem);
 
-                // INCREMENT USAGE on profile
-                const { supabase } = await import('@/lib/supabase');
-                console.log('[Usage] Incrementing for user:', userId);
-                const { error: rpcError } = await supabase.rpc('increment_usage', { target_user_id: userId });
-
-                if (rpcError) {
-                    console.error('[Usage] Error incrementing count:', rpcError);
-                } else {
-                    console.log('[Usage] Successfully incremented count in DB');
+                // Notify parent to increment usage counter (only if not from cache)
+                if (!data.fromCache && onUsageIncrement) {
+                    onUsageIncrement();
                 }
 
             } else {

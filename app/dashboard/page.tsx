@@ -76,7 +76,6 @@ export default async function DashboardPage() {
 
     return (
         <div className="container" style={{ padding: '0 1.5rem' }}>
-            <Header usageStats={usageStats} />
             <DashboardClient
                 initialIsConnected={isConnected}
                 authUrl={authUrl}
@@ -84,6 +83,7 @@ export default async function DashboardPage() {
                 initialListings={savedListings || []}
                 userId={user.id}
                 userEmail={user.email}
+                usageStats={usageStats}
             />
         </div>
     );
