@@ -505,12 +505,11 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             return next;
         });
 
-        // Process sequentially to be nice to the API rate limit
-        for (const idx of todoIndices) {
-            await rewriteTitle(idx);
-            // Free Tier Limit: 15 Requests Per Minute = 1 req / 4 seconds
-            // We set delay to 4000ms to be 100% safe.
-            await new Promise(r => setTimeout(r, 4000));
+        // Process in batches of 5 to speed up while avoiding total saturation
+        const BATCH_SIZE = 5;
+        for (let i = 0; i < todoIndices.length; i += BATCH_SIZE) {
+            const batch = todoIndices.slice(i, i + BATCH_SIZE);
+            await Promise.all(batch.map(idx => rewriteTitle(idx)));
         }
     }
 
