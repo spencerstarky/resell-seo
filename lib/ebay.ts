@@ -5,7 +5,7 @@ export const EBAY_SCOPES = [
     'https://api.ebay.com/oauth/api_scope/sell.inventory.readonly'
 ].join(' ');
 
-export async function getEbayAuthUrl() {
+export async function getEbayAuthUrl(state?: string) {
     const clientId = process.env.EBAY_CLIENT_ID;
     const ruName = process.env.EBAY_RUNAME;
 
@@ -22,6 +22,10 @@ export async function getEbayAuthUrl() {
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('redirect_uri', ruName!); // eBay requires the RuName here, not the URL
     url.searchParams.append('scope', EBAY_SCOPES);
+
+    if (state) {
+        url.searchParams.append('state', state);
+    }
 
     return url.toString();
 }

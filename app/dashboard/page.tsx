@@ -36,7 +36,7 @@ export default async function DashboardPage() {
         .order('sort_index', { ascending: true });
 
     const isConnected = !!token;
-    const authUrl = await getEbayAuthUrl();
+    const authUrl = await getEbayAuthUrl(user.id);
 
     return (
         <div className="container" style={{ padding: '0 1.5rem' }}>
