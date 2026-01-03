@@ -35,7 +35,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 const parsedListings = results.data
                     .filter((row: any) => row.title && row.title.trim())
                     .map((row: any, index: number) => ({
-                        // id: undefined, // Let Supabase generate UUID
+                        id: crypto.randomUUID(), // Generate UUID for new CSV item
                         title: row.title || row.Title || '',
                         original_title: row.title || row.Title || '',
                         optimized_title: null,
@@ -100,7 +100,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
             }
 
             const ebayListings = data.listings.map((item: any) => ({
-                id: idMap.get(item.ebay_item_id), // Use DB UUID if exists, else undefined
+                id: idMap.get(item.ebay_item_id) || crypto.randomUUID(), // Use existing or Generate New UUID
                 original_title: item.title,
                 optimized_title: null,
                 source: 'ebay',
