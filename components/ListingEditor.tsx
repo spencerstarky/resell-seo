@@ -94,7 +94,9 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 status: item.optimized_title ? 'optimized' : 'pending',
                 raw_data: item.raw_data,
                 sort_index: item.sort_index,
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                ebay_item_id: item.ebay_item_id, // Persist eBay ID
+                image_url: item.image_url // Persist Image URL
             };
 
             if (item.id) {
@@ -157,7 +159,9 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 status: l.optimized_title ? 'optimized' : 'pending',
                 raw_data: l.raw_data,
                 sort_index: l.sort_index,
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                ebay_item_id: l.ebay_item_id, // Persist eBay ID
+                image_url: l.image_url // Persist Image URL
             }));
 
             console.log('[Saving] Attempting DB Upsert...', updates.length);
