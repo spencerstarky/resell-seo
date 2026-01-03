@@ -5,6 +5,7 @@ import { Upload, FileText, Trash2, Download, Monitor, RefreshCw, Loader2, Lock }
 import Papa from 'papaparse';
 import ListingEditor from './ListingEditor';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 interface DashboardClientProps {
     initialIsConnected: boolean;
@@ -34,7 +35,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 const parsedListings = results.data
                     .filter((row: any) => row.title && row.title.trim())
                     .map((row: any, index: number) => ({
-                        id: `csv-${Date.now()}-${index}`,
+                        // id: undefined, // Let Supabase generate UUID
                         title: row.title || row.Title || '',
                         original_title: row.title || row.Title || '',
                         optimized_title: null,
@@ -80,8 +81,26 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
 
             if (!res.ok) throw new Error(data.error || 'Failed to fetch items');
 
+            // Deduplication & UUID Assignment
+            const ebayIds = data.listings.map((l: any) => l.ebay_item_id);
+            let idMap = new Map<string, string>();
+
+            if (ebayIds.length > 0 && userId) {
+                const { data: existing } = await supabase
+                    .from('listings')
+                    .select('id, ebay_item_id')
+                    .eq('user_id', userId)
+                    .in('ebay_item_id', ebayIds);
+
+                if (existing) {
+                    existing.forEach((row: any) => {
+                        idMap.set(row.ebay_item_id, row.id);
+                    });
+                }
+            }
+
             const ebayListings = data.listings.map((item: any) => ({
-                id: `ebay-${item.ebay_item_id}`,
+                id: idMap.get(item.ebay_item_id), // Use DB UUID if exists, else undefined
                 original_title: item.title,
                 optimized_title: null,
                 source: 'ebay',
