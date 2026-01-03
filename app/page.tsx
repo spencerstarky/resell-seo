@@ -103,9 +103,9 @@ export default function Home() {
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
                 <Sparkles size={24} color="var(--color-primary)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Your Expert AI Copywriter</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Maximize Search Visibility</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Stop guessing keywords. Our AI analyzes your item and writes the perfect, search-optimized title in seconds. It even handles tricky details like sizing and abbreviations automatically.
+                Stop guessing keywords. Get professionally optimized titles that capture more buyers in seconds. We handle the tricky details like sizing and abbreviations automatically.
               </p>
             </div>
 
