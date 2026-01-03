@@ -5,8 +5,18 @@ import { Settings, LogOut, User as UserIcon, Keyboard } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import { Zap } from 'lucide-react';
 
-export default function Header() {
+interface HeaderProps {
+    usageStats?: {
+        count: number;
+        limit: number;
+        tier: string;
+        isMonthly: boolean;
+    };
+}
+
+export default function Header({ usageStats }: HeaderProps) {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -53,6 +63,28 @@ export default function Header() {
                 <Link href="/dashboard" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}>
                     Dashboard
                 </Link>
+
+                {/* Credit Counter Badge */}
+                {usageStats && (
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem',
+                        color: 'var(--color-text-muted)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                    }}>
+                        <Zap size={14} style={{ color: 'var(--color-primary)' }} fill="var(--color-primary)" />
+                        <span style={{ color: 'white', fontWeight: 600 }}>
+                            {Math.max(0, usageStats.limit - usageStats.count)}
+                        </span>
+                        <span style={{ opacity: 0.6 }}>/ {usageStats.limit} Left</span>
+                    </div>
+                )}
 
                 {/* User Account Section */}
                 <div
