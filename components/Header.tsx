@@ -47,6 +47,9 @@ export default function Header() {
             </Link>
 
             <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                <Link href="/" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}>
+                    Home
+                </Link>
                 <Link href="/dashboard" style={{ color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}>
                     Dashboard
                 </Link>
