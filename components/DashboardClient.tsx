@@ -230,7 +230,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         );
     }
 
-    if (mode === 'ebay' && listings.length === 0) {
+    if (mode === 'ebay' && inventory.length === 0) {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
                 {headerElement}
