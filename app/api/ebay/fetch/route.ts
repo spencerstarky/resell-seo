@@ -61,8 +61,9 @@ export async function POST(request: NextRequest) {
                 throw new Error(`Failed to fetch listings from eBay (Page ${pageNumber})`);
             }
 
-            // Parse Items
+            // Parse Items for this page
             const itemMatches = resultText.match(/<Item>[\s\S]*?<\/Item>/g) || [];
+            const pageItems: any[] = [];
 
             for (const itemXml of itemMatches) {
                 const titleMatch = itemXml.match(/<Title>(.*?)<\/Title>/);
@@ -70,84 +71,72 @@ export async function POST(request: NextRequest) {
                 const picMatch = itemXml.match(/<GalleryURL>(.*?)<\/GalleryURL>/);
 
                 if (titleMatch && idMatch) {
-                    allItems.push({
+                    pageItems.push({
                         title: titleMatch[1],
                         ebay_item_id: idMatch[1],
                         image_url: picMatch ? picMatch[1] : null,
                         status: 'active'
                     });
+                    allItems.push(true); // Just to track count
                 }
             }
+
+            // --- SYNC THIS PAGE TO DB IMMEDIATELY ---
+            if (pageItems.length > 0) {
+                const batchIds = pageItems.map(item => item.ebay_item_id);
+
+                // 1. Fetch existing
+                const { data: existingItems } = await supabase
+                    .from('ebay_inventory')
+                    .select('ebay_item_id, status, original_title, optimized_title')
+                    .eq('user_id', user.id)
+                    .in('ebay_item_id', batchIds);
+
+                const dbMap = new Map();
+                existingItems?.forEach(dbItem => {
+                    dbMap.set(dbItem.ebay_item_id, dbItem);
+                });
+
+                // 2. Prepare Updates
+                const upsertPayload = pageItems.map(item => {
+                    const existing = dbMap.get(item.ebay_item_id);
+                    return {
+                        user_id: user.id,
+                        ebay_item_id: item.ebay_item_id,
+                        current_title: item.title,
+                        image_url: item.image_url,
+                        last_synced_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        original_title: existing?.original_title || item.title,
+                        status: existing?.status || 'NEW',
+                        optimized_title: existing?.optimized_title || null
+                    };
+                });
+
+                // 3. Upsert Page
+                const { error: upsertError } = await supabase
+                    .from('ebay_inventory')
+                    .upsert(upsertPayload, { onConflict: 'user_id, ebay_item_id' });
+
+                if (upsertError) {
+                    console.error('[Sync] Page Upsert failed:', upsertError);
+                    // Decide whether to throw or continue. Continue allows partial sync.
+                } else {
+                    console.log(`[Sync] Page ${pageNumber} synced (${pageItems.length} items).`);
+                }
+            }
+            // ------------------------------------------
 
             // Check Pagination Logic
             const totalPagesMatch = resultText.match(/<TotalNumberOfPages>(\d+)<\/TotalNumberOfPages>/);
             const totalPages = totalPagesMatch ? parseInt(totalPagesMatch[1], 10) : 1;
 
-            console.log(`[eBay Fetch] Page ${pageNumber} done. Found ${itemMatches.length} items. Total Pages likely: ${totalPages}`);
+            console.log(`[eBay Fetch] Page ${pageNumber} done. Found ${pageItems.length} items. Total Pages likely: ${totalPages}`);
 
             if (pageNumber >= totalPages) {
                 hasMorePages = false;
             } else {
                 pageNumber++;
-            }
-        }
-
-        console.log(`[eBay Fetch] Completed. Total items fetched: ${allItems.length}`);
-
-        // --- NEW SYNC LOGIC with Shadow Inventory ---
-        const DB_BATCH_SIZE = 100;
-
-        // Process in chunks to handle large inventories
-        for (let i = 0; i < allItems.length; i += DB_BATCH_SIZE) {
-            const batch = allItems.slice(i, i + DB_BATCH_SIZE);
-            const batchIds = batch.map(item => item.ebay_item_id);
-
-            // 1. Fetch existing DB records for this batch to preserve state
-            const { data: existingItems, error: fetchError } = await supabase
-                .from('ebay_inventory')
-                .select('ebay_item_id, status, original_title, optimized_title')
-                .eq('user_id', user.id)
-                .in('ebay_item_id', batchIds);
-
-            if (fetchError) {
-                console.error('[Sync] Error fetching existing items:', fetchError);
-                // Continue to next batch or throw? Let's log and try to continue, but upsert might fail on duplicate status if safe logic needed.
-                // Actually, if we can't fetch, we can't preserve status. Critical failure.
-                throw fetchError;
-            }
-
-            const dbMap = new Map();
-            existingItems?.forEach(dbItem => {
-                dbMap.set(dbItem.ebay_item_id, dbItem);
-            });
-
-            // 2. Prepare Updates
-            const upsertPayload = batch.map(item => {
-                const existing = dbMap.get(item.ebay_item_id);
-
-                return {
-                    user_id: user.id,
-                    ebay_item_id: item.ebay_item_id,
-                    current_title: item.title,
-                    image_url: item.image_url,
-                    last_synced_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-
-                    // Preserve or Init
-                    original_title: existing?.original_title || item.title,
-                    status: existing?.status || 'NEW',
-                    optimized_title: existing?.optimized_title || null
-                };
-            });
-
-            // 3. Upsert
-            const { error: upsertError } = await supabase
-                .from('ebay_inventory')
-                .upsert(upsertPayload, { onConflict: 'user_id, ebay_item_id' });
-
-            if (upsertError) {
-                console.error('[Sync] Upsert failed:', upsertError);
-                throw upsertError;
             }
         }
 
