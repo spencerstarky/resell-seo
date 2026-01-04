@@ -62,11 +62,22 @@ export async function POST(request: Request) {
         // 2. Call eBay API
         await updateEbayListingTitle(user.id, listing.ebay_item_id, listing.optimized_title, supabase);
 
-        // 3. Update listing status in DB
+        // 3. Update listing status in DB (Legacy)
         await supabase
             .from('listings')
             .update({ status: 'uploaded', updated_at: new Date().toISOString() })
             .eq('id', listingId);
+
+        // 4. Update Shadow Inventory (New)
+        await supabase
+            .from('ebay_inventory')
+            .update({
+                status: 'LIVE',
+                optimized_title: listing.optimized_title,
+                last_synced_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id)
+            .eq('ebay_item_id', listing.ebay_item_id);
 
         return NextResponse.json({ success: true, message: 'Title updated on eBay!' });
 

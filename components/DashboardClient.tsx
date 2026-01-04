@@ -13,6 +13,7 @@ interface DashboardClientProps {
     authUrl: string;
     userProfile: any;
     initialListings?: any[];
+    initialInventory?: any[];
     userId: string;
     userEmail?: string;
     usageStats?: {
@@ -23,16 +24,22 @@ interface DashboardClientProps {
     };
 }
 
-export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialListings = [], userId, userEmail, usageStats }: DashboardClientProps) {
+export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialListings = [], initialInventory = [], userId, userEmail, usageStats }: DashboardClientProps) {
     const isPro = userProfile?.plan_tier === 'pro' || userEmail === 'resellseo@gmail.com';
     const [usageCount, setUsageCount] = useState(usageStats?.count || 0);
 
+    // Legacy Mode Handling vs Inventory Mode
     const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>(
         initialListings.length > 0 ? 'upload' : (initialIsConnected && isPro ? 'ebay' : 'empty')
     );
-    const [listings, setListings] = useState(initialListings);
+
+    const [listings, setListings] = useState(initialListings); // Legacy/CSV
+    const [inventory, setInventory] = useState(initialInventory); // New Shadow Inventory
+    const [inventoryTab, setInventoryTab] = useState<'NEW' | 'OPTIMIZED' | 'LIVE' | 'IGNORED'>('NEW');
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // ... (reuse handleFileUpload) ...
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -46,12 +53,12 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         return t && t.trim().length > 0;
                     })
                     .map((row: any, index: number) => ({
-                        id: crypto.randomUUID(), // Generate UUID for new CSV item
+                        id: crypto.randomUUID(),
                         title: row.title || row.Title || row['Item Name'] || '',
                         original_title: row.title || row.Title || row['Item Name'] || '',
                         optimized_title: null,
                         source: 'csv',
-                        ebay_item_id: row['Item ID'] || row['ItemID'] || row['item_id'] || row['ebay_item_id'] || null, // Capture eBay ID if present
+                        ebay_item_id: row['Item ID'] || row['ItemID'] || row['item_id'] || row['ebay_item_id'] || null,
                     }));
 
                 setListings(parsedListings);
@@ -59,27 +66,23 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
             },
             error: (error) => {
                 console.error('CSV Parse Error:', error);
-                alert('Failed to parse CSV file. Please check the format.');
+                alert('Failed to parse CSV file.');
             },
         });
     };
+    // ...
 
     const handleConnectEbay = () => {
         if (!isPro) {
-            // Optional: Redirect to pricing or show modal
             alert("Upgrade to Pro to connect your eBay account!");
             return;
         }
-        if (authUrl) {
-            window.open(authUrl, '_blank');
-        } else {
-            console.error('Auth URL is not available');
-            alert('Unable to connect to eBay. Please try again later.');
-        }
+        if (authUrl) window.open(authUrl, '_blank');
     };
 
     const handleClearListings = () => {
         setListings([]);
+        setInventory([]);
         setMode('empty');
     };
 
@@ -88,46 +91,33 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     const handleFetchEbay = async () => {
         setFetching(true);
         try {
+            // 1. Trigger Sync (Upsert to DB)
             const res = await fetch('/api/ebay/fetch', { method: 'POST' });
             const data = await res.json();
 
-            if (!res.ok) throw new Error(data.error || 'Failed to fetch items');
+            if (!res.ok) throw new Error(data.error || 'Failed to sync items');
 
-            // Deduplication & UUID Assignment
-            const ebayIds = data.listings.map((l: any) => l.ebay_item_id);
-            let idMap = new Map<string, string>();
+            // 2. Refresh Local Inventory from DB
+            const { data: refreshedInventory } = await supabase
+                .from('ebay_inventory')
+                .select('*')
+                .eq('user_id', userId)
+                .order('last_synced_at', { ascending: false });
 
-            if (ebayIds.length > 0 && userId) {
-                const { data: existing } = await supabase
-                    .from('listings')
-                    .select('id, ebay_item_id')
-                    .eq('user_id', userId)
-                    .in('ebay_item_id', ebayIds);
-
-                if (existing) {
-                    existing.forEach((row: any) => {
-                        idMap.set(row.ebay_item_id, row.id);
-                    });
+            if (refreshedInventory) {
+                setInventory(refreshedInventory);
+                setMode('ebay');
+                // Default to NEW tab if we have new items
+                if (refreshedInventory.some((i: any) => i.status === 'NEW')) {
+                    setInventoryTab('NEW');
                 }
-            }
-
-            const ebayListings = data.listings.map((item: any) => ({
-                id: idMap.get(item.ebay_item_id) || crypto.randomUUID(), // Use existing or Generate New UUID
-                original_title: item.title,
-                optimized_title: null,
-                source: 'ebay',
-                ebay_item_id: item.ebay_item_id,
-                image_url: item.image_url
-            }));
-
-            if (ebayListings.length === 0) {
-                alert('No active listings found on your eBay account.');
             } else {
-                setListings(ebayListings);
+                alert('Sync complete but no items returned from DB.');
             }
+
         } catch (e: any) {
             console.error(e);
-            alert('Error fetching listings: ' + e.message);
+            alert('Error syncing listings: ' + e.message);
         }
         setFetching(false);
     };
@@ -135,6 +125,24 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     const headerElement = (
         <Header usageStats={usageStats ? { ...usageStats, count: usageCount } : undefined} />
     );
+
+    // Compute Derived List for ListingEditor based on Mode & Tab
+    let activeListings: any[] = [];
+    if (mode === 'upload') {
+        activeListings = listings;
+    } else if (mode === 'ebay') {
+        activeListings = inventory
+            .filter((item: any) => item.status === inventoryTab)
+            .map((item: any) => ({
+                id: item.id, // DB UUID
+                original_title: item.current_title, // For optimization, we start with current
+                optimized_title: item.optimized_title,
+                status: item.status, // mapped
+                ebay_item_id: item.ebay_item_id,
+                image_url: item.image_url,
+                raw_data: item
+            }));
+    }
 
     if (mode === 'empty') {
         return (
@@ -358,13 +366,73 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         );
     }
 
+    // --- TABS RENDER FOR EBAY MODE ---
+    const getTabCount = (status: string) => inventory.filter((i: any) => i.status === status).length;
+
     return (
         <>
             {headerElement}
+
+            {/* INVENTORY TABS - ONLY SHOW IN EBAY MODE */}
+            {mode === 'ebay' && (
+                <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
+                    <button
+                        onClick={() => setInventoryTab('NEW')}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            background: inventoryTab === 'NEW' ? 'var(--color-primary)' : 'transparent',
+                            color: inventoryTab === 'NEW' ? 'white' : 'var(--color-text-muted)',
+                            borderRadius: 'var(--radius-sm)',
+                            border: 'none',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}>
+                        Needs Optimization ({getTabCount('NEW')})
+                    </button>
+                    <button
+                        onClick={() => setInventoryTab('OPTIMIZED')}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            background: inventoryTab === 'OPTIMIZED' ? 'rgba(76, 175, 80, 0.2)' : 'transparent',
+                            color: inventoryTab === 'OPTIMIZED' ? '#4caf50' : 'var(--color-text-muted)',
+                            borderRadius: 'var(--radius-sm)',
+                            border: inventoryTab === 'OPTIMIZED' ? '1px solid #4caf50' : 'none',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}>
+                        Review ({getTabCount('OPTIMIZED')})
+                    </button>
+                    <button
+                        onClick={() => setInventoryTab('LIVE')}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            background: inventoryTab === 'LIVE' ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
+                            color: inventoryTab === 'LIVE' ? '#2196f3' : 'var(--color-text-muted)',
+                            borderRadius: 'var(--radius-sm)',
+                            border: inventoryTab === 'LIVE' ? '1px solid #2196f3' : 'none',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}>
+                        Live ({getTabCount('LIVE')})
+                    </button>
+                    <div style={{ flex: 1 }} />
+                    <button
+                        onClick={handleFetchEbay}
+                        disabled={fetching}
+                        className="btn btn-secondary"
+                        style={{ padding: '0.5rem 1rem' }}
+                    >
+                        {fetching ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
+                        Sync from eBay
+                    </button>
+                </div>
+            )}
+
             <ListingEditor
-                listings={listings}
+                key={mode + inventoryTab} // Force re-mount when switching tabs/modes
+                listings={activeListings}
                 userId={userId}
-                autoSaveOnMount={true}
+                autoSaveOnMount={mode === 'upload'} // Only autosave CSVs
                 onClear={handleClearListings}
                 onUsageIncrement={() => setUsageCount(c => c + 1)}
             />

@@ -93,7 +93,67 @@ export async function POST(request: NextRequest) {
         }
 
         console.log(`[eBay Fetch] Completed. Total items fetched: ${allItems.length}`);
-        return NextResponse.json({ listings: allItems });
+
+        // --- NEW SYNC LOGIC with Shadow Inventory ---
+        const DB_BATCH_SIZE = 100;
+
+        // Process in chunks to handle large inventories
+        for (let i = 0; i < allItems.length; i += DB_BATCH_SIZE) {
+            const batch = allItems.slice(i, i + DB_BATCH_SIZE);
+            const batchIds = batch.map(item => item.ebay_item_id);
+
+            // 1. Fetch existing DB records for this batch to preserve state
+            const { data: existingItems, error: fetchError } = await supabase
+                .from('ebay_inventory')
+                .select('ebay_item_id, status, original_title, optimized_title')
+                .eq('user_id', user.id)
+                .in('ebay_item_id', batchIds);
+
+            if (fetchError) {
+                console.error('[Sync] Error fetching existing items:', fetchError);
+                // Continue to next batch or throw? Let's log and try to continue, but upsert might fail on duplicate status if safe logic needed.
+                // Actually, if we can't fetch, we can't preserve status. Critical failure.
+                throw fetchError;
+            }
+
+            const dbMap = new Map();
+            existingItems?.forEach(dbItem => {
+                dbMap.set(dbItem.ebay_item_id, dbItem);
+            });
+
+            // 2. Prepare Updates
+            const upsertPayload = batch.map(item => {
+                const existing = dbMap.get(item.ebay_item_id);
+
+                return {
+                    user_id: user.id,
+                    ebay_item_id: item.ebay_item_id,
+                    current_title: item.title,
+                    image_url: item.image_url,
+                    last_synced_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+
+                    // Preserve or Init
+                    original_title: existing?.original_title || item.title,
+                    status: existing?.status || 'NEW',
+                    optimized_title: existing?.optimized_title || null
+                };
+            });
+
+            // 3. Upsert
+            const { error: upsertError } = await supabase
+                .from('ebay_inventory')
+                .upsert(upsertPayload, { onConflict: 'user_id, ebay_item_id' });
+
+            if (upsertError) {
+                console.error('[Sync] Upsert failed:', upsertError);
+                throw upsertError;
+            }
+        }
+
+        // Return success + maybe count? 
+        // Frontend will re-fetch from DB to display smart tabs.
+        return NextResponse.json({ success: true, count: allItems.length });
 
     } catch (error: any) {
         console.error('Fetch Handler Error:', error);

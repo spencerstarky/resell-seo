@@ -74,6 +74,13 @@ export default async function DashboardPage() {
     };
     // ------------------------------
 
+    // Fetch eBay Inventory (Shadow Inventory)
+    const { data: inventory } = await supabase
+        .from('ebay_inventory')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('last_synced_at', { ascending: false });
+
     return (
         <div className="container" style={{ padding: '0 1.5rem' }}>
             <DashboardClient
@@ -81,6 +88,7 @@ export default async function DashboardPage() {
                 authUrl={authUrl}
                 userProfile={profile}
                 initialListings={savedListings || []}
+                initialInventory={inventory || []}
                 userId={user.id}
                 userEmail={user.email}
                 usageStats={usageStats}
