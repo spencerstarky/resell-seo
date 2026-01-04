@@ -29,9 +29,11 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     const [usageCount, setUsageCount] = useState(usageStats?.count || 0);
 
     // Legacy Mode Handling vs Inventory Mode
-    const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>(
-        initialListings.length > 0 ? 'upload' : (initialIsConnected && isPro ? 'ebay' : 'empty')
-    );
+    const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>(() => {
+        if (initialIsConnected && isPro) return 'ebay';
+        if (initialListings.length > 0) return 'upload';
+        return 'empty';
+    });
 
     const [listings, setListings] = useState(initialListings); // Legacy/CSV
     const [inventory, setInventory] = useState(initialInventory); // New Shadow Inventory
@@ -425,6 +427,27 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         {fetching ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
                         Sync from eBay
                     </button>
+                </div>
+            )}
+
+            {/* SWITCHER for Connected Users with Drafts */}
+            {isPro && initialIsConnected && listings.length > 0 && (
+                <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    {mode === 'ebay' ? (
+                        <button
+                            onClick={() => setMode('upload')}
+                            style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                            View {listings.length} Saved Drafts (CSV)
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => setMode('ebay')}
+                            style={{ fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                            ← Back to eBay Inventory
+                        </button>
+                    )}
                 </div>
             )}
 
