@@ -23,35 +23,27 @@ interface ListingEditorProps {
     autoSaveOnMount?: boolean;
     onClear?: () => void;
     onUsageIncrement?: () => void;
+    mode?: 'casual' | 'inventory'; // Added mode
 }
 
-export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear, onUsageIncrement }: ListingEditorProps) {
+export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear, onUsageIncrement, mode = 'casual' }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
     const [saving, setSaving] = useState(false);
 
     // Auto-save new imports on mount
     useEffect(() => {
         if (autoSaveOnMount && userId) {
-            // Find items without IDs and save them all immediately (using the batch save helper)
-            // Or just trigger saveProgress() once.
             saveProgress();
         }
-    }, []); // Run once on mount
-    // const [dbSaving, setDbSaving] = useState(false); // No longer needed for manual save button
+    }, []);
 
-    // Track which items are currently saving to avoid race conditions
     const [savingRows, setSavingRows] = useState<Set<number>>(new Set());
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-    // Debounce save trigger
     const handleTitleChange = (index: number, newTitle: string) => {
         const updated = [...listings];
         updated[index].optimized_title = newTitle;
-        // Mark as pending save if you wanted to track dirty state,
-        // but for now we just update state and let debounce handle it.
         setListings(updated);
-
-        // Trigger autosave for this row
         debouncedSave(index, newTitle, updated[index]);
     };
 
@@ -63,7 +55,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
 
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Debounce implementation
     const debounceMap = new Map<number, NodeJS.Timeout>();
     const debouncedSave = (index: number, title: string, item: Listing) => {
         if (debounceMap.has(index)) {
@@ -73,7 +64,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         const timeoutId = setTimeout(() => {
             saveSingleRow(index, item);
             debounceMap.delete(index);
-        }, 1500); // 1.5s delay
+        }, 1500);
 
         debounceMap.set(index, timeoutId);
     };
@@ -88,45 +79,69 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 return;
             }
 
-            const payload: any = {
-                user_id: userId,
-                original_title: item.original_title,
-                optimized_title: item.optimized_title,
-                status: item.optimized_title ? 'optimized' : 'pending',
-                raw_data: item.raw_data,
-                sort_index: item.sort_index,
-                updated_at: new Date().toISOString(),
-                ebay_item_id: item.ebay_item_id, // Persist eBay ID
-                image_url: item.image_url // Persist Image URL
-            };
+            // --- INVENTORY MODE SAVE ---
+            if (mode === 'inventory') {
+                if (!item.id) {
+                    console.error('[Saving] Inventory Item missing ID');
+                    return;
+                }
 
-            if (item.id) {
-                payload.id = item.id;
+                let newStatus = 'NEW';
+                if (item.optimized_title) newStatus = 'OPTIMIZED';
+                if (item.status === 'live' || item.status === 'uploaded' || item.status === 'LIVE') newStatus = 'LIVE';
+
+                const { error } = await supabase
+                    .from('ebay_inventory')
+                    .update({
+                        optimized_title: item.optimized_title,
+                        status: newStatus,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', item.id) // Inventory UUID
+                    .eq('user_id', userId);
+
+                if (error) throw error;
+
+                console.log('[Saving] Inventory Updated:', item.id);
+            }
+            // --- CASUAL/CSV MODE SAVE ---
+            else {
+                const payload: any = {
+                    user_id: userId,
+                    original_title: item.original_title,
+                    optimized_title: item.optimized_title,
+                    status: item.optimized_title ? 'optimized' : 'pending',
+                    raw_data: item.raw_data,
+                    sort_index: item.sort_index,
+                    updated_at: new Date().toISOString(),
+                    ebay_item_id: item.ebay_item_id,
+                    image_url: item.image_url
+                };
+
+                if (item.id) {
+                    payload.id = item.id;
+                }
+
+                const { data, error } = await supabase
+                    .from('listings')
+                    .upsert(payload, { onConflict: 'id' })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                if (data && !item.id) {
+                    setListings(prev => {
+                        const next = [...prev];
+                        if (next[index].original_title === item.original_title) {
+                            next[index] = { ...next[index], id: data.id };
+                        }
+                        return next;
+                    });
+                }
+                console.log('[Saving] Success. Data:', data);
             }
 
-            const { data, error } = await supabase
-                .from('listings')
-                .upsert(payload, { onConflict: 'id' })
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            // Update local state with real ID if it was a new insert
-            if (data && !item.id) {
-                setListings(prev => {
-                    const next = [...prev];
-                    // Verify we are updating the right index still (simple check)
-                    if (next[index].original_title === item.original_title) {
-                        next[index] = { ...next[index], id: data.id };
-                    }
-                    return next;
-                });
-            }
-
-            console.log('[Saving] Success. Data:', data);
-
-            // We don't need to update local state anymore because IDs match!
             setLastSaved(new Date());
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
@@ -151,6 +166,43 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 return;
             }
 
+            // --- INVENTORY MODE SAVE ---
+            if (mode === 'inventory') {
+                const updates = listings
+                    .filter(l => l.id && l.raw_data)
+                    .map(l => {
+                        let newStatus = 'NEW';
+                        if (l.optimized_title) newStatus = 'OPTIMIZED';
+                        if (l.status === 'live' || l.status === 'uploaded' || l.status === 'LIVE') newStatus = 'LIVE';
+
+                        return {
+                            id: l.id,
+                            user_id: userId,
+                            ebay_item_id: l.ebay_item_id,
+                            original_title: l.raw_data.original_title,
+                            current_title: l.raw_data.current_title,
+                            optimized_title: l.optimized_title,
+                            status: newStatus,
+                            image_url: l.image_url,
+                            updated_at: new Date().toISOString()
+                        };
+                    });
+
+                if (updates.length > 0) {
+                    console.log('[Saving] Bulk Inventory Upsert:', updates.length);
+                    const { error } = await supabase
+                        .from('ebay_inventory')
+                        .upsert(updates, { onConflict: 'id' });
+
+                    if (error) throw error;
+                    setLastSaved(new Date());
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 3000);
+                    return; // Skip casual save logic
+                }
+            }
+
+            // --- CASUAL/CSV MODE LOGIC (Fallthrough) ---
             // Prepare data for upsert
             const updates = listings.map(l => ({
                 id: l.id,
@@ -161,8 +213,8 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 raw_data: l.raw_data,
                 sort_index: l.sort_index,
                 updated_at: new Date().toISOString(),
-                ebay_item_id: l.ebay_item_id, // Persist eBay ID
-                image_url: l.image_url // Persist Image URL
+                ebay_item_id: l.ebay_item_id,  // Persist eBay ID
+                image_url: l.image_url         // Persist Image URL
             }));
 
             console.log('[Saving] Attempting DB Upsert...', updates.length);

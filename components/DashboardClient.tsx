@@ -435,6 +435,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 autoSaveOnMount={mode === 'upload'} // Only autosave CSVs
                 onClear={handleClearListings}
                 onUsageIncrement={() => setUsageCount(c => c + 1)}
+                mode={mode === 'ebay' ? 'inventory' : 'casual'}
             />
         </>
     );
