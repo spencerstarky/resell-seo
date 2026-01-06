@@ -37,7 +37,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
 
     const [listings, setListings] = useState(initialListings); // Legacy/CSV
     const [inventory, setInventory] = useState(initialInventory); // New Shadow Inventory
-    const [inventoryTab, setInventoryTab] = useState<'NEW' | 'OPTIMIZED' | 'LIVE' | 'IGNORED'>('NEW');
+    const [inventoryTab, setInventoryTab] = useState<'WORKSPACE' | 'LIVE'>('WORKSPACE');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -139,8 +139,8 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 alert(`Sync Complete!\nFound ${data.count} active listings on eBay.\nDatabase updated/loaded ${newCount} items.`);
 
                 // Default to NEW tab if we have new items
-                if (refreshedInventory.some((i: any) => i.status === 'NEW')) {
-                    setInventoryTab('NEW');
+                if (refreshedInventory.some((i: any) => i.status === 'NEW' || i.status === 'OPTIMIZED')) {
+                    setInventoryTab('WORKSPACE');
                 }
             } else {
                 alert('Sync complete but no items returned from DB.');
@@ -163,7 +163,12 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         activeListings = listings;
     } else if (mode === 'ebay') {
         activeListings = inventory
-            .filter((item: any) => item.status === inventoryTab)
+            .filter((item: any) => {
+                const status = item.status || 'NEW';
+                if (inventoryTab === 'LIVE') return status === 'LIVE' || status === 'UPLOADED';
+                // WORKSPACE = NEW or OPTIMIZED
+                return status !== 'LIVE' && status !== 'UPLOADED' && status !== 'IGNORED';
+            })
             .map((item: any) => ({
                 id: item.id, // DB UUID
                 original_title: item.current_title, // For optimization, we start with current
@@ -398,7 +403,8 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     }
 
     // --- TABS RENDER FOR EBAY MODE ---
-    const getTabCount = (status: string) => inventory.filter((i: any) => i.status === status).length;
+    const getWorkspaceCount = () => inventory.filter((i: any) => i.status !== 'LIVE' && i.status !== 'UPLOADED' && i.status !== 'IGNORED').length;
+    const getLiveCount = () => inventory.filter((i: any) => i.status === 'LIVE' || i.status === 'UPLOADED').length;
 
     return (
         <>
@@ -408,30 +414,17 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
             {mode === 'ebay' && (
                 <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
                     <button
-                        onClick={() => setInventoryTab('NEW')}
+                        onClick={() => setInventoryTab('WORKSPACE')}
                         style={{
                             padding: '0.5rem 1rem',
-                            background: inventoryTab === 'NEW' ? 'var(--color-primary)' : 'transparent',
-                            color: inventoryTab === 'NEW' ? 'white' : 'var(--color-text-muted)',
+                            background: inventoryTab === 'WORKSPACE' ? 'var(--color-primary)' : 'transparent',
+                            color: inventoryTab === 'WORKSPACE' ? 'white' : 'var(--color-text-muted)',
                             borderRadius: 'var(--radius-sm)',
                             border: 'none',
                             fontWeight: 600,
                             cursor: 'pointer'
                         }}>
-                        Needs Optimization ({getTabCount('NEW')})
-                    </button>
-                    <button
-                        onClick={() => setInventoryTab('OPTIMIZED')}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            background: inventoryTab === 'OPTIMIZED' ? 'rgba(76, 175, 80, 0.2)' : 'transparent',
-                            color: inventoryTab === 'OPTIMIZED' ? '#4caf50' : 'var(--color-text-muted)',
-                            borderRadius: 'var(--radius-sm)',
-                            border: inventoryTab === 'OPTIMIZED' ? '1px solid #4caf50' : 'none',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                        }}>
-                        Review ({getTabCount('OPTIMIZED')})
+                        Workspace ({getWorkspaceCount()})
                     </button>
                     <button
                         onClick={() => setInventoryTab('LIVE')}
@@ -444,7 +437,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                             fontWeight: 600,
                             cursor: 'pointer'
                         }}>
-                        Live ({getTabCount('LIVE')})
+                        Live ({getLiveCount()})
                     </button>
                     <div style={{ flex: 1 }} />
                     <button
