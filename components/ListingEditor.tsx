@@ -23,10 +23,11 @@ interface ListingEditorProps {
     autoSaveOnMount?: boolean;
     onClear?: () => void;
     onUsageIncrement?: () => void;
-    mode?: 'casual' | 'inventory'; // Added mode
+    mode?: 'casual' | 'inventory';
+    isPro?: boolean;
 }
 
-export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear, onUsageIncrement, mode = 'casual' }: ListingEditorProps) {
+export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear, onUsageIncrement, mode = 'casual', isPro = false }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
     const [saving, setSaving] = useState(false);
 
@@ -203,7 +204,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             }
 
             // --- CASUAL/CSV MODE LOGIC (Fallthrough) ---
-            // Prepare data for upsert
             const updates = listings.map(l => ({
                 id: l.id,
                 user_id: userId,
@@ -242,6 +242,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         }
         setSaving(false);
     };
+
     const pushToEbay = async (index: number) => {
         const listing = listings[index];
         if (!listing.id || !listing.optimized_title) return;
@@ -251,7 +252,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             next[index] = { ...next[index], pushing: true };
             return next;
         });
-
 
         // Real Production Logic
         try {
@@ -280,6 +280,36 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 next[index] = { ...next[index], pushing: false };
                 return next;
             });
+        }
+    };
+
+    const pushAllToEbay = async () => {
+        const eligibleIndices = listings
+            .map((l, i) => ({ ...l, index: i }))
+            .filter(l => l.optimized_title && l.status !== 'posted' && l.status !== 'LIVE' && l.status !== 'uploaded' && !l.pushing)
+            .map(l => l.index);
+
+        if (eligibleIndices.length === 0) {
+            alert('No optimized items ready to push!');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to push ${eligibleIndices.length} items to eBay live?`)) return;
+
+        // Set pushing state
+        setListings(prev => {
+            const next = [...prev];
+            eligibleIndices.forEach(idx => {
+                next[idx] = { ...next[idx], pushing: true };
+            });
+            return next;
+        });
+
+        // Process in batches
+        const BATCH_SIZE = 3;
+        for (let i = 0; i < eligibleIndices.length; i += BATCH_SIZE) {
+            const batch = eligibleIndices.slice(i, i + BATCH_SIZE);
+            await Promise.all(batch.map(idx => pushToEbay(idx)));
         }
     };
 
@@ -350,6 +380,97 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         setSaving(false);
     };
 
+    const rewriteAll = async () => {
+        if (!confirm('This will rewrite all titles that haven\'t been optimized yet. Continue?')) return;
+
+        // Find indices of items that need optimization (empty optimized_title or same as original)
+        const todoIndices = listings
+            .map((l, i) => ({ ...l, index: i }))
+            .filter(l => !l.optimized_title || l.optimized_title === l.original_title)
+            .map(l => l.index);
+
+        if (todoIndices.length === 0) {
+            alert('All titles are already optimized!');
+            return;
+        }
+
+        // Set loading state for all of them
+        setListings(prev => {
+            const next = [...prev];
+            todoIndices.forEach(idx => {
+                next[idx] = { ...next[idx], loading: true };
+            });
+            return next;
+        });
+
+        // Process in batches of 5 to speed up while avoiding total saturation
+        const BATCH_SIZE = 5;
+        for (let i = 0; i < todoIndices.length; i += BATCH_SIZE) {
+            const batch = todoIndices.slice(i, i + BATCH_SIZE);
+            await Promise.all(batch.map(idx => rewriteTitle(idx)));
+        }
+    };
+
+    const rewriteTitle = async (index: number) => {
+        const listing = listings[index];
+        if (!listing.original_title) return;
+
+        // Optimistic UI update for individual click, 
+        // but for bulk, the loading state is already set by rewriteAll
+        if (!listing.loading) {
+            setListings(prev => {
+                const next = [...prev];
+                next[index] = { ...next[index], loading: true };
+                return next;
+            });
+        }
+
+        try {
+            const res = await fetch('/api/optimize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: listing.original_title,
+                    itemId: listing.ebay_item_id,
+                    imageUrl: listing.image_url
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.optimizedTitle) {
+                // Calculate updated item immediately to avoid React state batching race condition
+                const newItem = { ...listings[index], optimized_title: data.optimizedTitle, loading: false };
+
+                setListings(prev => {
+                    const next = [...prev];
+                    next[index] = newItem;
+                    return next;
+                });
+
+                // TRIGGER AUTOSAVE immediately for this row
+                saveSingleRow(index, newItem);
+
+                // Notify parent to increment usage counter (only if not from cache)
+                if (!data.fromCache && onUsageIncrement) {
+                    onUsageIncrement();
+                }
+
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        } catch (e: any) {
+            console.error(e);
+            // Don't alert for every single failure in batch mode, just log it
+            // alert(`Failed to optimize: ${e.message || 'Unknown error'}`);
+            setListings(prev => {
+                const next = [...prev];
+                next[index] = { ...next[index], loading: false };
+                return next;
+            });
+        }
+    };
+
     return (
         <div style={{ maxWidth: '100%' }}>
             {/* Header / Actions for the 'Repeating Group' */}
@@ -378,9 +499,21 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                         <Save size={16} /> Save Progress
                     </button>
 
-                    <button onClick={exportCsv} className="btn btn-primary" disabled={saving}>
-                        <Upload size={16} style={{ transform: 'rotate(180deg)' }} /> Export CSV
-                    </button>
+                    {mode === 'inventory' ? (
+                        <button
+                            onClick={pushAllToEbay}
+                            className="btn btn-primary"
+                            disabled={saving || listings.some(l => l.pushing)}
+                            title={isPro ? "Push all optimized items to eBay" : "Upgrade to Pro to push items"}
+                            style={{ opacity: isPro ? 1 : 0.5, cursor: isPro ? 'pointer' : 'not-allowed' }}
+                        >
+                            <CloudPush size={16} /> Push All Live
+                        </button>
+                    ) : (
+                        <button onClick={exportCsv} className="btn btn-primary" disabled={saving}>
+                            <Upload size={16} style={{ transform: 'rotate(180deg)' }} /> Export CSV
+                        </button>
+                    )}
 
                     <button
                         onClick={handleClearAll}
@@ -493,97 +626,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                     </div>
                 ))}
             </div>
-        </div >
+        </div>
     );
-
-    async function rewriteAll() {
-        if (!confirm('This will rewrite all titles that haven\'t been optimized yet. Continue?')) return;
-
-        // Find indices of items that need optimization (empty optimized_title or same as original)
-        const todoIndices = listings
-            .map((l, i) => ({ ...l, index: i }))
-            .filter(l => !l.optimized_title || l.optimized_title === l.original_title)
-            .map(l => l.index);
-
-        if (todoIndices.length === 0) {
-            alert('All titles are already optimized!');
-            return;
-        }
-
-        // Set loading state for all of them
-        setListings(prev => {
-            const next = [...prev];
-            todoIndices.forEach(idx => {
-                next[idx] = { ...next[idx], loading: true };
-            });
-            return next;
-        });
-
-        // Process in batches of 5 to speed up while avoiding total saturation
-        const BATCH_SIZE = 5;
-        for (let i = 0; i < todoIndices.length; i += BATCH_SIZE) {
-            const batch = todoIndices.slice(i, i + BATCH_SIZE);
-            await Promise.all(batch.map(idx => rewriteTitle(idx)));
-        }
-    }
-
-    async function rewriteTitle(index: number) {
-        const listing = listings[index];
-        if (!listing.original_title) return;
-
-        // Optimistic UI update for individual click, 
-        // but for bulk, the loading state is already set by rewriteAll
-        if (!listing.loading) {
-            setListings(prev => {
-                const next = [...prev];
-                next[index] = { ...next[index], loading: true };
-                return next;
-            });
-        }
-
-        try {
-            const res = await fetch('/api/optimize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: listing.original_title,
-                    itemId: listing.ebay_item_id,
-                    imageUrl: listing.image_url
-                })
-            });
-
-            const data = await res.json();
-
-            if (data.optimizedTitle) {
-                // Calculate updated item immediately to avoid React state batching race condition
-                const newItem = { ...listings[index], optimized_title: data.optimizedTitle, loading: false };
-
-                setListings(prev => {
-                    const next = [...prev];
-                    next[index] = newItem;
-                    return next;
-                });
-
-                // TRIGGER AUTOSAVE immediately for this row
-                saveSingleRow(index, newItem);
-
-                // Notify parent to increment usage counter (only if not from cache)
-                if (!data.fromCache && onUsageIncrement) {
-                    onUsageIncrement();
-                }
-
-            } else {
-                throw new Error(data.error || 'Unknown error');
-            }
-        } catch (e: any) {
-            console.error(e);
-            // Don't alert for every single failure in batch mode, just log it
-            // alert(`Failed to optimize: ${e.message || 'Unknown error'}`);
-            setListings(prev => {
-                const next = [...prev];
-                next[index] = { ...next[index], loading: false };
-                return next;
-            });
-        }
-    }
 }

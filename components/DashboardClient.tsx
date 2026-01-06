@@ -481,6 +481,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 onClear={handleClearListings}
                 onUsageIncrement={() => setUsageCount(c => c + 1)}
                 mode={mode === 'ebay' ? 'inventory' : 'casual'}
+                isPro={isPro}
             />
         </>
     );
