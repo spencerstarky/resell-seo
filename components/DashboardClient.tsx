@@ -109,6 +109,11 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
             if (refreshedInventory) {
                 setInventory(refreshedInventory);
                 setMode('ebay');
+
+                // UX Feedback
+                const newCount = refreshedInventory.length;
+                alert(`Sync Complete!\nFound ${data.count} active listings on eBay.\nDatabase updated with ${newCount} items.`);
+
                 // Default to NEW tab if we have new items
                 if (refreshedInventory.some((i: any) => i.status === 'NEW')) {
                     setInventoryTab('NEW');
@@ -119,11 +124,11 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
 
         } catch (e: any) {
             console.error(e);
-            alert('Error syncing listings: ' + e.message);
+            alert('Failed to sync: ' + e.message);
+        } finally {
+            setFetching(false);
         }
-        setFetching(false);
     };
-
     const headerElement = (
         <Header usageStats={usageStats ? { ...usageStats, count: usageCount } : undefined} />
     );
