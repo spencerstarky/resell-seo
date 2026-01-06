@@ -268,6 +268,38 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // --- POST-PROCESSING SAFETY FILTER ---
+        // AI models (especially Flash) are stubborn about adding "Mens Medium" to bags.
+        // We manually strip these if they weren't in the original and the category suggests they are wrong.
+        if (optimizedTitle) {
+            const lowerOrig = (title || '').toLowerCase();
+            const lowerOpt = optimizedTitle.toLowerCase();
+            const isBagOrTech = /backpack|bag|tote|purse|wallet|camera|laptop|phone|monitor|console|remote/.test(lowerOrig);
+
+            if (isBagOrTech) {
+                // 1. Check for Phantom Size
+                if (!lowerOrig.includes('medium') && !lowerOrig.includes('med ') && lowerOpt.includes('medium')) {
+                    console.log('[Filter] Removing hallucinated "Medium"');
+                    optimizedTitle = optimizedTitle.replace(/\bMedium\b/gi, '').replace(/\s+/g, ' ').trim();
+                }
+                if (!lowerOrig.includes('large') && !lowerOrig.includes('lg ') && lowerOpt.includes('large')) {
+                    console.log('[Filter] Removing hallucinated "Large"');
+                    optimizedTitle = optimizedTitle.replace(/\bLarge\b/gi, '').replace(/\s+/g, ' ').trim();
+                }
+
+                // 2. Check for Phantom Gender
+                if (!lowerOrig.includes('men') && lowerOpt.includes('mens')) {
+                    console.log('[Filter] Removing hallucinated "Mens"');
+                    optimizedTitle = optimizedTitle.replace(/\bMens\b/gi, '').replace(/\s+/g, ' ').trim();
+                }
+                if (!lowerOrig.includes('women') && lowerOpt.includes('womens')) {
+                    console.log('[Filter] Removing hallucinated "Womens"');
+                    optimizedTitle = optimizedTitle.replace(/\bWomens\b/gi, '').replace(/\s+/g, ' ').trim();
+                }
+            }
+        }
+        // -------------------------------------
+
         if (!optimizedTitle) {
             // Debugging: Try to list models to see what IS available
             let debugInfo = '';
