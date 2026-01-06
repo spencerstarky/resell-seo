@@ -110,6 +110,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                     .from('ebay_inventory')
                     .select('*')
                     .eq('user_id', userId)
+                    .neq('status', 'ENDED') // Only fetch active/relevant items
                     .order('created_at', { ascending: false })
                     .range(page * pageSize, (page + 1) * pageSize - 1);
 

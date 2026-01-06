@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
 
     try {
         const accessToken = await getValidAccessToken(user.id, supabase);
+        const syncStartTime = new Date().toISOString();
 
         // API Endpoint Setup
         const clientId = process.env.EBAY_CLIENT_ID;
