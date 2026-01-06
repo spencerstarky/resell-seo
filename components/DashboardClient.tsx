@@ -104,7 +104,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 .from('ebay_inventory')
                 .select('*')
                 .eq('user_id', userId)
-                .order('last_synced_at', { ascending: false });
+                .order('created_at', { ascending: false });
 
             if (refreshedInventory) {
                 setInventory(refreshedInventory);
