@@ -27,6 +27,48 @@ interface ListingEditorProps {
     isPro?: boolean;
 }
 
+// --- SCORING HELPER FUNCTIONS ---
+const calculateSeoScore = (title: string | null | undefined): number => {
+    if (!title) return 0;
+    let score = 0;
+    const len = title.length;
+
+    // 1. Length Score (Max 50)
+    // eBay prefers utilizing all 80 chars. Sweet spot 70-80.
+    if (len >= 75) score += 50;
+    else if (len >= 60) score += 40;
+    else if (len >= 40) score += 25;
+    else score += 5;
+
+    // 2. Word Count (Max 30)
+    // More keywords = better visibility
+    const wordCount = title.trim().split(/\s+/).length;
+    if (wordCount >= 10) score += 30;
+    else if (wordCount >= 7) score += 20;
+    else if (wordCount >= 4) score += 10;
+
+    // 3. Quality & Formatting (Max 20)
+    // Deduct for ALL CAPS
+    if (title !== title.toUpperCase() || len < 10) score += 10;
+
+    // Deduct for Filler Words
+    const fillers = ['l@@k', 'look', 'wow', 'must see', 'cheap', 'sale', 'offer', 'nice'];
+    const lower = title.toLowerCase();
+    const hasFiller = fillers.some(w => lower.includes(w));
+    if (!hasFiller) score += 10;
+
+    // Deduct for excessive punctuation
+    if ((title.match(/[!.*?]/g) || []).length > 2) score -= 10;
+
+    return Math.max(0, Math.min(100, score));
+};
+
+const getScoreColor = (score: number) => {
+    if (score >= 90) return '#4caf50'; // Green
+    if (score >= 70) return '#ffa726'; // Orange
+    return '#f44336'; // Red
+};
+
 export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear, onUsageIncrement, mode = 'casual', isPro = false }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
     const [saving, setSaving] = useState(false);
@@ -552,7 +594,13 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                     >
                         {/* Original */}
                         <div style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', lineHeight: 1.4, paddingRight: '1rem', overflowWrap: 'break-word' }}>
-                            {listing.original_title}
+                            <div style={{ marginBottom: '0.5rem' }}>{listing.original_title}</div>
+                            {/* Original Score Badge */}
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
+                                <span style={{ color: getScoreColor(calculateSeoScore(listing.original_title)) }}>
+                                    SEO Score: {calculateSeoScore(listing.original_title)}
+                                </span>
+                            </div>
                         </div>
 
                         {/* Optimized */}
@@ -574,9 +622,18 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                                     fontSize: '0.95rem'
                                 }}
                             />
-                            {/* Char Count */}
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.25rem', fontSize: '0.75rem' }}>
-                                <span style={{ color: getCharCountColor(listing.optimized_title?.length || 0), fontWeight: 600 }}>
+                            {/* Char Count & Score */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.75rem' }}>
+                                {/* Optimized Score */}
+                                {listing.optimized_title && (
+                                    <span style={{ fontWeight: 600, color: getScoreColor(calculateSeoScore(listing.optimized_title)) }}>
+                                        New Score: {calculateSeoScore(listing.optimized_title)}
+                                        {calculateSeoScore(listing.optimized_title) > calculateSeoScore(listing.original_title) && (
+                                            <span style={{ color: '#4caf50', marginLeft: '4px' }}>(+{calculateSeoScore(listing.optimized_title) - calculateSeoScore(listing.original_title)})</span>
+                                        )}
+                                    </span>
+                                )}
+                                <span style={{ color: getCharCountColor(listing.optimized_title?.length || 0), fontWeight: 600, marginLeft: 'auto' }}>
                                     {listing.optimized_title?.length || 0}/80
                                 </span>
                             </div>
