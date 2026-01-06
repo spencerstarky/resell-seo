@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
                         last_synced_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
                         original_title: existing?.original_title || item.title,
-                        status: existing?.status || 'NEW',
+                        status: ['NEW', 'OPTIMIZED', 'LIVE'].includes(existing?.status) ? existing.status : 'NEW',
                         optimized_title: existing?.optimized_title || null
                     };
                 });
