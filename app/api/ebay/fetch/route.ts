@@ -141,6 +141,20 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // --- CLEANUP: REMOVE ENDED ITEMS ---
+        // Items not updated in this sync cycle = Ended/Sold on eBay
+        const { error: cleanupError } = await supabase
+            .from('ebay_inventory')
+            .delete()
+            .eq('user_id', user.id)
+            .lt('last_synced_at', syncStartTime);
+
+        if (cleanupError) {
+            console.error('[Sync] Cleanup failed:', cleanupError);
+        } else {
+            console.log('[Sync] Cleanup complete.');
+        }
+
         // Return success + maybe count? 
         // Frontend will re-fetch from DB to display smart tabs.
         return NextResponse.json({ success: true, count: allItems.length });
