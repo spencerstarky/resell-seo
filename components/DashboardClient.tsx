@@ -99,21 +99,44 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
 
             if (!res.ok) throw new Error(data.error || 'Failed to sync items');
 
-            // 2. Refresh Local Inventory from DB
-            const { data: refreshedInventory } = await supabase
-                .from('ebay_inventory')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(5000);
+            // 2. Refresh Local Inventory from DB (with Pagination)
+            let allItems: any[] = [];
+            let page = 0;
+            const pageSize = 1000;
+            let hasMore = true;
 
-            if (refreshedInventory) {
+            while (hasMore) {
+                const { data: pageData, error } = await supabase
+                    .from('ebay_inventory')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false })
+                    .range(page * pageSize, (page + 1) * pageSize - 1);
+
+                if (error) throw error;
+
+                if (pageData && pageData.length > 0) {
+                    allItems = [...allItems, ...pageData];
+                    if (pageData.length < pageSize) {
+                        hasMore = false;
+                    } else {
+                        page++;
+                    }
+                } else {
+                    hasMore = false;
+                }
+                if (page > 10) break; // Safety
+            }
+
+            const refreshedInventory = allItems;
+
+            if (refreshedInventory.length > 0) {
                 setInventory(refreshedInventory);
                 setMode('ebay');
 
                 // UX Feedback
                 const newCount = refreshedInventory.length;
-                alert(`Sync Complete!\nFound ${data.count} active listings on eBay.\nDatabase updated with ${newCount} items.`);
+                alert(`Sync Complete!\nFound ${data.count} active listings on eBay.\nDatabase updated/loaded ${newCount} items.`);
 
                 // Default to NEW tab if we have new items
                 if (refreshedInventory.some((i: any) => i.status === 'NEW')) {

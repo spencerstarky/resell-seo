@@ -76,15 +76,41 @@ export default async function DashboardPage() {
 
     let initialInventory = [];
     if (isConnected) {
-        // Fetch        // Fetch Shadow Inventory
-        const { data } = await supabase
-            .from('ebay_inventory')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false }) // Sort by newest imported first
-            .limit(5000); // Increase default limit from 1000
+        // Fetch Shadow Inventory with Pagination to bypass 1000 row limit
+        let allItems: any[] = [];
+        let page = 0;
+        const pageSize = 1000;
+        let hasMore = true;
 
-        initialInventory = data || [];
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('ebay_inventory')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .range(page * pageSize, (page + 1) * pageSize - 1);
+
+            if (error) {
+                console.error('Inventory Fetch Error:', error);
+                break;
+            }
+
+            if (data && data.length > 0) {
+                allItems = [...allItems, ...data];
+                if (data.length < pageSize) {
+                    hasMore = false;
+                } else {
+                    page++;
+                }
+            } else {
+                hasMore = false;
+            }
+
+            // Safety break
+            if (page > 10) break;
+        }
+
+        initialInventory = allItems;
     }
 
     return (
