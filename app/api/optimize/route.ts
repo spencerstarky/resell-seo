@@ -8,7 +8,7 @@ import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
     try {
-        const { title, itemId, imageUrl } = await request.json();
+        const { title, itemId, imageUrl, forceRefresh } = await request.json();
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 500 });
@@ -31,20 +31,21 @@ export async function POST(request: NextRequest) {
         const normalizedInput = (title || '').trim().toLowerCase();
         const inputHash = crypto.createHash('sha256').update(normalizedInput).digest('hex');
 
-        // Check if we've already optimized this exact title for this user
-        const { data: historyMatch } = await supabase
-            .from('optimization_history')
-            .select('optimized_title')
-            .eq('user_id', user.id)
-            .eq('original_title_hash', inputHash)
-            .maybeSingle();
+        if (!process.env.SKIP_CACHE && !forceRefresh) {
+            const { data: historyMatch } = await supabase
+                .from('optimization_history')
+                .select('optimized_title')
+                .eq('user_id', user.id)
+                .eq('original_title_hash', inputHash)
+                .maybeSingle();
 
-        if (historyMatch) {
-            console.log(`[Cache Hit] Returning history for: "${title}"`);
-            return NextResponse.json({
-                optimizedTitle: historyMatch.optimized_title,
-                fromCache: true
-            });
+            if (historyMatch) {
+                console.log(`[Cache Hit] Returning history for: "${title}"`);
+                return NextResponse.json({
+                    optimizedTitle: historyMatch.optimized_title,
+                    fromCache: true
+                });
+            }
         }
         // ----------------------------------
 

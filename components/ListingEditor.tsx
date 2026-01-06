@@ -474,7 +474,8 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 body: JSON.stringify({
                     title: listing.original_title,
                     itemId: listing.ebay_item_id,
-                    imageUrl: listing.image_url
+                    imageUrl: listing.image_url,
+                    forceRefresh: !!listing.optimized_title // Bypass cache if rewriting
                 })
             });
 
