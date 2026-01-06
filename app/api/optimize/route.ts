@@ -127,6 +127,11 @@ export async function POST(request: NextRequest) {
         TASK:
         Refine the title to maximize search volume while fixing formatting.
 
+        HALLUCINATION POLICY (ZERO TOLERANCE):
+        1. **NO GUESSING:** If the input (Title/Image/Specifics) does not explicitly indicate a Size or Gender, DO NOT ADD IT.
+        2. **CATEGORY AWARENESS:** Bags, Electronics, and Home Goods often DO NOT have a Size (like S/M/L) or Gender. Do not force "Mens" or "Medium" on a Backpack unless proven.
+        3. **ONLY FACTUAL DATA:** Use the visible model number, brand, and color. Do not invent "Leather" if it looks like Nylon.
+
         CRITICAL PRESERVATION RULES (DO NOT TOUCH):
         1. **Model Numbers:** YOU MUST PRESERVE alphanumeric codes (e.g., "LM7AW2S", "501", "MX-5"). These are vital.
         2. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
@@ -143,7 +148,8 @@ export async function POST(request: NextRequest) {
 
         DECISION LOGIC:
         - If the Original Title is already descriptive and > 70 chars: ONLY apply the "Formatting Operations"(fix 38x9, Mens, Sz).Do not reorder the words significantly.
-        - If the Original Title is weak: Apply standard structure: [Brand][Model][Type][Gender][Size][Material][Color][Keywords].
+        - If weak: Build structure: [Brand] [Model] [Type] [Proven Attributes] [Keywords].
+        - **NEVER** force [Gender] or [Size] if they are missing.
 
         FINAL CHECK:
         - Is "Sz" gone ?
