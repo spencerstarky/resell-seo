@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Save, Upload, Trash2, CloudDownload as CloudPush, CheckCircle, ShieldCheck, Zap } from 'lucide-react';
+import { Sparkles, Save, Upload, Trash2, CloudDownload as CloudPush, CheckCircle } from 'lucide-react';
 import Papa from 'papaparse';
 
 interface Listing {
@@ -242,8 +242,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         }
         setSaving(false);
     };
-    const [isSafeMode, setIsSafeMode] = useState(true);
-
     const pushToEbay = async (index: number) => {
         const listing = listings[index];
         if (!listing.id || !listing.optimized_title) return;
@@ -254,19 +252,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             return next;
         });
 
-        if (isSafeMode) {
-            // Dry Run Logic
-            setTimeout(() => {
-                console.log(`[Safe Mode] Simulation: Pushing "${listing.optimized_title}" for Item ID ${listing.ebay_item_id}`);
-                setListings(prev => {
-                    const next = [...prev];
-                    next[index] = { ...next[index], pushing: false, status: 'uploaded' };
-                    return next;
-                });
-                alert('Safe Mode: Listing updated locally (Simulation Only). No changes sent to eBay.');
-            }, 1000);
-            return;
-        }
 
         // Real Production Logic
         try {
@@ -380,29 +365,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    {/* Safe Mode Toggle */}
-                    <div
-                        onClick={() => setIsSafeMode(!isSafeMode)}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '20px',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            backgroundColor: isSafeMode ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
-                            border: isSafeMode ? '1px solid #4caf50' : '1px solid #f44336',
-                            color: isSafeMode ? '#4caf50' : '#f44336',
-                            transition: 'all 0.2s'
-                        }}
-                        title={isSafeMode ? "Safe Mode Active: Updates are simulated" : "LIVE MODE: Updates go to eBay!"}
-                    >
-                        {isSafeMode ? <ShieldCheck size={16} /> : <Zap size={16} />}
-                        {isSafeMode ? "Safe Mode ON" : "LIVE MODE"}
-                    </div>
-
                     <button
                         onClick={rewriteAll}
                         className="btn btn-secondary"
