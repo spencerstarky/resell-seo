@@ -76,12 +76,13 @@ export default async function DashboardPage() {
 
     let initialInventory = [];
     if (isConnected) {
-        // Fetch eBay Inventory (Shadow Inventory)
+        // Fetch        // Fetch Shadow Inventory
         const { data } = await supabase
             .from('ebay_inventory')
             .select('*')
             .eq('user_id', user.id)
-            .order('created_at', { ascending: false }); // Sort by newest imported first
+            .order('created_at', { ascending: false }) // Sort by newest imported first
+            .limit(5000); // Increase default limit from 1000
 
         initialInventory = data || [];
     }
