@@ -94,7 +94,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         setFetching(true);
         try {
             // 1. Trigger Sync (Upsert to DB)
-            const res = await fetch('/api/ebay/fetch', { method: 'POST' });
+            const res = await fetch('/api/ebay/sync', { method: 'POST' });
             const data = await res.json();
 
             if (!res.ok) throw new Error(data.error || 'Failed to sync items');
