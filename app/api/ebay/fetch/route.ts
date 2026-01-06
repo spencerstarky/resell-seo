@@ -142,6 +142,7 @@ export async function POST(request: NextRequest) {
         }
 
         // --- CLEANUP: REMOVE ENDED ITEMS ---
+        console.log('[Sync] Starting cleanup of ended items (DELETE strategy)...');
         // Items not updated in this sync cycle = Ended/Sold on eBay
         const { error: cleanupError } = await supabase
             .from('ebay_inventory')
