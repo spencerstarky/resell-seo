@@ -513,11 +513,54 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         }
     };
 
+    // --- SORTING LOGIC ---
+    const [sortBy, setSortBy] = useState<'date-desc' | 'score-asc' | 'score-desc' | 'status-pending'>('score-asc');
+
+    const getSortedListings = () => {
+        const sorted = [...listings];
+        return sorted.sort((a, b) => {
+            if (sortBy === 'score-asc') {
+                return calculateSeoScore(a.original_title) - calculateSeoScore(b.original_title);
+            }
+            if (sortBy === 'score-desc') {
+                return calculateSeoScore(b.original_title) - calculateSeoScore(a.original_title);
+            }
+            if (sortBy === 'status-pending') {
+                // Priority: Empty Optimized Title > Optimized
+                const aOpt = !!a.optimized_title;
+                const bOpt = !!b.optimized_title;
+                if (aOpt === bOpt) return 0;
+                return aOpt ? 1 : -1;
+            }
+            // Date Desc (Default/Fallback) - assuming array order is effectively date for now
+            return 0;
+        });
+    };
+
+    const displayListings = getSortedListings();
+
     return (
         <div style={{ maxWidth: '100%' }}>
             {/* Header / Actions for the 'Repeating Group' */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.25rem' }}>Listings ({listings.length})</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Listings ({listings.length})</h3>
+
+                    {/* Sort Dropdown */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem 0.75rem', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Sort:</span>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as any)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                        >
+                            <option value="score-asc">Lowest Score (Needs Work)</option>
+                            <option value="score-desc">Highest Score</option>
+                            <option value="status-pending">Not Optimized First</option>
+                            <option value="date-desc">Newest First</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
                     {savingRows.size > 0 ? (
@@ -538,7 +581,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                     </button>
 
                     <button onClick={saveProgress} className="btn btn-secondary">
-                        <Save size={16} /> Save Progress
+                        <Save size={16} /> Save
                     </button>
 
                     {mode === 'inventory' ? (
@@ -577,111 +620,125 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
 
             {/* The List (Repeating Group) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {listings.map((listing, i) => (
-                    <div key={listing.id || i} className="" style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr 60px',
-                        gap: '1.5rem',
-                        alignItems: 'start',
-                        padding: '1.5rem',
-                        backgroundColor: 'rgba(255,255,255,0.03)',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid transparent',
-                        transition: 'background-color 0.2s'
-                    }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
-                    >
-                        {/* Original */}
-                        <div style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', lineHeight: 1.4, paddingRight: '1rem', overflowWrap: 'break-word' }}>
-                            <div style={{ marginBottom: '0.5rem' }}>{listing.original_title}</div>
-                            {/* Original Score Badge */}
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                                <span style={{ color: getScoreColor(calculateSeoScore(listing.original_title)) }}>
-                                    SEO Score: {calculateSeoScore(listing.original_title)}
-                                </span>
-                            </div>
-                        </div>
+                {displayListings.map((listing, _) => {
+                    // We need the ACTUAL original index for callbacks to work correctly
+                    // Since we sorted displayListings, 'listing' is the object. 
+                    // We need to find its index in the MASTER 'listings' array.
+                    // IMPORTANT: This O(N) lookup inside the loop is inefficient but acceptable for <1000 items. 
+                    // A better way is to attach the original index to the object before sorting, but I'll use findIndex for simplicity for now or assume Listing has ID.
+                    // Actually, using the wrong index will break 'rewriteTitle(i)'.
+                    // I must map indices.
 
-                        {/* Optimized */}
-                        <div>
-                            <textarea
-                                value={listing.optimized_title || ''}
-                                onChange={(e) => handleTitleChange(i, e.target.value)}
-                                placeholder="Click Rewrite to generate..."
-                                style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--color-border)',
-                                    backgroundColor: 'rgba(0,0,0,0.2)',
-                                    color: 'var(--color-text-main)',
-                                    resize: 'vertical',
-                                    minHeight: '60px',
-                                    fontFamily: 'inherit',
-                                    fontSize: '0.95rem'
-                                }}
-                            />
-                            {/* Char Count & Score */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.75rem' }}>
-                                {/* Optimized Score */}
-                                {listing.optimized_title && (
-                                    <span style={{ fontWeight: 600, color: getScoreColor(calculateSeoScore(listing.optimized_title)) }}>
-                                        New Score: {calculateSeoScore(listing.optimized_title)}
-                                        {calculateSeoScore(listing.optimized_title) > calculateSeoScore(listing.original_title) && (
-                                            <span style={{ color: '#4caf50', marginLeft: '4px' }}>(+{calculateSeoScore(listing.optimized_title) - calculateSeoScore(listing.original_title)})</span>
-                                        )}
+                    // Optimization: Let's use listing.id or raw object reference.
+                    // The functions `rewriteTitle(index)` expect an index into `listings` state.
+                    const realIndex = listings.findIndex(l => l === listing);
+
+                    return (
+                        <div key={listing.id || realIndex} className="" style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr 60px',
+                            gap: '1.5rem',
+                            alignItems: 'start',
+                            padding: '1.5rem',
+                            backgroundColor: 'rgba(255,255,255,0.03)',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid transparent',
+                            transition: 'background-color 0.2s'
+                        }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
+                        >
+                            {/* Original */}
+                            <div style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', lineHeight: 1.4, paddingRight: '1rem', overflowWrap: 'break-word' }}>
+                                <div style={{ marginBottom: '0.5rem' }}>{listing.original_title}</div>
+                                {/* Original Score Badge */}
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
+                                    <span style={{ color: getScoreColor(calculateSeoScore(listing.original_title)) }}>
+                                        SEO Score: {calculateSeoScore(listing.original_title)}
                                     </span>
-                                )}
-                                <span style={{ color: getCharCountColor(listing.optimized_title?.length || 0), fontWeight: 600, marginLeft: 'auto' }}>
-                                    {listing.optimized_title?.length || 0}/80
-                                </span>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Action Button */}
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingTop: '0.25rem' }}>
-                            <button
-                                onClick={() => rewriteTitle(i)}
-                                className="btn"
-                                style={{
-                                    padding: '0.4rem',
-                                    borderRadius: '50%',
-                                    background: listing.optimized_title ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
-                                    color: listing.optimized_title ? '#4caf50' : 'var(--color-primary)'
-                                }}
-                                title={listing.optimized_title ? "Rewrite Again" : "Optimize"}
-                                disabled={listing.loading || listing.pushing}
-                            >
-                                {listing.loading ?
-                                    <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> :
-                                    <Sparkles size={16} />
-                                }
-                            </button>
+                            {/* Optimized */}
+                            <div>
+                                <textarea
+                                    value={listing.optimized_title || ''}
+                                    onChange={(e) => handleTitleChange(realIndex, e.target.value)}
+                                    placeholder="Click Rewrite to generate..."
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.5rem',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--color-border)',
+                                        backgroundColor: 'rgba(0,0,0,0.2)',
+                                        color: 'var(--color-text-main)',
+                                        resize: 'vertical',
+                                        minHeight: '60px',
+                                        fontFamily: 'inherit',
+                                        fontSize: '0.95rem'
+                                    }}
+                                />
+                                {/* Char Count & Score */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.75rem' }}>
+                                    {/* Optimized Score */}
+                                    {listing.optimized_title && (
+                                        <span style={{ fontWeight: 600, color: getScoreColor(calculateSeoScore(listing.optimized_title)) }}>
+                                            New Score: {calculateSeoScore(listing.optimized_title)}
+                                            {calculateSeoScore(listing.optimized_title) > calculateSeoScore(listing.original_title) && (
+                                                <span style={{ color: '#4caf50', marginLeft: '4px' }}>(+{calculateSeoScore(listing.optimized_title) - calculateSeoScore(listing.original_title)})</span>
+                                            )}
+                                        </span>
+                                    )}
+                                    <span style={{ color: getCharCountColor(listing.optimized_title?.length || 0), fontWeight: 600, marginLeft: 'auto' }}>
+                                        {listing.optimized_title?.length || 0}/80
+                                    </span>
+                                </div>
+                            </div>
 
-                            {listing.optimized_title && (
+                            {/* Action Button */}
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingTop: '0.25rem' }}>
                                 <button
-                                    onClick={() => pushToEbay(i)}
+                                    onClick={() => rewriteTitle(realIndex)}
                                     className="btn"
                                     style={{
                                         padding: '0.4rem',
                                         borderRadius: '50%',
-                                        background: listing.status === 'uploaded' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
-                                        color: listing.status === 'uploaded' ? '#4caf50' : '#d6bcfa',
-                                        border: listing.status === 'uploaded' ? '1px solid #4caf50' : 'none'
+                                        background: listing.optimized_title ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
+                                        color: listing.optimized_title ? '#4caf50' : 'var(--color-primary)'
                                     }}
-                                    title={listing.status === 'uploaded' ? "Already on eBay" : "Push to eBay"}
-                                    disabled={listing.pushing || listing.loading}
+                                    title={listing.optimized_title ? "Rewrite Again" : "Optimize"}
+                                    disabled={listing.loading || listing.pushing}
                                 >
-                                    {listing.pushing ?
+                                    {listing.loading ?
                                         <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> :
-                                        listing.status === 'uploaded' ? <CheckCircle size={16} /> : <CloudPush size={16} />
+                                        <Sparkles size={16} />
                                     }
                                 </button>
-                            )}
+
+                                {listing.optimized_title && (
+                                    <button
+                                        onClick={() => pushToEbay(realIndex)}
+                                        className="btn"
+                                        style={{
+                                            padding: '0.4rem',
+                                            borderRadius: '50%',
+                                            background: listing.status === 'uploaded' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
+                                            color: listing.status === 'uploaded' ? '#4caf50' : '#d6bcfa',
+                                            border: listing.status === 'uploaded' ? '1px solid #4caf50' : 'none'
+                                        }}
+                                        title={listing.status === 'uploaded' ? "Already on eBay" : "Push to eBay"}
+                                        disabled={listing.pushing || listing.loading}
+                                    >
+                                        {listing.pushing ?
+                                            <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> :
+                                            listing.status === 'uploaded' ? <CheckCircle size={16} /> : <CloudPush size={16} />
+                                        }
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     );
