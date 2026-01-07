@@ -1,18 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Upload, FileText, Trash2, Download, Monitor, RefreshCw, Loader2, Lock } from 'lucide-react';
-import Papa from 'papaparse';
+import { useState } from 'react';
+import { Monitor, RefreshCw, Loader2, Link as LinkIcon, AlertCircle } from 'lucide-react';
 import ListingEditor from './ListingEditor';
 import Header from './Header';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 interface DashboardClientProps {
     initialIsConnected: boolean;
     authUrl: string;
     userProfile: any;
-    initialListings?: any[];
     initialInventory?: any[];
     userId: string;
     userEmail?: string;
@@ -21,77 +18,31 @@ interface DashboardClientProps {
         limit: number;
         tier: string;
         isMonthly: boolean;
+        isYearly?: boolean;
     };
 }
 
-export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialListings = [], initialInventory = [], userId, userEmail, usageStats }: DashboardClientProps) {
+export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialInventory = [], userId, userEmail, usageStats }: DashboardClientProps) {
     const isPro = userProfile?.plan_tier === 'pro' || userEmail === 'resellseo@gmail.com';
     const [usageCount, setUsageCount] = useState(usageStats?.count || 0);
 
-    // Legacy Mode Handling vs Inventory Mode
-    const [mode, setMode] = useState<'empty' | 'upload' | 'ebay'>(() => {
-        if (initialIsConnected && isPro) return 'ebay';
-        if (initialListings.length > 0) return 'upload';
-        return 'empty';
-    });
-
-    const [listings, setListings] = useState(initialListings); // Legacy/CSV
-    const [inventory, setInventory] = useState(initialInventory); // New Shadow Inventory
+    // Simplification: We only have 'ebay' mode now. 
+    // If connected, show inventory. If not, show connect screen.
+    const [inventory, setInventory] = useState(initialInventory);
     const [inventoryTab, setInventoryTab] = useState<'WORKSPACE' | 'LIVE'>('WORKSPACE');
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // ... (reuse handleFileUpload) ...
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        Papa.parse(file, {
-            header: true,
-            complete: (results) => {
-                const parsedListings = results.data
-                    .filter((row: any) => {
-                        const t = row.title || row.Title || row['Item Name'] || row['Item Name'] || '';
-                        return t && t.trim().length > 0;
-                    })
-                    .map((row: any, index: number) => ({
-                        id: crypto.randomUUID(),
-                        title: row.title || row.Title || row['Item Name'] || '',
-                        original_title: row.title || row.Title || row['Item Name'] || '',
-                        optimized_title: null,
-                        source: 'csv',
-                        ebay_item_id: row['Item ID'] || row['ItemID'] || row['item_id'] || row['ebay_item_id'] || null,
-                    }));
-
-                setListings(parsedListings);
-                setMode('upload');
-            },
-            error: (error) => {
-                console.error('CSV Parse Error:', error);
-                alert('Failed to parse CSV file.');
-            },
-        });
-    };
-    // ...
+    const [isConnected, setIsConnected] = useState(initialIsConnected);
 
     const handleConnectEbay = () => {
-        if (!isPro) {
-            alert("Upgrade to Pro to connect your eBay account!");
-            return;
-        }
+        // Free users can now connect!
         if (authUrl) window.open(authUrl, '_blank');
     };
 
-    const handleClearListings = () => {
-        setListings([]);
-        setInventory([]);
-        setMode('empty');
-    };
-
     const [fetching, setFetching] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
 
     const handleFetchEbay = async () => {
         setFetching(true);
+        setFetchError(null);
         try {
             // 1. Trigger Sync (Upsert to DB)
             const res = await fetch('/api/ebay/sync', { method: 'POST' });
@@ -99,195 +50,96 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
 
             if (!res.ok) throw new Error(data.error || 'Failed to sync items');
 
-            // 2. Refresh Local Inventory from DB (with Pagination)
-            let allItems: any[] = [];
-            let page = 0;
-            const pageSize = 1000;
-            let hasMore = true;
-
-            while (hasMore) {
-                const { data: pageData, error } = await supabase
-                    .from('ebay_inventory')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: false })
-                    .range(page * pageSize, (page + 1) * pageSize - 1);
-
-                if (error) throw error;
-
-                if (pageData && pageData.length > 0) {
-                    allItems = [...allItems, ...pageData];
-                    if (pageData.length < pageSize) {
-                        hasMore = false;
-                    } else {
-                        page++;
-                    }
-                } else {
-                    hasMore = false;
-                }
-                if (page > 10) break; // Safety
-            }
-
-            const refreshedInventory = allItems;
-
-            if (refreshedInventory.length > 0) {
-                setInventory(refreshedInventory);
-                setMode('ebay');
-
-                // UX Feedback
-                const newCount = refreshedInventory.length;
-                alert(`Sync Complete!\nFound ${data.count} active listings on eBay.\nDatabase updated/loaded ${newCount} items.`);
-
-                // Default to NEW tab if we have new items
-                if (refreshedInventory.some((i: any) => i.status === 'NEW' || i.status === 'OPTIMIZED')) {
-                    setInventoryTab('WORKSPACE');
-                }
-            } else {
-                alert('Sync complete but no items returned from DB.');
-            }
+            // 2. Refresh local state from DB (Since sync updates DB, we just need to re-fetch or use returned data)
+            // Ideally sync endpoint returns the items, but if not we can query DB or reload page.
+            // For now, let's reload the page to be safe and simple, or fetch properly.
+            // Let's reload to ensure fresh SSR data.
+            window.location.reload();
 
         } catch (e: any) {
             console.error(e);
-            alert('Failed to sync: ' + e.message);
+            setFetchError(e.message || 'Failed to sync');
         } finally {
             setFetching(false);
         }
     };
+
     const headerElement = (
         <Header usageStats={usageStats ? { ...usageStats, count: usageCount } : undefined} />
     );
 
-    // Compute Derived List for ListingEditor based on Mode & Tab
-    let activeListings: any[] = [];
-    if (mode === 'upload') {
-        activeListings = listings;
-    } else if (mode === 'ebay') {
-        activeListings = inventory
-            .filter((item: any) => {
-                const status = item.status || 'NEW';
-                if (inventoryTab === 'LIVE') return status === 'LIVE' || status === 'UPLOADED';
-                // WORKSPACE = NEW or OPTIMIZED
-                return status !== 'LIVE' && status !== 'UPLOADED' && status !== 'IGNORED';
-            })
-            .map((item: any) => ({
-                id: item.id, // DB UUID
-                original_title: item.current_title, // For optimization, we start with current
-                optimized_title: item.optimized_title,
-                status: item.status, // mapped
-                ebay_item_id: item.ebay_item_id,
-                image_url: item.image_url,
-                raw_data: item
-            }));
-    }
-
-    if (mode === 'empty') {
+    // ------------------------------------------------------------------
+    // VIEW 1: NOT CONNECTED -> Show Connect Screen
+    // ------------------------------------------------------------------
+    if (!isConnected) {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
                 {headerElement}
-                <div style={{ paddingBottom: '2rem' }}>
-                    <h2 style={{ marginBottom: '2rem', textAlign: 'center' }}>Choose an Import Method</h2>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-                        {/* Option 1: CSV Upload (Always Active) */}
-                        <div style={{
-                            padding: '2.5rem',
-                            background: 'var(--color-card-bg)',
-                            borderRadius: 'var(--border-radius-lg)',
-                            border: '1px solid var(--color-border)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            transition: 'transform 0.2s, border-color 0.2s'
-                        }}
-                            onClick={() => setMode('upload')}
-                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-                        >
-                            <div style={{ width: 64, height: 64, background: 'rgba(255, 255, 255, 0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                                <FileText size={32} style={{ color: 'var(--color-text)' }} />
-                            </div>
-                            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Upload CSV File</h3>
-                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                                Upload your listings via CSV. Free & Starter supported.
-                            </p>
-                            <button className="btn btn-secondary" style={{ width: '100%' }}>Select CSV</button>
-                        </div>
-
-                        {/* Option 2: eBay Connect (Pro Only) */}
-                        <div style={{
-                            padding: '2.5rem',
-                            background: isPro ? 'var(--color-card-bg)' : 'rgba(156, 85, 213, 0.05)',
-                            borderRadius: 'var(--border-radius-lg)',
-                            border: isPro ? '1px solid var(--color-border)' : '1px solid rgba(156, 85, 213, 0.2)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            textAlign: 'center',
-                            cursor: isPro ? 'pointer' : 'default',
-                            transition: 'transform 0.2s, border-color 0.2s',
-                            position: 'relative',
-                            opacity: isPro ? 1 : 0.9
-                        }}
-                            onClick={() => {
-                                if (isPro) {
-                                    if (initialIsConnected) {
-                                        setMode('ebay');
-                                    } else {
-                                        handleConnectEbay();
-                                    }
-                                }
-                            }}
-                            onMouseEnter={(e) => { if (isPro) { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'var(--color-secondary)'; } }}
-                            onMouseLeave={(e) => { if (isPro) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; } }}
-                        >
-                            {!isPro && (
-                                <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'var(--color-primary)', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                    <Lock size={12} /> PRO
-                                </div>
-                            )}
-                            <div style={{ width: 64, height: 64, background: isPro ? 'rgba(76, 175, 80, 0.1)' : 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                                <Monitor size={32} style={{ color: isPro ? '#4caf50' : 'var(--color-text-muted)' }} />
-                            </div>
-                            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Import from eBay</h3>
-                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                                {isPro ? 'Sync active listings directly.' : 'Upgrade to sync active listings automatically.'}
-                            </p>
-                            {isPro ? (
-                                <button className="btn btn-primary" style={{ width: '100%' }}>{initialIsConnected ? 'View Listings' : 'Connect eBay'}</button>
-                            ) : (
-                                <Link href="/#pricing" className="btn btn-primary" style={{ width: '100%', opacity: 1 }}>Upgrade to Unlock</Link>
-                            )}
-                        </div>
+                <div style={{
+                    maxWidth: '600px',
+                    margin: '4rem auto',
+                    textAlign: 'center',
+                    padding: '3rem 2rem',
+                    background: 'var(--color-card-bg)',
+                    borderRadius: 'var(--border-radius-lg)',
+                    border: '1px solid var(--color-border)',
+                }}>
+                    <div style={{ width: 80, height: 80, background: 'rgba(156, 85, 213, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
+                        <LinkIcon size={40} style={{ color: 'var(--color-primary)' }} />
                     </div>
+
+                    <h2 style={{ fontSize: '2rem', marginBottom: '1rem', fontWeight: 800 }}>Connect Your Store</h2>
+                    <p style={{ color: 'var(--color-text-muted)', marginBottom: '2.5rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+                        Connect your eBay account to import your listings automatically. <br />
+                        We only read your active listings to optimize them.
+                    </p>
+
+                    <button
+                        onClick={handleConnectEbay}
+                        className="btn btn-primary"
+                        style={{ fontSize: '1.1rem', padding: '1rem 3rem', boxShadow: '0 4px 20px rgba(156, 85, 213, 0.3)' }}
+                    >
+                        Connect eBay Account
+                    </button>
+
+                    <p style={{ marginTop: '2rem', fontSize: '0.85rem', color: 'var(--color-text-dim)' }}>
+                        <Monitor size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.25rem' }} />
+                        Secure Official eBay Integration
+                    </p>
                 </div>
             </div>
         );
     }
 
-    if (mode === 'ebay' && inventory.length === 0) {
+    // ------------------------------------------------------------------
+    // VIEW 2: CONNECTED BUT EMPTY -> Show Fetch Screen
+    // ------------------------------------------------------------------
+    if (inventory.length === 0) {
         return (
             <div className="container" style={{ padding: '2rem 0' }}>
                 {headerElement}
-                <div
-                    style={{
-                        maxWidth: '600px',
-                        margin: '0 auto',
-                        textAlign: 'center',
-                        padding: '3rem 2rem',
-                        background: 'var(--color-card-bg)',
-                        borderRadius: 'var(--border-radius-lg)',
-                        border: '1px solid var(--color-border)',
-                    }}
-                >
-                    <div style={{ width: 64, height: 64, background: 'rgba(76, 175, 80, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                        <Monitor size={32} style={{ color: '#4caf50' }} />
+                <div style={{
+                    maxWidth: '600px',
+                    margin: '4rem auto',
+                    textAlign: 'center',
+                    padding: '3rem 2rem',
+                    background: 'var(--color-card-bg)',
+                    borderRadius: 'var(--border-radius-lg)',
+                    border: '1px solid var(--color-border)',
+                }}>
+                    <div style={{ width: 70, height: 70, background: 'rgba(76, 175, 80, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                        <Monitor size={35} style={{ color: '#4caf50' }} />
                     </div>
                     <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem' }}>eBay Connected!</h2>
                     <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                        We're ready to fetch your active listings.
+                        We're ready to import your active listings.
                     </p>
+
+                    {fetchError && (
+                        <div style={{ padding: '1rem', background: 'rgba(255, 59, 48, 0.1)', color: '#ff3b30', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                            <AlertCircle size={16} /> {fetchError}
+                        </div>
+                    )}
 
                     {!fetching ? (
                         <button
@@ -295,106 +147,11 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                             className="btn btn-primary"
                             style={{ width: '100%', marginBottom: '1rem', cursor: 'pointer' }}
                         >
-                            Import from eBay
+                            Import Listings
                         </button>
                     ) : (
-                        <div style={{
-                            padding: '1.5rem',
-                            borderRadius: '8px',
-                            marginBottom: '1rem',
-                            textAlign: 'center',
-                            border: '1px solid var(--color-border)',
-                            background: 'rgba(255, 255, 255, 0.05)'
-                        }}>
-                            <Loader2 size={32} style={{
-                                animation: 'spin 1.5s linear infinite',
-                                margin: '0 auto 1rem',
-                                color: 'var(--color-primary)'
-                            }} />
-                            <h3 style={{ marginBottom: '0.5rem', fontWeight: 500, color: 'var(--color-text)' }}>Fetching listings, please wait...</h3>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                                This may take a moment for large stores.
-                            </p>
-                            <style jsx>{`
-                                @keyframes spin { 100% { transform: rotate(360deg); } }
-                            `}</style>
-                        </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                        <button
-                            onClick={async () => {
-                                if (confirm('Are you sure you want to disconnect your eBay account?')) {
-                                    await fetch('/api/ebay/disconnect', { method: 'POST' });
-                                    window.location.reload();
-                                }
-                            }}
-                            className="btn btn-secondary"
-                            style={{ flex: 1, borderColor: '#ff4444', color: '#ff4444' }}
-                        >
-                            <Trash2 size={16} style={{ marginRight: '0.5rem' }} />
-                            Disconnect
-                        </button>
-
-                        <button
-                            onClick={() => setMode('upload')}
-                            className="btn btn-secondary"
-                            style={{ flex: 1 }}
-                        >
-                            <Upload size={16} style={{ marginRight: '0.5rem' }} />
-                            Upload CSV
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (mode === 'upload' && listings.length === 0) {
-        return (
-            <div className="container" style={{ padding: '2rem 0' }}>
-                {headerElement}
-                {/* ... Reuse existing upload card logic ... */}
-                <div
-                    style={{
-                        maxWidth: '600px',
-                        margin: '0 auto',
-                        textAlign: 'center',
-                        padding: '3rem 2rem',
-                        background: 'var(--color-card-bg)',
-                        borderRadius: 'var(--border-radius-lg)',
-                        border: '1px solid var(--color-border)',
-                    }}
-                >
-                    <FileText size={48} style={{ color: 'var(--color-primary)', marginBottom: '1.5rem' }} />
-                    <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem' }}>Upload Your Listings</h2>
-                    <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                        Upload a CSV file with a "title" column to get started.
-                    </p>
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept=".csv"
-                        onChange={handleFileUpload}
-                        style={{ display: 'none' }}
-                    />
-                    <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="btn btn-primary"
-                        style={{ width: '100%', marginBottom: '1rem' }}
-                    >
-                        <Upload size={16} style={{ marginRight: '0.5rem' }} />
-                        Choose CSV File
-                    </button>
-
-                    {initialIsConnected && isPro && (
-                        <button
-                            onClick={() => setMode('ebay')}
-                            className="btn btn-secondary"
-                            style={{ width: '100%', marginTop: '0.5rem' }}
-                        >
-                            <Monitor size={16} style={{ marginRight: '0.5rem' }} />
-                            Import from eBay instead
+                        <button disabled className="btn btn-secondary" style={{ width: '100%', marginBottom: '1rem', opacity: 0.7 }}>
+                            <Loader2 className="spin" size={20} style={{ marginRight: '0.5rem' }} /> Syncing...
                         </button>
                     )}
                 </div>
@@ -402,87 +159,84 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         );
     }
 
-    // --- TABS RENDER FOR EBAY MODE ---
-    const getWorkspaceCount = () => inventory.filter((i: any) => i.status !== 'LIVE' && i.status !== 'UPLOADED' && i.status !== 'IGNORED').length;
-    const getLiveCount = () => inventory.filter((i: any) => i.status === 'LIVE' || i.status === 'UPLOADED').length;
+    // ------------------------------------------------------------------
+    // VIEW 3: INVENTORY (Main App)
+    // ------------------------------------------------------------------
+
+    // Filter Inventory
+    const activeListings = inventory
+        .filter((item: any) => {
+            const status = item.status || 'NEW';
+            if (inventoryTab === 'LIVE') return status === 'LIVE' || status === 'UPLOADED';
+            // WORKSPACE = NEW or OPTIMIZED
+            return status !== 'LIVE' && status !== 'UPLOADED' && status !== 'IGNORED';
+        })
+        .map((item: any) => ({
+            id: item.id,
+            original_title: item.current_title,
+            optimized_title: item.optimized_title,
+            status: item.status,
+            ebay_item_id: item.ebay_item_id,
+            image_url: item.image_url,
+            raw_data: item
+        }));
 
     return (
-        <>
+        <div className="container" style={{ padding: '2rem 0' }}>
             {headerElement}
 
-            {/* INVENTORY TABS - ONLY SHOW IN EBAY MODE */}
-            {mode === 'ebay' && (
-                <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '1rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>
-                    <button
-                        onClick={() => setInventoryTab('WORKSPACE')}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            background: inventoryTab === 'WORKSPACE' ? 'var(--color-primary)' : 'transparent',
-                            color: inventoryTab === 'WORKSPACE' ? 'white' : 'var(--color-text-muted)',
-                            borderRadius: 'var(--radius-sm)',
-                            border: 'none',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                        }}>
-                        Workspace ({getWorkspaceCount()})
-                    </button>
-                    <button
-                        onClick={() => setInventoryTab('LIVE')}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            background: inventoryTab === 'LIVE' ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
-                            color: inventoryTab === 'LIVE' ? '#2196f3' : 'var(--color-text-muted)',
-                            borderRadius: 'var(--radius-sm)',
-                            border: inventoryTab === 'LIVE' ? '1px solid #2196f3' : 'none',
-                            fontWeight: 600,
-                            cursor: 'pointer'
-                        }}>
-                        Live ({getLiveCount()})
-                    </button>
-                    <div style={{ flex: 1 }} />
+            {/* Title / Controls */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>My Listings</h1>
+                <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
                         onClick={handleFetchEbay}
                         disabled={fetching}
                         className="btn btn-secondary"
-                        style={{ padding: '0.5rem 1rem' }}
+                        style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
                     >
-                        {fetching ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-                        Sync from eBay
+                        <RefreshCw size={16} className={fetching ? 'spin' : ''} style={{ marginRight: '0.5rem' }} />
+                        {fetching ? 'Syncing...' : 'Sync eBay'}
                     </button>
                 </div>
-            )}
+            </div>
 
-            {/* SWITCHER for Connected Users with Drafts */}
-            {isPro && initialIsConnected && listings.length > 0 && (
-                <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    {mode === 'ebay' ? (
-                        <button
-                            onClick={() => setMode('upload')}
-                            style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}
-                        >
-                            View {listings.length} Saved Drafts (CSV)
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => setMode('ebay')}
-                            style={{ fontSize: '0.85rem', color: 'var(--color-primary)', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-                        >
-                            ← Back to eBay Inventory
-                        </button>
-                    )}
-                </div>
-            )}
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: '2rem', borderBottom: '1px solid var(--color-border)', marginBottom: '2rem' }}>
+                <button
+                    onClick={() => setInventoryTab('WORKSPACE')}
+                    style={{
+                        padding: '0.75rem 0',
+                        borderBottom: inventoryTab === 'WORKSPACE' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                        color: inventoryTab === 'WORKSPACE' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                        fontWeight: inventoryTab === 'WORKSPACE' ? 600 : 400,
+                        background: 'none', border: 'none', borderBottomWidth: '2px', cursor: 'pointer'
+                    }}
+                >
+                    Workspace ({inventory.filter((i: any) => i.status === 'NEW' || i.status === 'OPTIMIZED').length})
+                </button>
+                <button
+                    onClick={() => setInventoryTab('LIVE')}
+                    style={{
+                        padding: '0.75rem 0',
+                        borderBottom: inventoryTab === 'LIVE' ? '2px solid var(--color-primary)' : '2px solid transparent',
+                        color: inventoryTab === 'LIVE' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                        fontWeight: inventoryTab === 'LIVE' ? 600 : 400,
+                        background: 'none', border: 'none', borderBottomWidth: '2px', cursor: 'pointer'
+                    }}
+                >
+                    Live / History
+                </button>
+            </div>
 
             <ListingEditor
-                key={mode + inventoryTab} // Force re-mount when switching tabs/modes
                 listings={activeListings}
-                userId={userId}
-                autoSaveOnMount={mode === 'upload'} // Only autosave CSVs
-                onClear={handleClearListings}
-                onUsageIncrement={() => setUsageCount(c => c + 1)}
-                mode={mode === 'ebay' ? 'inventory' : 'casual'}
+                setListings={() => { }} // Read-only derived state basically
+                checkCredits={() => usageCount < (usageStats?.limit || 25)}
+                onCreditsUsed={() => setUsageCount(p => p + 1)}
                 isPro={isPro}
+                showPushLive={true} // Always show, but gate inside component if needed
             />
-        </>
+        </div>
     );
 }

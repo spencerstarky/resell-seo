@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Save, Upload, Trash2, CloudDownload as CloudPush, CheckCircle } from 'lucide-react';
-import Papa from 'papaparse';
+import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock } from 'lucide-react';
 
 interface Listing {
     id?: string;
@@ -19,12 +18,12 @@ interface Listing {
 
 interface ListingEditorProps {
     listings: Listing[];
-    userId: string;
-    autoSaveOnMount?: boolean;
-    onClear?: () => void;
-    onUsageIncrement?: () => void;
-    mode?: 'casual' | 'inventory';
+    setListings?: any; // Allow state update
+    userId?: string;
+    checkCredits?: () => boolean;
+    onCreditsUsed?: () => void;
     isPro?: boolean;
+    showPushLive?: boolean;
 }
 
 // --- SCORING HELPER FUNCTIONS ---
@@ -69,17 +68,25 @@ const getScoreColor = (score: number) => {
     return '#f44336'; // Red
 };
 
-export default function ListingEditor({ listings: initialListings, userId, autoSaveOnMount = false, onClear, onUsageIncrement, mode = 'casual', isPro = false }: ListingEditorProps) {
+export default function ListingEditor({
+    listings: initialListings,
+    setListings: parentSetListings,
+    userId,
+    checkCredits,
+    onCreditsUsed,
+    isPro = false,
+    showPushLive = false
+}: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
-    const [saving, setSaving] = useState(false);
 
-    // Auto-save new imports on mount
+    // Sync with parent IF parent provides updates (optional, but good for initial load)
     useEffect(() => {
-        if (autoSaveOnMount && userId) {
-            saveProgress();
+        if (initialListings && initialListings.length > 0) {
+            setListings(initialListings);
         }
-    }, []);
+    }, [initialListings]);
 
+    const [saving, setSaving] = useState(false);
     const [savingRows, setSavingRows] = useState<Set<number>>(new Set());
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -117,77 +124,27 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         setSavingRows(prev => new Set(prev).add(index));
         try {
             const { supabase } = await import('@/lib/supabase');
-            if (!userId) {
-                console.error('[Autosave] User ID missing from props');
-                return;
-            }
+            if (!userId || !item.id) return;
 
-            // --- INVENTORY MODE SAVE ---
-            if (mode === 'inventory') {
-                if (!item.id) {
-                    console.error('[Saving] Inventory Item missing ID');
-                    return;
-                }
+            // Always assume Inventory Mode now (since CSV is gone)
+            let newStatus = 'NEW';
+            if (item.optimized_title) newStatus = 'OPTIMIZED';
+            if (item.status === 'live' || item.status === 'uploaded' || item.status === 'LIVE') newStatus = 'LIVE';
 
-                let newStatus = 'NEW';
-                if (item.optimized_title) newStatus = 'OPTIMIZED';
-                if (item.status === 'live' || item.status === 'uploaded' || item.status === 'LIVE') newStatus = 'LIVE';
-
-                const { error } = await supabase
-                    .from('ebay_inventory')
-                    .update({
-                        optimized_title: item.optimized_title,
-                        status: newStatus,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', item.id) // Inventory UUID
-                    .eq('user_id', userId);
-
-                if (error) throw error;
-
-                console.log('[Saving] Inventory Updated:', item.id);
-            }
-            // --- CASUAL/CSV MODE SAVE ---
-            else {
-                const payload: any = {
-                    user_id: userId,
-                    original_title: item.original_title,
+            const { error } = await supabase
+                .from('ebay_inventory')
+                .update({
                     optimized_title: item.optimized_title,
-                    status: item.optimized_title ? 'optimized' : 'pending',
-                    raw_data: item.raw_data,
-                    sort_index: item.sort_index,
-                    updated_at: new Date().toISOString(),
-                    ebay_item_id: item.ebay_item_id,
-                    image_url: item.image_url
-                };
+                    status: newStatus,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', item.id)
+                .eq('user_id', userId);
 
-                if (item.id) {
-                    payload.id = item.id;
-                }
+            if (error) throw error;
 
-                const { data, error } = await supabase
-                    .from('listings')
-                    .upsert(payload, { onConflict: 'id' })
-                    .select()
-                    .single();
-
-                if (error) throw error;
-
-                if (data && !item.id) {
-                    setListings(prev => {
-                        const next = [...prev];
-                        if (next[index].original_title === item.original_title) {
-                            next[index] = { ...next[index], id: data.id };
-                        }
-                        return next;
-                    });
-                }
-                console.log('[Saving] Success. Data:', data);
-            }
-
+            console.log('[Saving] Inventory Updated:', item.id);
             setLastSaved(new Date());
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000);
 
         } catch (e: any) {
             console.error('Autosave failed:', e);
@@ -199,80 +156,41 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         });
     };
 
-    // Manual Save All (also used by AutoSaveOnMount)
+    // Manual Save All
     const saveProgress = async () => {
         setSaving(true);
         try {
             const { supabase } = await import('@/lib/supabase');
             if (!userId) {
-                setSaving(false);
-                return;
+                setSaving(false); return;
             }
 
-            // --- INVENTORY MODE SAVE ---
-            if (mode === 'inventory') {
-                const updates = listings
-                    .filter(l => l.id && l.raw_data)
-                    .map(l => {
-                        let newStatus = 'NEW';
-                        if (l.optimized_title) newStatus = 'OPTIMIZED';
-                        if (l.status === 'live' || l.status === 'uploaded' || l.status === 'LIVE') newStatus = 'LIVE';
+            const updates = listings
+                .filter(l => l.id)
+                .map(l => {
+                    let newStatus = 'NEW';
+                    if (l.optimized_title) newStatus = 'OPTIMIZED';
+                    if (l.status === 'live' || l.status === 'uploaded' || l.status === 'LIVE') newStatus = 'LIVE';
 
-                        return {
-                            id: l.id,
-                            user_id: userId,
-                            ebay_item_id: l.ebay_item_id,
-                            original_title: l.raw_data.original_title,
-                            current_title: l.raw_data.current_title,
-                            optimized_title: l.optimized_title,
-                            status: newStatus,
-                            image_url: l.image_url,
-                            updated_at: new Date().toISOString()
-                        };
-                    });
+                    return {
+                        id: l.id,
+                        user_id: userId,
+                        ebay_item_id: l.ebay_item_id,
+                        original_title: l.original_title, // Ensure we don't lose this
+                        current_title: l.original_title, // Fallback
+                        optimized_title: l.optimized_title,
+                        status: newStatus,
+                        image_url: l.image_url,
+                        updated_at: new Date().toISOString()
+                    };
+                });
 
-                if (updates.length > 0) {
-                    console.log('[Saving] Bulk Inventory Upsert:', updates.length);
-                    const { error } = await supabase
-                        .from('ebay_inventory')
-                        .upsert(updates, { onConflict: 'id' });
+            if (updates.length > 0) {
+                const { error } = await supabase
+                    .from('ebay_inventory')
+                    .upsert(updates, { onConflict: 'id' });
 
-                    if (error) throw error;
-                    setLastSaved(new Date());
-                    setShowSuccess(true);
-                    setTimeout(() => setShowSuccess(false), 3000);
-                    return; // Skip casual save logic
-                }
-            }
-
-            // --- CASUAL/CSV MODE LOGIC (Fallthrough) ---
-            const updates = listings.map(l => ({
-                id: l.id,
-                user_id: userId,
-                original_title: l.original_title,
-                optimized_title: l.optimized_title,
-                status: l.optimized_title ? 'optimized' : 'pending',
-                raw_data: l.raw_data,
-                sort_index: l.sort_index,
-                updated_at: new Date().toISOString(),
-                ebay_item_id: l.ebay_item_id,  // Persist eBay ID
-                image_url: l.image_url         // Persist Image URL
-            }));
-
-            console.log('[Saving] Attempting DB Upsert...', updates.length);
-            const { data, error } = await supabase
-                .from('listings')
-                .upsert(updates, { onConflict: 'id' })
-                .select();
-
-            if (error) {
-                console.error('[Saving] DB Error:', error);
-                throw error;
-            }
-
-            console.log('[Saving] Success. Data:', data);
-
-            if (data) {
+                if (error) throw error;
                 setLastSaved(new Date());
                 setShowSuccess(true);
                 setTimeout(() => setShowSuccess(false), 3000);
@@ -286,16 +204,20 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
     };
 
     const pushToEbay = async (index: number) => {
+        if (!isPro) {
+            alert('Pushing live updates is a Pro feature. Please upgrade to unlock Instant Sync.');
+            return;
+        }
+
         const listing = listings[index];
         if (!listing.id || !listing.optimized_title) return;
 
-        setListings(prev => {
+        setListings((prev: Listing[]) => {
             const next = [...prev];
             next[index] = { ...next[index], pushing: true };
             return next;
         });
 
-        // Real Production Logic
         try {
             const res = await fetch('/api/ebay/push', {
                 method: 'POST',
@@ -306,7 +228,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             const data = await res.json();
 
             if (res.ok) {
-                setListings(prev => {
+                setListings((prev: Listing[]) => {
                     const next = [...prev];
                     next[index] = { ...next[index], pushing: false, status: 'uploaded' };
                     return next;
@@ -317,7 +239,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         } catch (e: any) {
             console.error(e);
             alert('Push failed: ' + e.message);
-            setListings(prev => {
+            setListings((prev: Listing[]) => {
                 const next = [...prev];
                 next[index] = { ...next[index], pushing: false };
                 return next;
@@ -326,6 +248,11 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
     };
 
     const pushAllToEbay = async () => {
+        if (!isPro) {
+            alert('Bulk Push is a Pro feature. Upgrade to sync your entire store.');
+            return;
+        }
+
         const eligibleIndices = listings
             .map((l, i) => ({ ...l, index: i }))
             .filter(l => l.optimized_title && l.status !== 'posted' && l.status !== 'LIVE' && l.status !== 'uploaded' && !l.pushing)
@@ -338,8 +265,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
 
         if (!confirm(`Are you sure you want to push ${eligibleIndices.length} items to eBay live?`)) return;
 
-        // Set pushing state
-        setListings(prev => {
+        setListings((prev: Listing[]) => {
             const next = [...prev];
             eligibleIndices.forEach(idx => {
                 next[idx] = { ...next[idx], pushing: true };
@@ -347,7 +273,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             return next;
         });
 
-        // Process in batches
         const BATCH_SIZE = 3;
         for (let i = 0; i < eligibleIndices.length; i += BATCH_SIZE) {
             const batch = eligibleIndices.slice(i, i + BATCH_SIZE);
@@ -355,77 +280,10 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         }
     };
 
-
-    const handleClearAll = async () => {
-        if (!confirm('Are you sure you want to delete ALL listings? This cannot be undone.')) return;
-
-        setSaving(true);
-        try {
-            const { supabase } = await import('@/lib/supabase');
-            const { error } = await supabase
-                .from('listings')
-                .delete()
-                .eq('user_id', userId);
-
-            if (error) throw error;
-
-            if (onClear) {
-                onClear();
-            } else {
-                window.location.reload();
-            }
-        } catch (e: any) {
-            console.error(e);
-            alert('Failed to clear listings: ' + e.message);
-        }
-        setSaving(false);
-    };
-
-
-    const exportCsv = () => {
-        setSaving(true);
-        try {
-            // Merge optimized titles back into original data
-            const exportData = listings.map(l => {
-                if (l.raw_data) {
-                    // Update the title in the original row
-                    // Try to find the correct key for Title
-                    const titleKey = Object.keys(l.raw_data).find(k => k.toLowerCase() === 'title' || k.toLowerCase() === 'item name') || 'Title';
-                    return {
-                        ...l.raw_data,
-                        [titleKey]: l.optimized_title || l.original_title // Overwrite with optimized version
-                    };
-                } else {
-                    // Fallback for manually created listings without raw CSV
-                    return {
-                        'Title': l.optimized_title || l.original_title,
-                        'Original Title': l.original_title
-                    };
-                }
-            });
-
-            const csv = Papa.unparse(exportData);
-
-            // Create download link
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', `resell_seo_optimized_${new Date().toISOString().slice(0, 10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (e) {
-            console.error(e);
-            alert('Failed to generate CSV');
-        }
-        setSaving(false);
-    };
-
     const rewriteAll = async () => {
-        if (!confirm('This will rewrite all titles that haven\'t been optimized yet. Continue?')) return;
+        if (!checkCredits) return;
 
-        // Find indices of items that need optimization (empty optimized_title or same as original)
+        // Find indices of items that need optimization
         const todoIndices = listings
             .map((l, i) => ({ ...l, index: i }))
             .filter(l => !l.optimized_title || l.optimized_title === l.original_title)
@@ -436,8 +294,16 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             return;
         }
 
-        // Set loading state for all of them
-        setListings(prev => {
+        // Limit Check?
+        // Since we don't know EXACT credits here easily without a separate call, we'll iterate and check per item logic, 
+        // OR better, we just warn them.
+        // But checkCredits() is sync boolean. So it checks if CURRENT > LIMIT. 
+        // It doesn't predict FUTURE usage. 
+        // So we might hit limit mid-batch. That's fine.
+
+        if (!confirm(`This will rewrite ${todoIndices.length} titles. Continue?`)) return;
+
+        setListings((prev: Listing[]) => {
             const next = [...prev];
             todoIndices.forEach(idx => {
                 next[idx] = { ...next[idx], loading: true };
@@ -445,10 +311,11 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             return next;
         });
 
-        // Process in batches of 5 to speed up while avoiding total saturation
         const BATCH_SIZE = 5;
         for (let i = 0; i < todoIndices.length; i += BATCH_SIZE) {
             const batch = todoIndices.slice(i, i + BATCH_SIZE);
+            // We check credits for EACH batch roughly? 
+            // If we run out, rewriteTitle will simply fail/alert on the first failure.
             await Promise.all(batch.map(idx => rewriteTitle(idx)));
         }
     };
@@ -457,10 +324,19 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         const listing = listings[index];
         if (!listing.original_title) return;
 
-        // Optimistic UI update for individual click, 
-        // but for bulk, the loading state is already set by rewriteAll
+        if (checkCredits && !checkCredits()) {
+            alert('You have reached your optimization limit. Please upgrade for more.');
+            setListings((prev: Listing[]) => {
+                const next = [...prev];
+                next[index] = { ...next[index], loading: false };
+                return next;
+            });
+            return;
+        }
+
+        // Optimistic UI update
         if (!listing.loading) {
-            setListings(prev => {
+            setListings((prev: Listing[]) => {
                 const next = [...prev];
                 next[index] = { ...next[index], loading: true };
                 return next;
@@ -475,28 +351,24 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                     title: listing.original_title,
                     itemId: listing.ebay_item_id,
                     imageUrl: listing.image_url,
-                    forceRefresh: !!listing.optimized_title // Bypass cache if rewriting
+                    forceRefresh: !!listing.optimized_title
                 })
             });
 
             const data = await res.json();
 
             if (data.optimizedTitle) {
-                // Calculate updated item immediately to avoid React state batching race condition
                 const newItem = { ...listings[index], optimized_title: data.optimizedTitle, loading: false };
-
-                setListings(prev => {
+                setListings((prev: Listing[]) => {
                     const next = [...prev];
                     next[index] = newItem;
                     return next;
                 });
 
-                // TRIGGER AUTOSAVE immediately for this row
                 saveSingleRow(index, newItem);
 
-                // Notify parent to increment usage counter (only if not from cache)
-                if (!data.fromCache && onUsageIncrement) {
-                    onUsageIncrement();
+                if (!data.fromCache && onCreditsUsed) {
+                    onCreditsUsed();
                 }
 
             } else {
@@ -504,9 +376,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
             }
         } catch (e: any) {
             console.error(e);
-            // Don't alert for every single failure in batch mode, just log it
-            // alert(`Failed to optimize: ${e.message || 'Unknown error'}`);
-            setListings(prev => {
+            setListings((prev: Listing[]) => {
                 const next = [...prev];
                 next[index] = { ...next[index], loading: false };
                 return next;
@@ -514,7 +384,7 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
         }
     };
 
-    // --- SORTING LOGIC ---
+    // --- SORTING ---
     const [sortBy, setSortBy] = useState<'date-desc' | 'score-asc' | 'score-desc' | 'status-pending'>('score-asc');
 
     const getSortedListings = () => {
@@ -527,13 +397,11 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 return calculateSeoScore(b.original_title) - calculateSeoScore(a.original_title);
             }
             if (sortBy === 'status-pending') {
-                // Priority: Empty Optimized Title > Optimized
                 const aOpt = !!a.optimized_title;
                 const bOpt = !!b.optimized_title;
                 if (aOpt === bOpt) return 0;
                 return aOpt ? 1 : -1;
             }
-            // Date Desc (Default/Fallback) - assuming array order is effectively date for now
             return 0;
         });
     };
@@ -542,11 +410,10 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
 
     return (
         <div style={{ maxWidth: '100%' }}>
-            {/* Header / Actions for the 'Repeating Group' */}
+            {/* Header / Actions */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Listings ({listings.length})</h3>
-
                     {/* Sort Dropdown */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem 0.75rem', borderRadius: '6px' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Sort:</span>
@@ -558,7 +425,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                             <option value="score-asc">Lowest Score (Needs Work)</option>
                             <option value="score-desc">Highest Score</option>
                             <option value="status-pending">Not Optimized First</option>
-                            <option value="date-desc">Newest First</option>
                         </select>
                     </div>
                 </div>
@@ -585,29 +451,15 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                         <Save size={16} /> Save
                     </button>
 
-                    {mode === 'inventory' ? (
-                        <button
-                            onClick={pushAllToEbay}
-                            className="btn btn-primary"
-                            disabled={saving || listings.some(l => l.pushing)}
-                            title={isPro ? "Push all optimized items to eBay" : "Upgrade to Pro to push items"}
-                            style={{ opacity: isPro ? 1 : 0.5, cursor: isPro ? 'pointer' : 'not-allowed' }}
-                        >
-                            <CloudPush size={16} /> Push All Live
-                        </button>
-                    ) : (
-                        <button onClick={exportCsv} className="btn btn-primary" disabled={saving}>
-                            <Upload size={16} style={{ transform: 'rotate(180deg)' }} /> Export CSV
-                        </button>
-                    )}
-
                     <button
-                        onClick={handleClearAll}
-                        className="icon-btn icon-btn-danger"
-                        disabled={saving}
-                        title="Clear all listings"
+                        onClick={pushAllToEbay}
+                        className="btn btn-primary"
+                        disabled={saving || listings.some(l => l.pushing)}
+                        title={isPro ? "Push all optimized items to eBay" : "Upgrade to Pro to push items"}
+                        style={{ opacity: isPro ? 1 : 0.5, cursor: isPro ? 'pointer' : 'not-allowed' }}
                     >
-                        <Trash2 size={16} />
+                        {isPro ? <CloudPush size={16} /> : <Lock size={16} />}
+                        {isPro ? ' Push All Live' : ' Push All (Pro)'}
                     </button>
                 </div>
             </div>
@@ -619,32 +471,18 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                 <div style={{}}>Action</div>
             </div>
 
-            {/* The List (Repeating Group) */}
+            {/* The List Logic */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {displayListings.map((listing, _) => {
-                    // We need the ACTUAL original index for callbacks to work correctly
-                    // Since we sorted displayListings, 'listing' is the object. 
-                    // We need to find its index in the MASTER 'listings' array.
-                    // IMPORTANT: This O(N) lookup inside the loop is inefficient but acceptable for <1000 items. 
-                    // A better way is to attach the original index to the object before sorting, but I'll use findIndex for simplicity for now or assume Listing has ID.
-                    // Actually, using the wrong index will break 'rewriteTitle(i)'.
-                    // I must map indices.
-
-                    // Optimization: Let's use listing.id or raw object reference.
-                    // The functions `rewriteTitle(index)` expect an index into `listings` state.
-                    const realIndex = listings.findIndex(l => l === listing);
+                    // Match sorting to original index
+                    const realIndex = listings.findIndex(l => l.id === listing.id);
+                    // Fallback if ID is missing (should verify handled)
+                    if (realIndex === -1) return null;
 
                     return (
                         <div key={listing.id || realIndex} className="" style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr 60px',
-                            gap: '1.5rem',
-                            alignItems: 'start',
-                            padding: '1.5rem',
-                            backgroundColor: 'rgba(255,255,255,0.03)',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid transparent',
-                            transition: 'background-color 0.2s'
+                            display: 'grid', gridTemplateColumns: '1fr 1fr 60px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
+                            backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
                         }}
                             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
                             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
@@ -652,7 +490,6 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                             {/* Original */}
                             <div style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', lineHeight: 1.4, paddingRight: '1rem', overflowWrap: 'break-word' }}>
                                 <div style={{ marginBottom: '0.5rem' }}>{listing.original_title}</div>
-                                {/* Original Score Badge */}
                                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
                                     <span style={{ color: getScoreColor(calculateSeoScore(listing.original_title)) }}>
                                         SEO Score: {calculateSeoScore(listing.original_title)}
@@ -667,21 +504,11 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                                     onChange={(e) => handleTitleChange(realIndex, e.target.value)}
                                     placeholder="Click Rewrite to generate..."
                                     style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--color-border)',
-                                        backgroundColor: 'rgba(0,0,0,0.2)',
-                                        color: 'var(--color-text-main)',
-                                        resize: 'vertical',
-                                        minHeight: '60px',
-                                        fontFamily: 'inherit',
-                                        fontSize: '0.95rem'
+                                        width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)',
+                                        backgroundColor: 'rgba(0,0,0,0.2)', color: 'var(--color-text-main)', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', fontSize: '0.95rem'
                                     }}
                                 />
-                                {/* Char Count & Score */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.75rem' }}>
-                                    {/* Optimized Score */}
                                     {listing.optimized_title && (
                                         <span style={{ fontWeight: 600, color: getScoreColor(calculateSeoScore(listing.optimized_title)) }}>
                                             New Score: {calculateSeoScore(listing.optimized_title)}
@@ -696,14 +523,13 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                                 </div>
                             </div>
 
-                            {/* Action Button */}
+                            {/* Actions */}
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingTop: '0.25rem' }}>
                                 <button
                                     onClick={() => rewriteTitle(realIndex)}
                                     className="btn"
                                     style={{
-                                        padding: '0.4rem',
-                                        borderRadius: '50%',
+                                        padding: '0.4rem', borderRadius: '50%',
                                         background: listing.optimized_title ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
                                         color: listing.optimized_title ? '#4caf50' : 'var(--color-primary)'
                                     }}
@@ -721,24 +547,25 @@ export default function ListingEditor({ listings: initialListings, userId, autoS
                                         onClick={() => pushToEbay(realIndex)}
                                         className="btn"
                                         style={{
-                                            padding: '0.4rem',
-                                            borderRadius: '50%',
-                                            background: listing.status === 'uploaded' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
-                                            color: listing.status === 'uploaded' ? '#4caf50' : '#d6bcfa',
-                                            border: listing.status === 'uploaded' ? '1px solid #4caf50' : 'none'
+                                            padding: '0.4rem', borderRadius: '50%',
+                                            background: !isPro ? 'rgba(255,255,255,0.05)' : listing.status === 'uploaded' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
+                                            color: !isPro ? 'var(--color-text-dim)' : listing.status === 'uploaded' ? '#4caf50' : '#d6bcfa',
+                                            border: listing.status === 'uploaded' ? '1px solid #4caf50' : 'none',
+                                            cursor: !isPro ? 'pointer' : 'pointer'
                                         }}
-                                        title={listing.status === 'uploaded' ? "Already on eBay" : "Push to eBay"}
+                                        title={!isPro ? "Upgrade to Push Live" : listing.status === 'uploaded' ? "Already on eBay" : "Push to eBay"}
                                         disabled={listing.pushing || listing.loading}
                                     >
                                         {listing.pushing ?
                                             <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> :
-                                            listing.status === 'uploaded' ? <CheckCircle size={16} /> : <CloudPush size={16} />
+                                            !isPro ? <Lock size={14} /> :
+                                                listing.status === 'uploaded' ? <CheckCircle size={16} /> : <CloudPush size={16} />
                                         }
                                     </button>
                                 )}
                             </div>
                         </div>
-                    )
+                    );
                 })}
             </div>
         </div>
