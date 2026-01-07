@@ -143,10 +143,12 @@ export default function Home() {
       {/* Pricing Section */}
       <section id="pricing" className="section-padding" style={{ background: 'rgba(156, 85, 213, 0.02)' }}>
         <div className="container">
-          <h2 className="section-title">Simple Pricing for <span className="text-gradient">eBay Sellers</span></h2>
-          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginBottom: '4rem', fontSize: '1.2rem' }}>
-            Choose the plan that matches how you work.
-          </p>
+          <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+            <h2 className="section-title">Simple Pricing for eBay Sellers</h2>
+            <p style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)', maxWidth: '600px', margin: '0 auto' }}>
+              Improve listing visibility for less than $10 per month.
+            </p>
+          </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem', justifyContent: 'center', marginBottom: '4rem' }}>
 
@@ -154,26 +156,26 @@ export default function Home() {
             <div className="card glass" style={{ padding: '3rem 2rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ marginBottom: 'auto' }}>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Free Trial</h3>
-                <p style={{ color: 'var(--color-text-dim)', marginBottom: '1.5rem', fontWeight: 500 }}>See the Magic</p>
+                <p style={{ color: 'var(--color-text-dim)', marginBottom: '1.5rem', fontWeight: 500 }}>See How Your Listings Surface</p>
                 <div style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '2rem', fontStyle: 'italic' }}>
-                  "Test the AI on a few listings. No credit card required."
+                  "Test optimized titles on real listings and see how stronger keywords and structure improve search visibility."
                 </div>
 
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Optimize up to 25 listings</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Access to SEO Scorecard</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> See before / after results</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Search visibility check</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Before / after title visibility preview</li>
                 </ul>
 
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  <strong>Best for:</strong><br /> Testing if the AI actually works (It does).
+                  <strong>Best for:</strong><br /> Seeing how your listings appear in search.
                 </div>
               </div>
 
               <Link href="/login" className="btn btn-secondary" style={{ width: '100%', textAlign: 'center' }}>Start Free Trial</Link>
             </div>
 
-            {/* Pro: Annual Pass */}
+            {/* Pro: Annual Access */}
             <div className="card glass" style={{
               padding: '3rem 2rem',
               display: 'flex',
@@ -183,32 +185,32 @@ export default function Home() {
               background: 'linear-gradient(180deg, rgba(30, 10, 60, 0.6) 0%, rgba(10, 10, 20, 0.4) 100%)',
               position: 'relative'
             }}>
-              <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--color-primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>BEST VALUE</div>
               <div style={{ marginBottom: 'auto' }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pro Annual Pass</h3>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Annual Access</h3>
                 <div style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '0.25rem', lineHeight: '1' }}>$99 <span style={{ fontSize: '1.25rem', color: 'var(--color-text-dim)', fontWeight: 400 }}> / year</span></div>
                 <div style={{ fontSize: '0.9rem', color: '#4caf50', marginBottom: '1.5rem', fontWeight: 600 }}>
-                  No monthly fees. One simple payment.
+                  Less than $10 per month. One simple payment.
                 </div>
 
                 <div style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  Get full access to the AI for an entire year. Automate your whole store.
+                  Built to help your listings surface more often in eBay search.
                 </div>
 
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Optimize 5,000 Listings / Year</b></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>"Push All Live" Button</b> (Instant Bulk Update)</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Connect eBay Verification</b></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> <b>Hallucination Safety Filters</b></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> <b>Smart Keyword Injection</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Search visibility checks across listings</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Improved keyword coverage in titles</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Titles structured to match eBay search patterns</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> <b>Store-wide optimization</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> <b>One-click bulk updates</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> <b>Titles built to follow eBay rules</b></li>
                 </ul>
 
                 <div style={{ background: 'rgba(156, 85, 213, 0.1)', padding: '1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'white', marginBottom: '2rem', border: '1px solid rgba(156, 85, 213, 0.3)' }}>
-                  <strong>Includes:</strong><br /> Everything you need to turn a "Death Pile" into cash.
+                  <strong>Includes:</strong><br /> Apply visibility improvements across your full inventory all year.
                 </div>
               </div>
 
-              <Link href="/login" className="btn btn-primary" style={{ width: '100%', textAlign: 'center', boxShadow: '0 4px 20px rgba(156, 85, 213, 0.4)' }}>Get Annual Pass</Link>
+              <Link href="/login" className="btn btn-primary" style={{ width: '100%', textAlign: 'center', boxShadow: '0 4px 20px rgba(156, 85, 213, 0.4)' }}>Get Annual Access</Link>
             </div>
           </div>
 
