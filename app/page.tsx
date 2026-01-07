@@ -153,83 +153,62 @@ export default function Home() {
             {/* Free: Try It Out */}
             <div className="card glass" style={{ padding: '3rem 2rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ marginBottom: 'auto' }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Free</h3>
-                <p style={{ color: 'var(--color-text-dim)', marginBottom: '1.5rem', fontWeight: 500 }}>Try It Out</p>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Free Trial</h3>
+                <p style={{ color: 'var(--color-text-dim)', marginBottom: '1.5rem', fontWeight: 500 }}>See the Magic</p>
                 <div style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '2rem', fontStyle: 'italic' }}>
-                  "Optimize a few listings. See the results."
+                  "Test the AI on a few listings. No credit card required."
                 </div>
 
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Optimize up to 25 eBay titles</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Upload & download via CSV</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> See before / after title changes</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> No credit card required</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Optimize up to 25 listings</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Access to SEO Scorecard</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> See before / after results</li>
                 </ul>
 
                 <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  <strong>Best for:</strong><br /> Sellers who want to test title quality before committing.
+                  <strong>Best for:</strong><br /> Testing if the AI actually works (It does).
                 </div>
               </div>
 
-              <Link href="/login" className="btn btn-secondary" style={{ width: '100%', textAlign: 'center' }}>Get started free</Link>
+              <Link href="/login" className="btn btn-secondary" style={{ width: '100%', textAlign: 'center' }}>Start Free Trial</Link>
             </div>
 
-            {/* Starter: Manual but Powerful */}
-            <div className="card glass" style={{ padding: '3rem 2rem', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ marginBottom: 'auto' }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Starter</h3>
-                <div style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>$19 <span style={{ fontSize: '1rem', color: 'var(--color-text-dim)', fontWeight: 400 }}> / month</span></div>
-                <div style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  Bulk optimize listings with a simple CSV workflow.
-                </div>
-
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Optimize up to 400 titles/mo</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Upload CSVs (50 listings/batch)</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Download optimized titles</li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Full control before uploading</li>
-                </ul>
-
-                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  <strong>Best for:</strong><br /> Part-time and growing sellers optimizing listings in smaller batches.
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', textAlign: 'center', marginBottom: '1rem' }}>No features locked. No account connection required.</p>
-              </div>
-
-              <Link href="/login" className="btn btn-secondary" style={{ width: '100%', textAlign: 'center', background: 'rgba(255,255,255,0.1)' }}>Upgrade to Starter</Link>
-            </div>
-
-            {/* Pro: Automation */}
+            {/* Pro: Annual Pass */}
             <div className="card glass" style={{
               padding: '3rem 2rem',
               display: 'flex',
               flexDirection: 'column',
               border: '2px solid var(--color-primary)',
               boxShadow: '0 0 40px rgba(156, 85, 213, 0.15)',
+              background: 'linear-gradient(180deg, rgba(30, 10, 60, 0.6) 0%, rgba(10, 10, 20, 0.4) 100%)',
               position: 'relative'
             }}>
-              <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--color-primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>RECOMMENDED</div>
+              <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'var(--color-primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>BEST VALUE</div>
               <div style={{ marginBottom: 'auto' }}>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pro</h3>
-                <div style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>$59 <span style={{ fontSize: '1rem', color: 'var(--color-text-dim)', fontWeight: 400 }}> / month</span></div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pro Annual Pass</h3>
+                <div style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '0.25rem', lineHeight: '1' }}>$99 <span style={{ fontSize: '1.25rem', color: 'var(--color-text-dim)', fontWeight: 400 }}> / year</span></div>
+                <div style={{ fontSize: '0.9rem', color: '#4caf50', marginBottom: '1.5rem', fontWeight: 600 }}>
+                  No monthly fees. One simple payment.
+                </div>
+
                 <div style={{ fontSize: '1rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                  Update live eBay listings in minutes — <b>no CSVs required.</b>
+                  Get full access to the AI for an entire year. Automate your whole store.
                 </div>
 
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Connect eBay Account Securely</b></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Pull listings directly from eBay</b></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Push updates live (1-Click)</b></li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> Optimize up to 1,200 titles/mo</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Optimize 5,000 Listings / Year</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>"Push All Live" Button</b> (Instant Bulk Update)</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="var(--color-primary)" /> <b>Connect eBay Verification</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> <b>Hallucination Safety Filters</b></li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.95rem' }}><Check size={18} color="#4caf50" /> <b>Smart Keyword Injection</b></li>
                 </ul>
 
                 <div style={{ background: 'rgba(156, 85, 213, 0.1)', padding: '1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'white', marginBottom: '2rem', border: '1px solid rgba(156, 85, 213, 0.3)' }}>
-                  <strong>Best for:</strong><br /> High-volume sellers who want speed, automation, and zero manual work.
+                  <strong>Includes:</strong><br /> Everything you need to turn a "Death Pile" into cash.
                 </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', textAlign: 'center', marginBottom: '1rem' }}>Save hours every month. Never touch a CSV again.</p>
               </div>
 
-              <Link href="/login" className="btn btn-primary" style={{ width: '100%', textAlign: 'center', boxShadow: '0 4px 20px rgba(156, 85, 213, 0.4)' }}>Upgrade to Pro</Link>
+              <Link href="/login" className="btn btn-primary" style={{ width: '100%', textAlign: 'center', boxShadow: '0 4px 20px rgba(156, 85, 213, 0.4)' }}>Get Annual Pass</Link>
             </div>
           </div>
 
