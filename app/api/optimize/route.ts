@@ -67,13 +67,14 @@ export async function POST(request: NextRequest) {
         // Define Limits
         let limit = 25; // Free: 25 Lifetime
         let isMonthly = false;
+        let isYearly = false;
 
         if (tier === 'starter') {
             limit = 400;
-            isMonthly = true;
+            isMonthly = true; // Still monthly?
         } else if (tier === 'pro') {
-            limit = 1200;
-            isMonthly = true;
+            limit = 5000; // Annual Cap
+            isYearly = true;
         }
 
         // 2. Count Usage
@@ -88,15 +89,24 @@ export async function POST(request: NextRequest) {
             startOfMonth.setDate(1);
             startOfMonth.setHours(0, 0, 0, 0);
             query.gte('created_at', startOfMonth.toISOString());
+        } else if (isYearly) {
+            // Reset on Jan 1st
+            const startOfYear = new Date();
+            startOfYear.setMonth(0, 1);
+            startOfYear.setHours(0, 0, 0, 0);
+            query.gte('created_at', startOfYear.toISOString());
         }
 
         const { count: usageCount } = await query;
 
         if (usageCount !== null && usageCount >= limit) {
             console.warn(`[Limit Reached] User ${user.id} (${tier}) hit limit: ${usageCount}/${limit}`);
-            const period = isMonthly ? 'this month' : 'total';
+            let period = 'total';
+            if (isMonthly) period = 'this month';
+            if (isYearly) period = 'this year';
+
             return NextResponse.json(
-                { error: `You have reached your ${tier} plan limit of ${limit} rewrites ${period}. Please upgrade to continue.` },
+                { error: `You have reached your ${tier} plan limit of ${limit} rewrites ${period}. Please upgrade or contact support.` },
                 { status: 429 }
             );
         }
@@ -148,9 +158,15 @@ export async function POST(request: NextRequest) {
         5. **No Spacing Chars:** Remove / - : , (Use spaces only).
 
         DECISION LOGIC:
-        - If the Original Title is already descriptive and > 70 chars: ONLY apply the "Formatting Operations"(fix 38x9, Mens, Sz).Do not reorder the words significantly.
-        - If weak: Build structure: [Brand] [Model] [Type] [Proven Attributes] [Keywords].
-        - **NEVER** force [Gender] or [Size] if they are missing.
+        - If the Original Title is already descriptive and > 70 chars: ONLY apply the "Formatting Operations".
+        - If weak/short (< 60 chars): You MUST expand with high-value Keywords.
+          - Structure: [Brand] [Model] [Type] [Proven Attributes] [Synonyms/Keywords].
+          - Example Expansion: "Tumi Backpack" -> "Tumi Backpack Travel Laptop Business Bag Work Rucksack".
+
+        KEYWORD EXPANSION RULES:
+        - **SAFE:** Abstract uses (Travel, Work, Business, Outdoor, Vintage, Y2K).
+        - **UNSAFE:** Physical traits (Large, Leather, Silk, Heavy) - DO NOT TOUCH unless in input.
+        - **GOAL:** Target 75-80 Characters.
 
         FINAL CHECK:
         - Is "Sz" gone ?
