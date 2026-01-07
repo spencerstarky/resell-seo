@@ -122,7 +122,7 @@ export default function Home() {
               </div>
               <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Update 100 Listings in Minutes</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Replace hours of manual edits with a few clicks. Upload a CSV or connect directly to eBay and bulk optimize your titles before your coffee gets cold.
+                Replace hours of manual edits with a few clicks. Connect directly to eBay and bulk optimize your titles before your coffee gets cold.
               </p>
             </div>
 
@@ -226,29 +226,29 @@ export default function Home() {
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '0.5rem', borderRadius: '50%' }}><Check size={20} color="#4caf50" /></div>
                 <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No files to manage</h4>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>No exporting CSVs, editing in Excel, and re-uploading. It all happens in the app.</p>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Push to Live</h4>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Instantly update your eBay listings with one click. No manual copy-pasting required.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '0.5rem', borderRadius: '50%' }}><Check size={20} color="#4caf50" /></div>
                 <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Fewer Mistakes</h4>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Direct integration reduces the risk of messing up SKU data or prices during CSV import.</p>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Unlimited Scale</h4>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Optimize up to 5,000 listings per year. Perfect for growing volume sellers.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '0.5rem', borderRadius: '50%' }}><Check size={20} color="#4caf50" /></div>
                 <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Faster Updates</h4>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Push 50 listings live in the time it takes to download one CSV file.</p>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Bulk Actions</h4>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Optimization cycles run in the background. Update 50 listings while you sleep.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '0.5rem', borderRadius: '50%' }}><Check size={20} color="#4caf50" /></div>
                 <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Real Workflow</h4>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Built for the daily grind of high-volume reselling.</p>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Full Store Coverage</h4>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Ensure every single item in your store is visible and ranking. Leave no listing behind.</p>
                 </div>
               </div>
             </div>
