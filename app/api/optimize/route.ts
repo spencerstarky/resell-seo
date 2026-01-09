@@ -355,7 +355,7 @@ export async function POST(request: NextRequest) {
         // Increment Usage
         await supabase.rpc('increment_usage', { user_id: user.id });
 
-        return NextResponse.json({ optimizedTitle });
+        return NextResponse.json({ optimizedTitle, fromCache: false });
 
     } catch (error: any) {
         console.error('Gemini Optimization Error:', error);

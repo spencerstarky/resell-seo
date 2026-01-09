@@ -372,6 +372,9 @@ export default function ListingEditor({
 
                 if (!data.fromCache && onCreditsUsed) {
                     onCreditsUsed();
+                    // Optional: You could show a toast here "1 Credit Used"
+                } else {
+                    console.log('Optimization served from cache (Free)');
                 }
 
             } else {
