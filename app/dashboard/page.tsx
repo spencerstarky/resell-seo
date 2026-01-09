@@ -28,29 +28,22 @@ export default async function DashboardPage() {
         .eq('id', user.id)
         .single();
 
-    // Fetch user's saved listings
-    const { data: savedListings } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('sort_index', { ascending: true });
-
     const isConnected = !!token;
     const authUrl = await getEbayAuthUrl(user.id);
 
-    // --- Calculate Usage Limits ---
+    // --- Calculate Usage Limits (Matches /api/optimize logic) ---
     let tier = profile?.plan_tier || 'free';
     if (user.email === 'resellseo@gmail.com') tier = 'pro'; // Admin Override
 
     let limit = 25;
-    let isMonthly = false;
+    let period: 'lifetime' | 'monthly' | 'yearly' = 'lifetime';
 
     if (tier === 'starter') {
-        limit = 400;
-        isMonthly = true;
+        limit = 500;
+        period = 'monthly';
     } else if (tier === 'pro') {
-        limit = 1200;
-        isMonthly = true;
+        limit = 5000;
+        period = 'yearly';
     }
 
     const query = supabase
@@ -58,11 +51,14 @@ export default async function DashboardPage() {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
 
-    if (isMonthly) {
+    if (period === 'monthly') {
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
         query.gte('created_at', startOfMonth.toISOString());
+    } else if (period === 'yearly') {
+        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+        query.gte('created_at', startOfYear.toISOString());
     }
 
     const { count: usageCount } = await query;
@@ -70,7 +66,7 @@ export default async function DashboardPage() {
         count: usageCount || 0,
         limit,
         tier,
-        isMonthly
+        isMonthly: period === 'monthly' // maintained for backward compatibility inside Header if needed
     };
     // ------------------------------
 
@@ -119,7 +115,6 @@ export default async function DashboardPage() {
                 initialIsConnected={isConnected}
                 authUrl={authUrl}
                 userProfile={profile}
-                initialListings={savedListings || []}
                 initialInventory={initialInventory}
                 userId={user.id}
                 userEmail={user.email}
