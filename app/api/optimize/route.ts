@@ -216,14 +216,13 @@ export async function POST(request: NextRequest) {
         ];
 
         // Prepare Image Data (Multi-Image Level 3)
-        const imageParts: any[] = [];
+        // Process up to 12 images (standard eBay max)
+        const imagesToProcess = galleryImages.slice(0, 12);
 
-        // Process up to 5 images
-        const imagesToProcess = galleryImages.slice(0, 5);
+        console.log(`[Level 3] Processing ${imagesToProcess.length} images in parallel...`);
 
-        console.log(`[Level 3] Processing ${imagesToProcess.length} images...`);
-
-        for (const imgUrl of imagesToProcess) {
+        // Fetch all images in parallel for speed
+        const imageFetchPromises = imagesToProcess.map(async (imgUrl) => {
             try {
                 const imgRes = await fetch(imgUrl);
                 if (imgRes.ok) {
@@ -231,17 +230,22 @@ export async function POST(request: NextRequest) {
                     const imgBuffer = await imgRes.arrayBuffer();
                     const base64Image = Buffer.from(imgBuffer).toString('base64');
 
-                    imageParts.push({
+                    return {
                         inline_data: {
                             mime_type: contentType,
                             data: base64Image
                         }
-                    });
+                    };
                 }
             } catch (err) {
                 console.warn(`[Level 3] Failed to fetch image ${imgUrl}:`, err);
             }
-        }
+            return null;
+        });
+
+        const imageResults = await Promise.all(imageFetchPromises);
+        // Filter out failures
+        const imageParts = imageResults.filter((part): part is any => part !== null);
 
         let optimizedTitle = '';
         let lastError = '';
