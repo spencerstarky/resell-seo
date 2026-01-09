@@ -79,12 +79,8 @@ export default function ListingEditor({
 }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
 
-    // Sync with parent IF parent provides updates (optional, but good for initial load)
-    useEffect(() => {
-        if (initialListings && initialListings.length > 0) {
-            setListings(initialListings);
-        }
-    }, [initialListings]);
+    // State is initialized only once (or when key changes).
+    // We REMOVED the useEffect here that was causing resets when parend updated credits.
 
     const [saving, setSaving] = useState(false);
     const [savingRows, setSavingRows] = useState<Set<number>>(new Set());

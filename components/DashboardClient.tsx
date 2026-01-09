@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Monitor, RefreshCw, Loader2, Link as LinkIcon, AlertCircle } from 'lucide-react';
 import ListingEditor from './ListingEditor';
 import Header from './Header';
@@ -164,7 +164,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     // ------------------------------------------------------------------
 
     // Filter Inventory
-    const activeListings = inventory
+    const activeListings = useMemo(() => inventory
         .filter((item: any) => {
             const status = item.status || 'NEW';
             if (inventoryTab === 'LIVE') return status === 'LIVE' || status === 'UPLOADED';
@@ -179,7 +179,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
             ebay_item_id: item.ebay_item_id,
             image_url: item.image_url,
             raw_data: item
-        }));
+        })), [inventory, inventoryTab]);
 
     return (
         <div className="container" style={{ padding: '2rem 0' }}>
@@ -230,6 +230,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
             </div>
 
             <ListingEditor
+                key={inventoryTab}
                 listings={activeListings}
                 setListings={() => { }} // Read-only derived state basically
                 checkCredits={() => usageCount < (usageStats?.limit || 25)}
