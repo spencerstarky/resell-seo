@@ -171,11 +171,16 @@ export async function POST(request: NextRequest) {
         3. **ONLY FACTUAL DATA:** Use the visible model number, brand, and color. Do not invent "Leather" if it looks like Nylon.
         4. **NUMERIC SAFETY:** Trust the measurements in the original title (e.g. "30x29.5"). DO NOT change "30" to "31". measurement numbers must match the input unless the Image Tag clearly says otherwise.
 
+        BRAND STRATEGY (SMART POSITIONING):
+        1. **Value Leader Rule:** The FIRST word must be the highest value keyword. Usually, this is the Brand (e.g. Nike, J.Crew).
+        2. **Team Exception:** If the item is Sports Fan Apparel (NCAA/NFL/NBA) on a generic blank (e.g. Gildan, Hanes), lead with the TEAM NAME (e.g. "UGA Bulldogs"). Move the maker brand to the end.
+        3. **Luxury Exception:** If the item is Luxury Material (Cashmere, Silk, Leather) but Low-End Brand (e.g. Merona, Apt 9, Gildan, Unbranded), lead with the MATERIAL (e.g. "100% Cashmere Sweater"). Move the brand to the end.
+        4. **Mid-Tier Protection:** Brands like J.Crew, Banana Republic, Zara ARE valuable. Keep them FIRST. Only move truly generic/mass-market brands.
+
         CRITICAL PRESERVATION RULES (DO NOT TOUCH):
         1. **Product Name vs Code:** The Descriptive Name (e.g. "Slouch Coat", "501 Jeans") is KING. Never remove it to make room for a long alphanumeric SKU (e.g. "LB43360...").
         2. **Model Numbers:** Keep short, searchable codes (e.g. "501", "MX-5"). If a code is very long (>10 chars) and not a known model name, prioritize the Product Name instead.
         3. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
-        4. **BRAND NAMES (TOP PRIORITY):** The Brand (e.g. "Quince", "Nike", "Zara") MUST BE THE FIRST WORD. Never remove the brand.
 
         FORMATTING OPERATIONS (EXECUTE ALL):
         1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L". BUT **KEEP THE VALUE**. (e.g. Change "Size 8" to "8". Change "Sz Small" to "Small").
@@ -187,16 +192,19 @@ export async function POST(request: NextRequest) {
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Brand > Product Name > Type > Gender > Size > Model No > Condition.
-        - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. remove the last word entirely if it doesn't fit.
+        - **PRIORITY:** Value Leader > Product Name > Type > Gender > Size > Model No > Condition.
+        - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. Remove the last word entirely if it doesn't fit.
 
         STRICT STRUCTURE (Follow this order):
-        [Brand] [Product Name] [Type] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?]
+        [Value Leader] [Product Name] [Type] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?] [Low Brand?]
 
         Example:
+        Input: "Gildan UGA Bulldogs Red Shirt"
+        Output: "UGA Bulldogs Shirt Mens L Red Football NCAA Gildan" (Team First)
+
+        Example 2:
         Input: "Quince Italian Wool Double Breasted Slouch Coat Black"
-        Bad Output: "Quince Italian Wool Slouch Coat Cotto..." (Cut off)
-        Good Output: "Quince Italian Wool Slouch Coat Trench Mens XL Double Breasted Black"
+        Output: "Quince Italian Wool Slouch Coat Trench Mens XL Double Breasted Black"
 
         FINAL CHECK:
         - Is "Sz" gone?
