@@ -112,16 +112,31 @@ export async function POST(request: NextRequest) {
         }
         // ------------------------------
 
-        // 1. Fetch Item Specifics from eBay (Level 2)
+        // 1. Fetch Item Specifics AND Images from eBay (Level 2)
         let additionalInfo = '';
+        let galleryImages: string[] = [];
+
         if (itemId) {
             try {
                 const accessToken = await getValidAccessToken(user.id, supabase);
-                additionalInfo = await getDetailedItemInfo(itemId, accessToken);
-                console.log(`[Level 3] Fetched specifics for ${itemId}: ${additionalInfo.slice(0, 100)}...`);
+                const details = await getDetailedItemInfo(itemId, accessToken);
+                additionalInfo = details.specifics; // Extract specifics string
+                galleryImages = details.imageUrls || []; // Extract images array
+
+                // If client provided an image but we found none in gallery, keep client's
+                if (galleryImages.length === 0 && imageUrl) {
+                    galleryImages.push(imageUrl);
+                }
+
+                console.log(`[Level 3] Fetched specifics + ${galleryImages.length} images for ${itemId}`);
             } catch (err: any) {
                 console.warn(`[Level 3] Failed to fetch specifics: ${err.message}`);
+                // Fallback: use client image if DB lookup failed
+                if (imageUrl) galleryImages.push(imageUrl);
             }
+        } else {
+            // New draft scenario? Use client image
+            if (imageUrl) galleryImages.push(imageUrl);
         }
 
         // 2. Prepare Prompt
@@ -134,6 +149,8 @@ export async function POST(request: NextRequest) {
         INPUT DATA:
         - Original Title: "${title}"
         - Item Specifics: "${additionalInfo || 'None provided'}"
+        - IMAGES: Access the attached images to find Material Tags (e.g. 100% Silk), Flaws, or Specific Model names.
+
 
         TASK:
         Refine the title to maximize search volume while fixing formatting.
@@ -198,26 +215,31 @@ export async function POST(request: NextRequest) {
             'gemini-pro'
         ];
 
-        // Prepare Image Data (Level 3)
-        let imagePart: any = null;
-        if (imageUrl) {
+        // Prepare Image Data (Multi-Image Level 3)
+        const imageParts: any[] = [];
+
+        // Process up to 5 images
+        const imagesToProcess = galleryImages.slice(0, 5);
+
+        console.log(`[Level 3] Processing ${imagesToProcess.length} images...`);
+
+        for (const imgUrl of imagesToProcess) {
             try {
-                const imgRes = await fetch(imageUrl);
+                const imgRes = await fetch(imgUrl);
                 if (imgRes.ok) {
                     const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
                     const imgBuffer = await imgRes.arrayBuffer();
                     const base64Image = Buffer.from(imgBuffer).toString('base64');
-                    console.log(`[Level 3] Image fetched.Type: ${contentType}, Size: ${imgBuffer.byteLength} `);
 
-                    imagePart = {
+                    imageParts.push({
                         inline_data: {
                             mime_type: contentType,
                             data: base64Image
                         }
-                    };
+                    });
                 }
             } catch (err) {
-                console.warn('[Level 3] Failed to fetch image:', err);
+                console.warn(`[Level 3] Failed to fetch image ${imgUrl}:`, err);
             }
         }
 
@@ -227,14 +249,14 @@ export async function POST(request: NextRequest) {
         for (const modelName of candidateModels) {
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-                console.log(`[Attempt] Trying model: ${modelName}`);
+                // console.log(`[Attempt] Trying model: ${modelName}`);
 
                 // Construct Payload
                 const parts: any[] = [{ text: promptText }];
 
-                // Add image ONLY if model supports it (Flash) and image exists
-                if (imagePart && modelName.includes('flash')) {
-                    parts.push(imagePart);
+                // Add images ONLY if model supports it (Flash) and images exist
+                if (imageParts.length > 0 && modelName.includes('flash')) {
+                    parts.push(...imageParts);
                 }
 
                 const payload = {

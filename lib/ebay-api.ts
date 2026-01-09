@@ -142,5 +142,15 @@ export async function getDetailedItemInfo(itemId: string, accessToken: string) {
         specifics.push(`${name}: ${value}`);
     }
 
-    return specifics.join(', ');
+    // Parse Picture URLs
+    const imageUrls: string[] = [];
+    const pictureUrlMatches = resultText.matchAll(/<PictureURL>(.*?)<\/PictureURL>/g);
+    for (const match of pictureUrlMatches) {
+        imageUrls.push(match[1]);
+    }
+
+    return {
+        specifics: specifics.join(', '),
+        imageUrls: imageUrls
+    };
 }
