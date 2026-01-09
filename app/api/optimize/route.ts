@@ -183,16 +183,16 @@ export async function POST(request: NextRequest) {
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Brand > Product Name > Gender > Size > Model No > Measurements > Condition.
-        - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first, then long "Model No". NEVER drop Product Name, Size, or Brand.
+        - **PRIORITY:** Brand > Product Name > Type > Gender > Size > Model No > Condition.
+        - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. remove the last word entirely if it doesn't fit.
 
         STRICT STRUCTURE (Follow this order):
-        [Brand] [Product Name] [Model No] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?]
+        [Brand] [Product Name] [Type] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?]
 
         Example:
-        Input: "Quince Italian Wool Double Breasted Slouch Coat Black" (Tag shows LB43360...)
-        Bad Output: "Quince LB43360-SHWDC01 Trench Coat..." (Removed Name)
-        Good Output: "Quince Italian Wool Slouch Coat Womens XL LB43360 Double Breasted Black"
+        Input: "Quince Italian Wool Double Breasted Slouch Coat Black"
+        Bad Output: "Quince Italian Wool Slouch Coat Cotto..." (Cut off)
+        Good Output: "Quince Italian Wool Slouch Coat Trench Mens XL Double Breasted Black"
 
         FINAL CHECK:
         - Is "Sz" gone?
@@ -380,7 +380,19 @@ export async function POST(request: NextRequest) {
         optimizedTitle = optimizedTitle.trim().replace(/^"|"$/g, '');
 
         if (optimizedTitle.length > 80) {
-            optimizedTitle = optimizedTitle.substring(0, 80);
+            // Smart Truncate: Don't cut words in half
+            const words = optimizedTitle.split(' ');
+            let currentTitle = '';
+
+            for (const word of words) {
+                const potentialTitle = currentTitle ? `${currentTitle} ${word}` : word;
+                if (potentialTitle.length <= 80) {
+                    currentTitle = potentialTitle;
+                } else {
+                    break; // Stop adding words if we hit the limit
+                }
+            }
+            optimizedTitle = currentTitle;
         }
 
         // --- SAVE TO HISTORY ---
