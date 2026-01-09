@@ -11,6 +11,7 @@ interface AccountClientProps {
     user: User;
     profile: any;
     hasEbayConnected: boolean;
+    authUrl: string;
 }
 
 function EbayStatus() {
@@ -46,7 +47,7 @@ function EbayStatus() {
     );
 }
 
-export default function AccountClient({ user, profile, hasEbayConnected: initialHasEbayConnected }: AccountClientProps) {
+export default function AccountClient({ user, profile, hasEbayConnected: initialHasEbayConnected, authUrl }: AccountClientProps) {
     const isPro = profile?.plan_tier === 'pro' || user?.email === 'resellseo@gmail.com';
     const router = useRouter();
     const [hasEbayConnected, setHasEbayConnected] = useState(initialHasEbayConnected);
@@ -72,6 +73,23 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
         await supabase.auth.signOut();
         router.push('/login');
         router.refresh();
+    };
+
+    const handleDisconnect = async () => {
+        if (!confirm('Are you sure you want to disconnect your eBay account?')) return;
+
+        try {
+            const res = await fetch('/api/ebay/disconnect', { method: 'POST' });
+            if (res.ok) {
+                setHasEbayConnected(false);
+                router.refresh();
+            } else {
+                alert('Failed to disconnect');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error disconnecting');
+        }
     };
 
     return (
@@ -196,14 +214,22 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                             </div>
                         </div>
 
-                        {!hasEbayConnected && (
+                        {!hasEbayConnected ? (
                             <Link
-                                href="/api/auth/ebay/login"
+                                href={authUrl}
                                 className="btn btn-primary"
                                 style={{ fontSize: '0.85rem', padding: '0.6rem 1.2rem', textDecoration: 'none' }}
                             >
                                 Connect eBay
                             </Link>
+                        ) : (
+                            <button
+                                onClick={handleDisconnect}
+                                className="btn btn-secondary"
+                                style={{ fontSize: '0.85rem', padding: '0.6rem 1.2rem', color: '#ff4444', borderColor: 'rgba(255,68,68,0.2)' }}
+                            >
+                                Disconnect
+                            </button>
                         )}
                     </div>
 

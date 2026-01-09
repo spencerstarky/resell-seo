@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase-server';
 import AccountClient from '@/components/AccountClient';
 import Header from '@/components/Header';
+import { getEbayAuthUrl } from '@/lib/ebay';
 
 export default async function AccountPage() {
     const supabase = await createClient();
@@ -26,6 +27,8 @@ export default async function AccountPage() {
         .eq('user_id', user.id)
         .single();
 
+    const authUrl = await getEbayAuthUrl(user.id);
+
     return (
         <div className="container" style={{ padding: '0 1.5rem' }}>
             <Header />
@@ -33,6 +36,7 @@ export default async function AccountPage() {
                 user={user}
                 profile={profile}
                 hasEbayConnected={!!ebayToken}
+                authUrl={authUrl}
             />
         </div>
     );
