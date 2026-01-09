@@ -161,10 +161,10 @@ export async function POST(request: NextRequest) {
         3. **ONLY FACTUAL DATA:** Use the visible model number, brand, and color. Do not invent "Leather" if it looks like Nylon.
 
         CRITICAL PRESERVATION RULES (DO NOT TOUCH):
-        1. **Model Numbers:** YOU MUST PRESERVE alphanumeric codes (e.g., "LM7AW2S", "501", "MX-5"). These are vital.
-        2. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
-        3. **Good Keywords:** If the original title has high-value specific keywords (e.g. "St33le", "Jock"), keep them.
-        4. **BRAND NAMES (TOP PRIORITY):** The Brand (e.g. "Quince", "Nike", "Zara") MUST BE THE FIRST WORD. Never remove the brand. If you are unsure if a word is a brand, KEEP IT to be safe.
+        1. **Product Name vs Code:** The Descriptive Name (e.g. "Slouch Coat", "501 Jeans") is KING. Never remove it to make room for a long alphanumeric SKU (e.g. "LB43360...").
+        2. **Model Numbers:** Keep short, searchable codes (e.g. "501", "MX-5"). If a code is very long (>10 chars) and not a known model name, prioritize the Product Name instead.
+        3. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
+        4. **BRAND NAMES (TOP PRIORITY):** The Brand (e.g. "Quince", "Nike", "Zara") MUST BE THE FIRST WORD. Never remove the brand.
 
         FORMATTING OPERATIONS (EXECUTE ALL):
         1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L". BUT **KEEP THE VALUE**. (e.g. Change "Size 8" to "8". Change "Sz Small" to "Small").
@@ -176,15 +176,16 @@ export async function POST(request: NextRequest) {
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Brand > Model > Gender > Size > Measurements > Color > Condition > Keywords.
-        - **TRUNCATION STRATEGY:** If you are running out of space, DROP "Keywords" first. NEVER drop Size, Brand, or 'New'.
+        - **PRIORITY:** Brand > Product Name > Gender > Size > Model No > Measurements > Condition.
+        - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first, then long "Model No". NEVER drop Product Name, Size, or Brand.
 
         STRICT STRUCTURE (Follow this order):
-        [Brand] [Model] [Type] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?]
+        [Brand] [Product Name] [Model No] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?]
 
         Example:
-        Input: "Everlane Curvy Side Zip Work Pants Women's 8 Black New"
-        Good Output: "Everlane Curvy Side Zip Pants Womens 8 28x26 Stretch Work Ankle Black New"
+        Input: "Quince Italian Wool Double Breasted Slouch Coat Black" (Tag shows LB43360...)
+        Bad Output: "Quince LB43360-SHWDC01 Trench Coat..." (Removed Name)
+        Good Output: "Quince Italian Wool Slouch Coat Womens XL LB43360 Double Breasted Black"
 
         FINAL CHECK:
         - Is "Sz" gone?
