@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
         1. **Model Numbers:** YOU MUST PRESERVE alphanumeric codes (e.g., "LM7AW2S", "501", "MX-5"). These are vital.
         2. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
         3. **Good Keywords:** If the original title has high-value specific keywords (e.g. "St33le", "Jock"), keep them.
+        4. **BRAND NAMES (TOP PRIORITY):** The Brand (e.g. "Quince", "Nike", "Zara") MUST BE THE FIRST WORD. Never remove the brand. If you are unsure if a word is a brand, KEEP IT to be safe.
 
         FORMATTING OPERATIONS (EXECUTE ALL):
         1. **Remove Labels:** DELETE words like "Sz", "Size", "Waist", "W", "L". 
