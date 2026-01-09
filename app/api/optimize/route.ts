@@ -155,6 +155,12 @@ export async function POST(request: NextRequest) {
         TASK:
         Refine the title to maximize search volume while fixing formatting.
 
+        SEO STRATEGY (BUYER MENTALITY):
+        1. **Think like a Customer:** What 3-5 words would a buyer type to find this specific item? Ensure those EXACT words are in the title.
+        2. **High-Volume Synonyms:** Use the most popular term (e.g. "Sneakers" > "Shoes"). If space permits, include valuable synonyms (e.g. "Sweater Pullover Knit", "Coat Jacket").
+        3. **Style & Occasion:** Add visual style keywords if relevant (e.g. "Boho", "Minimalist", "Oversized", "Vintage", "Y2K", "Office", "Winter").
+        4. **Material is Key:** If you see "Silk", "Wool", "Linen" in the images, YOU MUST INCLUDE IT. Buyers search by material.
+
         HALLUCINATION POLICY (ZERO TOLERANCE):
         1. **NO GUESSING:** If the input (Title/Image/Specifics) does not explicitly indicate a Size or Gender, DO NOT ADD IT.
         2. **CATEGORY AWARENESS:** Bags, Electronics, and Home Goods often DO NOT have a Size (like S/M/L) or Gender. Do not force "Mens" or "Medium" on a Backpack unless proven.
