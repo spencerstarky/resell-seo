@@ -57,8 +57,12 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
         const params = new URLSearchParams(window.location.search);
         if (params.get('connected') === 'ebay') {
             setHasEbayConnected(true);
+            // Optional: Clean URL
+            window.history.replaceState({}, '', window.location.pathname);
         }
+    }, []);
 
+    useEffect(() => {
         // Trigger progress bar animation
         const timer = setTimeout(() => {
             const usage = profile?.usage_count || 0;
