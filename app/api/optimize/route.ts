@@ -150,19 +150,18 @@ export async function POST(request: NextRequest) {
         4. **BRAND NAMES (TOP PRIORITY):** The Brand (e.g. "Quince", "Nike", "Zara") MUST BE THE FIRST WORD. Never remove the brand. If you are unsure if a word is a brand, KEEP IT to be safe.
 
         FORMATTING OPERATIONS (EXECUTE ALL):
-        1. **Remove Labels:** DELETE words like "Sz", "Size", "Waist", "W", "L". 
-           - **EXCEPTION:** For Shorts/Inseams, use the inch symbol " (e.g. 3" or 5"). IF clarity is needed, use "3 Inseam".
-           - **PANTS:** Use compact "34x30".
-        2. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around "x".
-        3. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
-        4. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
-        5. **No Spacing Chars:** Remove / - : , (Use spaces only).
+        1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L". BUT **KEEP THE VALUE**. (e.g. Change "Size 8" to "8". Change "Sz Small" to "Small").
+        2. **Sizing Priority:** For Pants/Jeans, include BOTH the Tag Size (e.g. 8) AND Measurements (e.g. 28x26) if available. Do not replace one with the other. (e.g. "Everlane Pants 8 28x26").
+        3. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around "x".
+        4. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
+        5. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
+        6. **No Spacing Chars:** Remove / - : , (Use spaces only).
 
         DECISION LOGIC:
         - If the Original Title is already descriptive and > 70 chars: ONLY apply the "Formatting Operations".
         - If weak/short (< 60 chars): You MUST expand with high-value Keywords.
-          - Structure: [Brand] [Model] [Type] [Proven Attributes] [Synonyms/Keywords].
-          - Example Expansion: "Tumi Backpack" -> "Tumi Backpack Travel Laptop Business Bag Work Rucksack".
+          - Structure: [Brand] [Model] [Type] [Tag Size] [Measurements] [Proven Attributes] [Keywords].
+          - Example: "Everlane Pants 8" -> "Everlane Work Ankle Pants Womens 8 28x26 Black Stretch".
 
         KEYWORD EXPANSION RULES:
         - **SAFE:** Abstract uses (Travel, Work, Business, Outdoor, Vintage, Y2K).
