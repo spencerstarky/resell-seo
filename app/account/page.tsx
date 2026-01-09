@@ -27,7 +27,8 @@ export default async function AccountPage() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-    const authUrl = await getEbayAuthUrl(user.id);
+    const state = JSON.stringify({ u: user.id, r: '/account' });
+    const authUrl = await getEbayAuthUrl(state);
 
     return (
         <div className="container" style={{ padding: '0 1.5rem' }}>

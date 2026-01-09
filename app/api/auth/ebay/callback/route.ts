@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase-server';
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
-    const state = searchParams.get('state');
+    const stateRaw = searchParams.get('state');
     const error = searchParams.get('error');
 
     if (error || !code) {
@@ -20,10 +20,23 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_BASE_URL));
     }
 
-    // Verify State (Session Integrity Check)
-    // This prevents linking the eBay account to the wrong user if session switched.
-    if (state && state !== user.id) {
-        console.error('State Mismatch: User ID does not match state.', { state, userId: user.id });
+    // Parse State
+    let userIdFromState = stateRaw;
+    let returnTo = '/dashboard';
+
+    if (stateRaw && stateRaw.startsWith('{')) {
+        try {
+            const parsed = JSON.parse(stateRaw);
+            userIdFromState = parsed.u;
+            if (parsed.r) returnTo = parsed.r;
+        } catch (e) {
+            console.error('Failed to parse state json', e);
+        }
+    }
+
+    // Verify Session Integrity
+    if (userIdFromState && userIdFromState !== user.id) {
+        console.error('State Mismatch: User ID does not match state.', { state: userIdFromState, userId: user.id });
         return NextResponse.redirect(new URL('/dashboard?error=session_mismatch', process.env.NEXT_PUBLIC_BASE_URL));
     }
 
@@ -44,7 +57,11 @@ export async function GET(request: NextRequest) {
 
         if (dbError) throw dbError;
 
-        return NextResponse.redirect(new URL('/dashboard?connected=ebay', process.env.NEXT_PUBLIC_BASE_URL));
+        // Redirect to intended destination
+        const redirectUrl = new URL(returnTo, process.env.NEXT_PUBLIC_BASE_URL);
+        redirectUrl.searchParams.set('connected', 'ebay');
+        return NextResponse.redirect(redirectUrl);
+
     } catch (err: any) {
         console.error('Token Exchange Error:', err);
         return NextResponse.redirect(new URL(`/dashboard?error=token_exchange_failed&details=${encodeURIComponent(err.message)}`, process.env.NEXT_PUBLIC_BASE_URL));
