@@ -25,7 +25,7 @@ export default async function AccountPage() {
         .from('ebay_tokens')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
     const authUrl = await getEbayAuthUrl(user.id);
 
