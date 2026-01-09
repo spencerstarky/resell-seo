@@ -158,15 +158,22 @@ export async function POST(request: NextRequest) {
         6. **No Spacing Chars:** Remove / - : , (Use spaces only).
 
         DECISION LOGIC:
-        - If the Original Title is already descriptive and > 70 chars: ONLY apply the "Formatting Operations".
-        - If weak/short (< 60 chars): You MUST expand with high-value Keywords.
-          - Structure: [Brand] [Model] [Type] [Tag Size] [Measurements] [Proven Attributes] [Keywords].
-          - Example: "Everlane Pants 8" -> "Everlane Work Ankle Pants Womens 8 28x26 Black Stretch".
+        - **HARD LIMIT:** The output MUST be under 80 characters.
+        - **PRIORITY:** Brand > Model > Gender > Size > Measurements > Color > Condition > Keywords.
+        - **TRUNCATION STRATEGY:** If you are running out of space, DROP "Keywords" first. NEVER drop Size, Brand, or 'New'.
 
-        KEYWORD EXPANSION RULES:
-        - **SAFE:** Abstract uses (Travel, Work, Business, Outdoor, Vintage, Y2K).
-        - **UNSAFE:** Physical traits (Large, Leather, Silk, Heavy) - DO NOT TOUCH unless in input.
-        - **GOAL:** Target 75-80 Characters.
+        STRICT STRUCTURE (Follow this order):
+        [Brand] [Model] [Type] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?]
+
+        Example:
+        Input: "Everlane Curvy Side Zip Work Pants Women's 8 Black New"
+        Good Output: "Everlane Curvy Side Zip Pants Womens 8 28x26 Stretch Work Ankle Black New"
+
+        FINAL CHECK:
+        - Is "Sz" gone?
+        - Is "8" present?
+        - Is "New" at the end?
+        - Is it under 80 chars?
 
         FINAL CHECK:
         - Is "Sz" gone ?
