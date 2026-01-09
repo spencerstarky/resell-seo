@@ -160,7 +160,10 @@ export async function POST(request: NextRequest) {
         2. **High-Volume Synonyms:** Use the most popular term (e.g. "Sneakers" > "Shoes"). If space permits, include valuable synonyms (e.g. "Sweater Pullover Knit", "Coat Jacket", "Polo Shirt").
         3. **Style & Occasion:** Add strong keywords (e.g. "Boho", "Minimalist", "Oversized", "Vintage", "Y2K", "Office", "Winter").
         4. **Material is Key:** If you see "Silk", "Wool", "Linen" in the images, YOU MUST INCLUDE IT.
-        5. **FILL THE SPACE:** You have 80 characters. USE THEM. A title with 60 characters is a FAILED title. Add "Short Sleeve", "Performance", "Gym", "Run", "Breathable" to fill the gap.
+        5. **FILL THE SPACE (GREEDY MODE):** You have 80 characters. If you have >10 chars left, ADD MORE KEYWORDS.
+           - **Apparel:** "Stretch", "Breathable", "Tour", "Classic", "Modern", "Print", "Solid", "Lightweight", "Casual".
+           - **Active:** "Gym", "Run", "Performance", "Moisture Wicking", "Athletic".
+           - **Descriptions:** Describe the item! "Blade Collar", "Mock Neck", "Zip", "Button".
 
         HALLUCINATION POLICY (ZERO TOLERANCE):
         1. **NO GUESSING:** If the input (Title/Image/Specifics) does not explicitly indicate a Size or Gender, DO NOT ADD IT.
