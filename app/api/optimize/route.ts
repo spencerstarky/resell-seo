@@ -157,9 +157,10 @@ export async function POST(request: NextRequest) {
 
         SEO STRATEGY (BUYER MENTALITY):
         1. **Think like a Customer:** What 3-5 words would a buyer type to find this specific item? Ensure those EXACT words are in the title.
-        2. **High-Volume Synonyms:** Use the most popular term (e.g. "Sneakers" > "Shoes"). If space permits, include valuable synonyms (e.g. "Sweater Pullover Knit", "Coat Jacket").
-        3. **Style & Occasion:** Add visual style keywords if relevant (e.g. "Boho", "Minimalist", "Oversized", "Vintage", "Y2K", "Office", "Winter").
-        4. **Material is Key:** If you see "Silk", "Wool", "Linen" in the images, YOU MUST INCLUDE IT. Buyers search by material.
+        2. **High-Volume Synonyms:** Use the most popular term (e.g. "Sneakers" > "Shoes"). If space permits, include valuable synonyms (e.g. "Sweater Pullover Knit", "Coat Jacket", "Polo Shirt").
+        3. **Style & Occasion:** Add strong keywords (e.g. "Boho", "Minimalist", "Oversized", "Vintage", "Y2K", "Office", "Winter").
+        4. **Material is Key:** If you see "Silk", "Wool", "Linen" in the images, YOU MUST INCLUDE IT.
+        5. **FILL THE SPACE:** You have 80 characters. USE THEM. A title with 60 characters is a FAILED title. Add "Short Sleeve", "Performance", "Gym", "Run", "Breathable" to fill the gap.
 
         HALLUCINATION POLICY (ZERO TOLERANCE):
         1. **NO GUESSING:** If the input (Title/Image/Specifics) does not explicitly indicate a Size or Gender, DO NOT ADD IT.
