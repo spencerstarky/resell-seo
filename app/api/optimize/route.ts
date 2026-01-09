@@ -169,6 +169,7 @@ export async function POST(request: NextRequest) {
         1. **NO GUESSING:** If the input (Title/Image/Specifics) does not explicitly indicate a Size or Gender, DO NOT ADD IT.
         2. **CATEGORY AWARENESS:** Bags, Electronics, and Home Goods often DO NOT have a Size (like S/M/L) or Gender. Do not force "Mens" or "Medium" on a Backpack unless proven.
         3. **ONLY FACTUAL DATA:** Use the visible model number, brand, and color. Do not invent "Leather" if it looks like Nylon.
+        4. **NUMERIC SAFETY:** Trust the measurements in the original title (e.g. "30x29.5"). DO NOT change "30" to "31". measurement numbers must match the input unless the Image Tag clearly says otherwise.
 
         CRITICAL PRESERVATION RULES (DO NOT TOUCH):
         1. **Product Name vs Code:** The Descriptive Name (e.g. "Slouch Coat", "501 Jeans") is KING. Never remove it to make room for a long alphanumeric SKU (e.g. "LB43360...").
