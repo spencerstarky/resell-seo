@@ -222,7 +222,10 @@ export default function ListingEditor({
             const res = await fetch('/api/ebay/push', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ listingId: listing.id })
+                body: JSON.stringify({
+                    listingId: listing.id,
+                    optimizedTitle: listing.optimized_title // Send explicitly to avoid race condition
+                })
             });
 
             const data = await res.json();

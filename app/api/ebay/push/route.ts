@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         }
         // ----------------------
 
-        const { listingId } = await request.json();
+        const { listingId, optimizedTitle } = await request.json();
 
         if (!listingId) {
             return NextResponse.json({ error: 'Listing ID is required' }, { status: 400 });
@@ -68,6 +68,18 @@ export async function POST(request: Request) {
         if (!listing) {
             return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
         }
+
+        // --- FIXED: Use Client-provided Title if available (Avoids DB Race Condition) ---
+        if (optimizedTitle) {
+            listing.optimized_title = optimizedTitle;
+
+            // Should we save it to DB just in case? Yes.
+            await supabase
+                .from(sourceTable)
+                .update({ optimized_title: optimizedTitle })
+                .eq('id', listingId);
+        }
+        // --------------------------------------------------------------------------------
 
         if (!listing.ebay_item_id) {
             return NextResponse.json({ error: 'This listing is not linked to an eBay item' }, { status: 400 });
