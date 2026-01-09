@@ -200,13 +200,8 @@ export async function POST(request: NextRequest) {
         - Is "New" at the end?
         - Is it under 80 chars?
 
-        FINAL CHECK:
-        - Is "Sz" gone ?
-            - Is "LM7AW2S" present ?
-                - Is it under 80 chars ?
-
-                    OUTPUT :
-                    Return ONLY the final string.
+        OUTPUT :
+        Return ONLY the final string.
         `;
 
         // 3. Generate using DIRECT FETCH with Model Failover Strategy
