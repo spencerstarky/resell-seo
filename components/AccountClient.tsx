@@ -66,7 +66,8 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
         // Trigger progress bar animation
         const timer = setTimeout(() => {
             const usage = profile?.usage_count || 0;
-            const percentage = Math.min((usage / 50) * 100, 100);
+            const limit = isPro ? 5000 : 25;
+            const percentage = Math.min((usage / limit) * 100, 100);
             setProgressWidth(percentage);
         }, 100);
 
@@ -152,38 +153,64 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                             </div>
                         </div>
                     </div>
+
+                    {/* Usage Progress */}
+                    <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+                            <span style={{ color: 'var(--color-text-muted)' }}>Usage Limit</span>
+                            <span style={{ color: 'white' }}>{profile?.usage_count || 0} / {isPro ? 5000 : 25} Used</span>
+                        </div>
+                        <div style={{
+                            width: '100%',
+                            height: '6px',
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '10px',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{
+                                width: `${progressWidth}%`,
+                                height: '100%',
+                                // Turn Orange if >80%, Red if >95%, otherwise Primary Purple
+                                background: progressWidth > 95 ? '#ff4444' : progressWidth > 80 ? '#ffbb33' : 'var(--gradient-primary)',
+                                borderRadius: '10px',
+                                transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
+                            }} />
+                        </div>
+                    </div>
                 </section>
 
                 {/* Pro Call to Action - Standalone */}
-                {!isPro && (
-                    <section className="card glass" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
-                        <div style={{
-                            padding: '2rem',
-                            background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(28, 126, 32, 0.2))',
-                            border: '1px solid #4caf50',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '1rem',
-                            borderRadius: 'var(--radius-sm)'
-                        }}>
-                            <div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>Upgrade to Annual Plan</h3>
-                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
-                                    Bulk-optimize 5,000 titles to rank higher in eBay search.
-                                </p>
+                {
+                    !isPro && (
+                        <section className="card glass" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
+                            <div style={{
+                                padding: '2rem',
+                                background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(28, 126, 32, 0.2))',
+                                border: '1px solid #4caf50',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '1rem',
+                                borderRadius: 'var(--radius-sm)'
+                            }}>
+                                <div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>Upgrade to Annual Plan</h3>
+                                    <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
+                                        Bulk-optimize 5,000 titles to rank higher in eBay search.
+                                    </p>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                                    <button className="btn btn-primary" style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)', background: '#4caf50', borderColor: '#4caf50' }}>
+                                        Upgrade and Optimize my store
+                                    </button>
+                                    <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginRight: '0.5rem' }}>
+                                        $99/year - No monthly plan
+                                    </p>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-                                <button className="btn btn-primary" style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)', background: '#4caf50', borderColor: '#4caf50' }}>
-                                    Upgrade and Optimize my store
-                                </button>
-                                <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginRight: '0.5rem' }}>
-                                    $99/year - No monthly plan
-                                </p>
-                            </div>
-                        </div>
-                    </section>
-                )}
+                        </section>
+                    )
+                }
 
                 {/* Connections Section */}
                 <section className="card glass" style={{ padding: '2rem' }}>
@@ -267,7 +294,7 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                         </button>
                     </div>
                 </section>
-            </div>
+            </div >
         </div >
     );
 }
