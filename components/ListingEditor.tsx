@@ -24,6 +24,7 @@ interface ListingEditorProps {
     onCreditsUsed?: () => void;
     isPro?: boolean;
     showPushLive?: boolean;
+    hideIgnored?: boolean;
 }
 
 // --- SCORING HELPER FUNCTIONS ---
@@ -75,7 +76,8 @@ export default function ListingEditor({
     checkCredits,
     onCreditsUsed,
     isPro = false,
-    showPushLive = false
+    showPushLive = false,
+    hideIgnored = false
 }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
 
@@ -391,7 +393,7 @@ export default function ListingEditor({
     const [sortBy, setSortBy] = useState<'date-desc' | 'score-asc' | 'score-desc' | 'status-pending'>('date-desc');
 
     const getSortedListings = () => {
-        const sorted = [...listings].filter(l => l.status !== 'IGNORED');
+        const sorted = [...listings].filter(l => !hideIgnored || l.status !== 'IGNORED');
         return sorted.sort((a, b) => {
             if (sortBy === 'date-desc') {
                 // eBay Item IDs (e.g. 156...) increase over time. 

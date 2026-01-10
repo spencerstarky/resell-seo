@@ -167,8 +167,8 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
     const activeListings = useMemo(() => inventory
         .filter((item: any) => {
             const status = item.status || 'NEW';
-            if (inventoryTab === 'LIVE') return status === 'LIVE' || status === 'UPLOADED';
-            // WORKSPACE = NEW or OPTIMIZED
+            if (inventoryTab === 'LIVE') return status === 'LIVE' || status === 'UPLOADED' || status === 'IGNORED';
+            // WORKSPACE = NEW or OPTIMIZED. EXCLUDE IGNORED.
             return status !== 'LIVE' && status !== 'UPLOADED' && status !== 'IGNORED';
         })
         .map((item: any) => ({
@@ -232,7 +232,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         background: 'none', border: 'none', borderBottomWidth: '2px', cursor: 'pointer'
                     }}
                 >
-                    Live / History
+                    History & Ignored
                 </button>
             </div>
 
@@ -243,7 +243,8 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 checkCredits={() => usageCount < (usageStats?.limit || 25)}
                 onCreditsUsed={() => setUsageCount(p => p + 1)}
                 isPro={isPro}
-                showPushLive={true} // Always show, but gate inside component if needed
+                showPushLive={true}
+                hideIgnored={inventoryTab === 'WORKSPACE'}
             />
         </div>
     );
