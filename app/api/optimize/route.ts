@@ -183,12 +183,13 @@ export async function POST(request: NextRequest) {
         3. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
 
         FORMATTING OPERATIONS (EXECUTE ALL):
-        1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L". BUT **KEEP THE VALUE**. (e.g. Change "Size 8" to "8". Change "Sz Small" to "Small").
-        2. **Sizing Priority:** For Pants/Jeans, include BOTH the Tag Size (e.g. 8) AND Measurements (e.g. 28x26) if available. Do not replace one with the other. (e.g. "Everlane Pants 8 28x26").
-        3. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around "x".
-        4. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
-        5. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
-        6. **No Spacing Chars:** Remove / - : , (Use spaces only).
+        1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L" (as a label). BUT **KEEP THE VALUE**.
+        2. **Spell Out Sizes:** Prefer "Small", "Medium", "Large", "X-Large" over "S", "M", "L", "XL" for better readability. Only abbreviate if you are desperate for space (>80 chars).
+        3. **Sizing Priority:** For Pants/Jeans, include BOTH the Tag Size (e.g. 8) AND Measurements (e.g. 28x26) if available.
+        4. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around "x".
+        5. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
+        6. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
+        7. **No Spacing Chars:** Remove / - : , (Use spaces only).
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
