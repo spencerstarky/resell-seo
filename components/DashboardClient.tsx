@@ -64,6 +64,11 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
         }
     };
 
+    // Manual State Update from Child (to keep tabs in sync)
+    const handleUpdateItem = (id: string, updates: any) => {
+        setInventory(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+    };
+
     const headerElement = (
         <Header usageStats={usageStats ? { ...usageStats, count: usageCount } : undefined} />
     );
@@ -248,6 +253,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 showSort={inventoryTab === 'WORKSPACE'}
                 simpleView={inventoryTab === 'LIVE'}
                 userId={userId}
+                onUpdateItem={handleUpdateItem}
             />
         </div>
     );

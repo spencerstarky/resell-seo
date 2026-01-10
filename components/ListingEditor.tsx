@@ -27,6 +27,7 @@ interface ListingEditorProps {
     hideIgnored?: boolean;
     showSort?: boolean;
     simpleView?: boolean;
+    onUpdateItem?: (id: string, updates: any) => void;
 }
 
 // --- SCORING HELPER FUNCTIONS ---
@@ -81,7 +82,8 @@ export default function ListingEditor({
     showPushLive = false,
     hideIgnored = false,
     showSort = true,
-    simpleView = false
+    simpleView = false,
+    onUpdateItem
 }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
 
@@ -559,6 +561,7 @@ export default function ListingEditor({
                                                 updated[realIndex].status = nextStatus;
                                                 setListings(updated);
                                                 saveSingleRow(realIndex, { ...updated[realIndex], status: nextStatus });
+                                                onUpdateItem?.(listing.id!, { status: nextStatus });
                                             }}
                                             className="btn"
                                             style={{
@@ -728,6 +731,7 @@ export default function ListingEditor({
                                                             updated[realIndex].status = 'IGNORED';
                                                             setListings(updated);
                                                             saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
+                                                            onUpdateItem?.(listing.id!, { status: 'IGNORED' });
                                                         }}
                                                         className="btn btn-hover-danger"
                                                         style={{
