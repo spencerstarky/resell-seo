@@ -20,12 +20,11 @@ export default async function AccountPage() {
         .eq('id', user.id)
         .single();
 
-    // Fetch eBay token status
-    const { data: ebayToken } = await supabase
+    // Fetch eBay token status (Count check is safer than single())
+    const { count } = await supabase
         .from('ebay_tokens')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
 
     const state = JSON.stringify({ u: user.id, r: '/account' });
     const authUrl = await getEbayAuthUrl(state);
@@ -36,7 +35,7 @@ export default async function AccountPage() {
             <AccountClient
                 user={user}
                 profile={profile}
-                hasEbayConnected={!!ebayToken}
+                hasEbayConnected={(count || 0) > 0}
                 authUrl={authUrl}
             />
         </div>
