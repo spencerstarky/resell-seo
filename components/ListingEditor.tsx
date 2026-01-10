@@ -124,8 +124,9 @@ export default function ListingEditor({
 
             // Always assume Inventory Mode now (since CSV is gone)
             let newStatus = 'NEW';
-            if (item.optimized_title) newStatus = 'OPTIMIZED';
-            if (item.status === 'live' || item.status === 'uploaded' || item.status === 'LIVE') newStatus = 'LIVE';
+            if (item.status === 'IGNORED') newStatus = 'IGNORED';
+            else if (item.status === 'live' || item.status === 'uploaded' || item.status === 'LIVE') newStatus = 'LIVE';
+            else if (item.optimized_title) newStatus = 'OPTIMIZED';
 
             const { error } = await supabase
                 .from('ebay_inventory')
@@ -390,7 +391,7 @@ export default function ListingEditor({
     const [sortBy, setSortBy] = useState<'date-desc' | 'score-asc' | 'score-desc' | 'status-pending'>('date-desc');
 
     const getSortedListings = () => {
-        const sorted = [...listings];
+        const sorted = [...listings].filter(l => l.status !== 'IGNORED');
         return sorted.sort((a, b) => {
             if (sortBy === 'date-desc') {
                 // eBay Item IDs (e.g. 156...) increase over time. 
