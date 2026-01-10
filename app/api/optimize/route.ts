@@ -179,9 +179,10 @@ export async function POST(request: NextRequest) {
 
         CRITICAL PRESERVATION RULES (DO NOT TOUCH):
         1. **Product Name vs Code:** The Descriptive Name (e.g. "Slouch Coat", "501 Jeans") is KING. Never remove it to make room for a long alphanumeric SKU (e.g. "LB43360...").
-        2. **Model Numbers:** Keep short, searchable codes (e.g. "501", "MX-5"). If a code is very long (>10 chars) and not a known model name, prioritize the Product Name instead.
+        2. **Model Numbers:** Keep short, searchable codes (e.g. "501", "MX-5", "VW401"). If a code is very long (>10 chars) and not a known model name, prioritize the Product Name instead.
         3. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
         4. **COLOR MANDATE:** You MUST include the item's Color (e.g. Black, Green, Navy). NEVER drop the color to add more keywords. It is a critical buyer filter.
+        5. **STYLE CODE MANDATE:** If a style code (e.g. VW401, DV0036) is visible, YOU MUST INCLUDE IT. It is critical for exact-match search. Drop keywords like "Stretch" or "Cotton" to make room.
 
         FORMATTING OPERATIONS (EXECUTE ALL):
         1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L" (as a label). BUT **KEEP THE VALUE**.
@@ -195,7 +196,7 @@ export async function POST(request: NextRequest) {
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Color > Model No > Type.
+        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Model No > Color > Type.
         - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. Remove the last word entirely if it doesn't fit.
 
         DEFINITIONS:
@@ -203,7 +204,7 @@ export async function POST(request: NextRequest) {
         - **[Type]:** The Style/Cut (e.g. Pullover, Button Up, Skinny, Bootcut). Put this AFTER Size.
 
         STRICT STRUCTURE (Follow this order):
-        [Value Leader] [Product Name] [Gender] [Tag Size] [Color] [Type] [Model No] [Measurements] [Keywords] [New?] [Low Brand?]
+        [Value Leader] [Product Name] [Gender] [Tag Size] [Model No] [Color] [Type] [Measurements] [Keywords] [New?] [Low Brand?]
 
         Example:
         Input: "Gildan UGA Bulldogs Red Shirt"
