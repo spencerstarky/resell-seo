@@ -246,6 +246,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 showPushLive={true}
                 hideIgnored={inventoryTab === 'WORKSPACE'}
                 showSort={inventoryTab === 'WORKSPACE'}
+                simpleView={inventoryTab === 'LIVE'}
                 userId={userId}
             />
         </div>

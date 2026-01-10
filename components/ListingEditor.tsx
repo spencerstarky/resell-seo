@@ -26,6 +26,7 @@ interface ListingEditorProps {
     showPushLive?: boolean;
     hideIgnored?: boolean;
     showSort?: boolean;
+    simpleView?: boolean;
 }
 
 // --- SCORING HELPER FUNCTIONS ---
@@ -79,7 +80,8 @@ export default function ListingEditor({
     isPro = false,
     showPushLive = false,
     hideIgnored = false,
-    showSort = true
+    showSort = true,
+    simpleView = false
 }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
 
@@ -484,12 +486,20 @@ export default function ListingEditor({
             </div>
 
             {/* List Header */}
-            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                <div>Image</div>
-                <div>Original Title</div>
-                <div>Optimized Title</div>
-                <div style={{ textAlign: 'right' }}>Action</div>
-            </div>
+            {simpleView ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div>Image</div>
+                    <div>Title</div>
+                    <div style={{ textAlign: 'right' }}>Score</div>
+                </div>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div>Image</div>
+                    <div>Original Title</div>
+                    <div>Optimized Title</div>
+                    <div style={{ textAlign: 'right' }}>Action</div>
+                </div>
+            )}
 
             {/* The List Logic */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -499,6 +509,43 @@ export default function ListingEditor({
                     // Fallback if ID is missing (should verify handled)
                     if (realIndex === -1) return null;
 
+                    // --- SIMPLE VIEW RENDER ---
+                    if (simpleView) {
+                        return (
+                            <div key={listing.id || realIndex} style={{
+                                display: 'grid', gridTemplateColumns: '80px 1fr 100px', gap: '1.5rem', alignItems: 'center', padding: '1rem 1.5rem',
+                                backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
+                            }}>
+                                {/* Image */}
+                                <div style={{ width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {listing.image_url ? (
+                                        <img src={listing.image_url} alt="Item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                                    ) : (
+                                        <span style={{ fontSize: '1.5rem', opacity: 0.2 }}>📷</span>
+                                    )}
+                                </div>
+
+                                {/* content */}
+                                <div>
+                                    <div style={{ color: 'var(--color-text-main)', fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>
+                                        {listing.optimized_title || listing.original_title}
+                                    </div>
+                                    {/* Optional Status Badge */}
+                                    {listing.status === 'IGNORED' && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>Ignored</span>}
+                                    {(listing.status === 'LIVE' || listing.status === 'uploaded') && <span style={{ fontSize: '0.75rem', color: '#4caf50', background: 'rgba(76, 175, 80, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>Live on eBay</span>}
+                                </div>
+
+                                {/* Score */}
+                                <div style={{ textAlign: 'right' }}>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: getScoreColor(calculateSeoScore(listing.optimized_title || listing.original_title)) }}>
+                                        {calculateSeoScore(listing.optimized_title || listing.original_title)}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    // --- COMPEX VIEW RENDER (Existing) ---
                     return (
                         <div key={listing.id || realIndex} className="" style={{
                             display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
