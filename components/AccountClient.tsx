@@ -216,7 +216,25 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                                     </p>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-                                    <button className="btn btn-primary" style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)', background: '#4caf50', borderColor: '#4caf50' }}>
+                                    <button
+                                        onClick={async () => {
+                                            const btn = document.getElementById('upgrade-btn');
+                                            if (btn) { btn.innerText = 'Redirecting...'; (btn as any).disabled = true; }
+
+                                            try {
+                                                const res = await fetch('/api/stripe/checkout', { method: 'POST' });
+                                                const data = await res.json();
+                                                if (data.url) window.location.href = data.url;
+                                                else alert('Setup Error: ' + (data.error || 'No URL returned'));
+                                            } catch (e) {
+                                                alert('Checkout failed');
+                                                if (btn) { btn.innerText = 'Upgrade and Optimize my store'; (btn as any).disabled = false; }
+                                            }
+                                        }}
+                                        id="upgrade-btn"
+                                        className="btn btn-primary"
+                                        style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)', background: '#4caf50', borderColor: '#4caf50' }}
+                                    >
                                         Upgrade and Optimize my store
                                     </button>
                                     <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginRight: '0.5rem' }}>

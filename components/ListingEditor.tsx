@@ -89,66 +89,93 @@ export default function ListingEditor({
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     // --- UPGRADE MODAL COMPONENT ---
-    const UpgradeModal = () => (
-        <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backdropFilter: 'blur(4px)'
-        }} onClick={() => setShowUpgradeModal(false)}>
+    const UpgradeModal = () => {
+        const [isRedirecting, setIsRedirecting] = useState(false);
+
+        const handleUpgrade = async () => {
+            setIsRedirecting(true);
+            try {
+                const res = await fetch('/api/stripe/checkout', { method: 'POST' });
+                const data = await res.json();
+                if (data.url) window.location.href = data.url;
+                else {
+                    alert('Checkout Error: ' + (data.error || 'No URL returned'));
+                    setIsRedirecting(false);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Connection failed');
+                setIsRedirecting(false);
+            }
+        };
+
+        return (
             <div style={{
-                background: 'var(--color-bg-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0',
-                maxWidth: '600px',
-                width: '90%',
-                position: 'relative',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                overflow: 'hidden'
-            }} onClick={e => e.stopPropagation()}>
-
-                {/* Header / Close */}
-                <button
-                    onClick={() => setShowUpgradeModal(false)}
-                    style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', zIndex: 10 }}
-                >
-                    <X size={20} />
-                </button>
-
-                {/* Content - Using the Green Theme from Account Page */}
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(4px)'
+            }} onClick={() => setShowUpgradeModal(false)}>
                 <div style={{
-                    padding: '2.5rem',
-                    background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(28, 126, 32, 0.1))',
-                    border: '1px solid rgba(76, 175, 80, 0.2)'
-                }}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: '#fff' }}>Upgrade to Annual Plan</h2>
-                        <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
-                            You've reached your trial limit. Upgrade to bulk-optimize 5,000 titles and rank higher in eBay search.
-                        </p>
-                    </div>
+                    background: 'var(--color-bg-surface)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '0',
+                    maxWidth: '600px',
+                    width: '90%',
+                    position: 'relative',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                    overflow: 'hidden'
+                }} onClick={e => e.stopPropagation()}>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        <button className="btn btn-primary" style={{
-                            width: '100%',
-                            padding: '0.8rem',
-                            fontSize: '1rem',
-                            boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)',
-                            background: '#4caf50',
-                            borderColor: '#4caf50',
-                            justifyContent: 'center'
-                        }}>
-                            Upgrade and Optimize my store
-                        </button>
-                        <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center' }}>
-                            $99/year - No monthly plan
-                        </p>
+                    {/* Header / Close */}
+                    <button
+                        onClick={() => setShowUpgradeModal(false)}
+                        style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', zIndex: 10 }}
+                    >
+                        <X size={20} />
+                    </button>
+
+                    {/* Content - Using the Green Theme from Account Page */}
+                    <div style={{
+                        padding: '2.5rem',
+                        background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(28, 126, 32, 0.1))',
+                        border: '1px solid rgba(76, 175, 80, 0.2)'
+                    }}>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: '#fff' }}>Upgrade to Annual Plan</h2>
+                            <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+                                You've reached your trial limit. Upgrade to bulk-optimize 5,000 titles and rank higher in eBay search.
+                            </p>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <button
+                                onClick={handleUpgrade}
+                                disabled={isRedirecting}
+                                className="btn btn-primary"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.8rem',
+                                    fontSize: '1rem',
+                                    boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)',
+                                    background: '#4caf50',
+                                    borderColor: '#4caf50',
+                                    justifyContent: 'center',
+                                    opacity: isRedirecting ? 0.7 : 1
+                                }}
+                            >
+                                {isRedirecting ? 'Redirecting to Checkout...' : 'Upgrade and Optimize my store'}
+                            </button>
+                            <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center' }}>
+                                $99/year - No monthly plan
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     // State is initialized only once (or when key changes).
     // We REMOVED the useEffect here that was causing resets when parend updated credits.
