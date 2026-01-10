@@ -209,10 +209,7 @@ export default function ListingEditor({
     };
 
     const pushToEbay = async (index: number) => {
-        if (!isPro) {
-            alert('Pushing live updates is a Pro feature. Please upgrade to unlock Instant Sync.');
-            return;
-        }
+        // ALLOWED FOR ALL USERS
 
         const listing = listings[index];
         if (!listing.id || !listing.optimized_title) return;
@@ -686,12 +683,12 @@ export default function ListingEditor({
                                                             className="btn"
                                                             style={{
                                                                 padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', width: '100%',
-                                                                background: !isPro ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, var(--color-primary), #7928ca)',
-                                                                color: !isPro ? 'var(--color-text-dim)' : '#fff',
+                                                                background: 'linear-gradient(135deg, var(--color-primary), #7928ca)',
+                                                                color: '#fff',
                                                                 border: 'none',
                                                             }}
-                                                            disabled={listing.pushing || !isPro}
-                                                            title={isPro ? "Push to eBay" : "Pro Feature"}
+                                                            disabled={listing.pushing}
+                                                            title="Push to eBay"
                                                         >
                                                             {listing.pushing ? 'Syncing...' : <><CloudPush size={14} style={{ marginRight: 6 }} /> Push Live</>}
                                                         </button>
