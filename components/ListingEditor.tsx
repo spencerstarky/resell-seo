@@ -477,10 +477,11 @@ export default function ListingEditor({
             </div>
 
             {/* List Header */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 60px', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 60px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div>Image</div>
                 <div>Original Title</div>
                 <div>Optimized Title</div>
-                <div style={{}}>Action</div>
+                <div style={{ textAlign: 'right' }}>Action</div>
             </div>
 
             {/* The List Logic */}
@@ -493,12 +494,26 @@ export default function ListingEditor({
 
                     return (
                         <div key={listing.id || realIndex} className="" style={{
-                            display: 'grid', gridTemplateColumns: '1fr 1fr 60px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
+                            display: 'grid', gridTemplateColumns: '80px 1fr 1fr 60px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
                             backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
                         }}
                             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
                             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
                         >
+                            {/* Image Thumbnail */}
+                            <div style={{ width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {listing.image_url ? (
+                                    <img
+                                        src={listing.image_url}
+                                        alt="Item"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                    />
+                                ) : (
+                                    <span style={{ fontSize: '1.5rem', opacity: 0.2 }}>📷</span>
+                                )}
+                            </div>
+
                             {/* Original */}
                             <div style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', lineHeight: 1.4, paddingRight: '1rem', overflowWrap: 'break-word' }}>
                                 <div style={{ marginBottom: '0.5rem' }}>{listing.original_title}</div>
