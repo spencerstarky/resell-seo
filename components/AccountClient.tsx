@@ -48,7 +48,7 @@ function EbayStatus() {
 }
 
 export default function AccountClient({ user, profile, hasEbayConnected: initialHasEbayConnected, authUrl }: AccountClientProps) {
-    const isPro = profile?.plan_tier === 'pro' || user?.email === 'resellseo@gmail.com';
+    const isPro = profile?.plan_tier === 'annual' || user?.email === 'resellseo@gmail.com';
     const router = useRouter();
     const [hasEbayConnected, setHasEbayConnected] = useState(initialHasEbayConnected);
     const [progressWidth, setProgressWidth] = useState(0);
@@ -139,15 +139,15 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                             <div style={{ flex: 1 }}>
                                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Account Status</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <p style={{ fontSize: '1rem' }}>Free Plan</p>
+                                    <p style={{ fontSize: '1rem' }}>{isPro ? 'Annual Plan' : 'Free Trial'}</p>
                                     <span style={{
                                         padding: '0.2rem 0.6rem',
-                                        background: 'rgba(156, 85, 213, 0.1)',
-                                        color: 'var(--color-primary)',
+                                        background: isPro ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
+                                        color: isPro ? '#4caf50' : 'var(--color-primary)',
                                         borderRadius: '100px',
                                         fontSize: '0.7rem',
                                         fontWeight: 600
-                                    }}>FREE</span>
+                                    }}>{isPro ? 'ACTIVE' : 'TRIAL'}</span>
                                 </div>
                             </div>
                         </div>

@@ -23,7 +23,7 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialIsConnected, authUrl, userProfile, initialInventory = [], userId, userEmail, usageStats }: DashboardClientProps) {
-    const isPro = userProfile?.plan_tier === 'pro' || userEmail === 'resellseo@gmail.com';
+    const isPro = userProfile?.plan_tier === 'annual' || userEmail === 'resellseo@gmail.com';
     const [usageCount, setUsageCount] = useState(usageStats?.count || 0);
 
     // Simplification: We only have 'ebay' mode now. 

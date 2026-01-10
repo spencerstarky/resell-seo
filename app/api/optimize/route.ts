@@ -57,11 +57,11 @@ export async function POST(request: NextRequest) {
             .eq('id', user.id)
             .single();
 
-        let tier = profile?.plan_tier || 'free';
+        let tier = profile?.plan_tier || 'trial';
 
         // Admin Override for resellseo@gmail.com
         if (user.email === 'resellseo@gmail.com') {
-            tier = 'pro';
+            tier = 'annual';
         }
 
         // Define Limits
@@ -69,10 +69,10 @@ export async function POST(request: NextRequest) {
         let isMonthly = false;
         let isYearly = false;
 
-        if (tier === 'starter') {
-            limit = 400;
-            isMonthly = true; // Still monthly?
-        } else if (tier === 'pro') {
+        if (tier === 'trial') {
+            limit = 25; // Trial limit
+            isMonthly = false;
+        } else if (tier === 'annual') {
             limit = 5000; // Annual Cap
             isYearly = true;
         }

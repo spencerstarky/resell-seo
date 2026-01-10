@@ -57,7 +57,7 @@ create table public.profiles (
   id uuid references auth.users(id) on delete cascade primary key,
   email text,
   usage_count integer default 0,
-  plan_tier text default 'free',
+  plan_tier text default 'trial',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
