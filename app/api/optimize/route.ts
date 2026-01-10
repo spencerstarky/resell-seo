@@ -181,6 +181,7 @@ export async function POST(request: NextRequest) {
         1. **Product Name vs Code:** The Descriptive Name (e.g. "Slouch Coat", "501 Jeans") is KING. Never remove it to make room for a long alphanumeric SKU (e.g. "LB43360...").
         2. **Model Numbers:** Keep short, searchable codes (e.g. "501", "MX-5"). If a code is very long (>10 chars) and not a known model name, prioritize the Product Name instead.
         3. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
+        4. **COLOR MANDATE:** You MUST include the item's Color (e.g. Black, Green, Navy). NEVER drop the color to add more keywords. It is a critical buyer filter.
 
         FORMATTING OPERATIONS (EXECUTE ALL):
         1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L" (as a label). BUT **KEEP THE VALUE**.
