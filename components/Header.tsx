@@ -89,7 +89,7 @@ export default function Header({ usageStats }: HeaderProps) {
                 {/* User Account Section */}
                 <div
                     ref={dropdownRef}
-                    style={{ position: 'relative' }}
+                    style={{ position: 'relative', paddingBottom: '10px' }} // Added padding bottom to connect hover state
                     onMouseEnter={() => setIsOpen(true)}
                     onMouseLeave={() => setIsOpen(false)}
                 >
@@ -110,7 +110,9 @@ export default function Header({ usageStats }: HeaderProps) {
                             fontSize: '1rem',
                             padding: 0,
                             boxShadow: '0 0 15px rgba(156, 85, 213, 0.3)',
-                            transition: 'transform 0.2s ease'
+                            transition: 'transform 0.2s ease',
+                            position: 'relative',
+                            zIndex: 1001
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
@@ -122,11 +124,21 @@ export default function Header({ usageStats }: HeaderProps) {
                     {isOpen && (
                         <div style={{
                             position: 'absolute',
-                            top: '40px',
+                            top: '100%', // Position relative to the parent container
                             right: 0,
-                            paddingTop: '8px',
+                            paddingTop: '10px', // Visual gap
                             zIndex: 1000,
                         }}>
+                            {/* Invisible bridge to catch diagonal mouse movements */}
+                            <div style={{
+                                position: 'absolute',
+                                top: '-20px',
+                                left: '-20px',
+                                right: '-20px',
+                                height: '20px',
+                                background: 'transparent'
+                            }} />
+
                             <div style={{
                                 width: '220px',
                                 background: '#161625',

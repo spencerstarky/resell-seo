@@ -241,16 +241,22 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                     <EbayStatus />
                 </section>
 
-                {/* Danger Zone */}
-                <section className="card glass" style={{ padding: '2rem', border: '1px solid rgba(255, 68, 68, 0.2)' }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', color: '#ff4444' }}>Danger Zone</h2>
+                {/* Session Management */}
+                <section className="card glass" style={{ padding: '2rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                            <p style={{ fontWeight: 600 }}>Sign Out</p>
-                            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Logout of your current session on this device.</p>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Sign Out</h2>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                End your current session and return to the login screen.
+                            </p>
                         </div>
-                        <button onClick={handleLogout} className="btn btn-secondary" style={{ color: '#ff4444', borderColor: 'rgba(255, 68, 68, 0.2)' }}>
-                            <LogOut size={16} style={{ marginRight: '0.5rem' }} /> Log Out
+                        <button
+                            onClick={handleLogout}
+                            className="btn btn-secondary"
+                            style={{ padding: '0.75rem 1.5rem' }}
+                        >
+                            <LogOut size={16} style={{ marginRight: '0.5rem' }} />
+                            Sign Out
                         </button>
                     </div>
                 </section>
