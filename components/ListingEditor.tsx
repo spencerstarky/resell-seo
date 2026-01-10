@@ -25,6 +25,7 @@ interface ListingEditorProps {
     isPro?: boolean;
     showPushLive?: boolean;
     hideIgnored?: boolean;
+    showSort?: boolean;
 }
 
 // --- SCORING HELPER FUNCTIONS ---
@@ -77,7 +78,8 @@ export default function ListingEditor({
     onCreditsUsed,
     isPro = false,
     showPushLive = false,
-    hideIgnored = false
+    hideIgnored = false,
+    showSort = true
 }: ListingEditorProps) {
     const [listings, setListings] = useState(initialListings);
 
@@ -429,19 +431,21 @@ export default function ListingEditor({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Listings ({listings.length})</h3>
                     {/* Sort Dropdown */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem 0.75rem', borderRadius: '6px' }}>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Sort:</span>
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value as any)}
-                            style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
-                        >
-                            <option value="date-desc">Newest Uploads</option>
-                            <option value="score-asc">Lowest Score (Needs Work)</option>
-                            <option value="score-desc">Highest Score</option>
-                            <option value="status-pending">Not Optimized First</option>
-                        </select>
-                    </div>
+                    {showSort && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.25rem 0.75rem', borderRadius: '6px' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Sort:</span>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as any)}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                            >
+                                <option value="date-desc">Newest Uploads</option>
+                                <option value="score-asc">Lowest Score (Needs Work)</option>
+                                <option value="score-desc">Highest Score</option>
+                                <option value="status-pending">Not Optimized First</option>
+                            </select>
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>

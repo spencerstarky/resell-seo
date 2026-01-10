@@ -245,6 +245,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                 isPro={isPro}
                 showPushLive={true}
                 hideIgnored={inventoryTab === 'WORKSPACE'}
+                showSort={inventoryTab === 'WORKSPACE'}
             />
         </div>
     );
