@@ -11,26 +11,32 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // --- GATE: Pro Only ---
+        // --- PREVIOUSLY GATED: Pro Only ---
+        // We now allow ALL users (including Trial) to push single items.
+        // Bulk Push is gated on the client-side.
         const { data: profile } = await supabase
             .from('profiles')
-            .select('plan_tier')
+            .select('plan_tier, usage_count')
             .eq('id', user.id)
             .single();
 
-        let tier = profile?.plan_tier || 'free';
+        let tier = profile?.plan_tier || 'trial';
+        const usageCount = profile?.usage_count || 0;
 
         // Admin Override for resellseo@gmail.com
         if (user.email === 'resellseo@gmail.com') {
-            tier = 'pro';
+            tier = 'annual';
         }
 
-        if (tier !== 'pro') {
+        // --- ABUSE PREVENTION ---
+        // If a Trial user somehow exceeded their limit (e.g. >25), prevent pushing.
+        if (tier === 'trial' && usageCount > 25) {
             return NextResponse.json(
-                { error: 'Direct eBay Sync is a Pro feature. Please upgrade to unlock.' },
+                { error: 'Trial limit exceeded. Please upgrade to push more listings.' },
                 { status: 403 }
             );
         }
+        // ------------------------
         // ----------------------
 
         const { listingId, optimizedTitle } = await request.json();
