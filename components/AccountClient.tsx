@@ -62,17 +62,33 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
         }
     }, []);
 
+    const [usageCount, setUsageCount] = useState(profile?.usage_count || 0);
+
+    useEffect(() => {
+        const fetchUsage = async () => {
+            if (!user?.id) return;
+            const { data } = await supabase
+                .from('profiles')
+                .select('usage_count')
+                .eq('id', user.id)
+                .single();
+            if (data) {
+                setUsageCount(data.usage_count);
+            }
+        };
+        fetchUsage();
+    }, [user.id]);
+
     useEffect(() => {
         // Trigger progress bar animation
         const timer = setTimeout(() => {
-            const usage = profile?.usage_count || 0;
             const limit = isPro ? 5000 : 25;
-            const percentage = Math.min((usage / limit) * 100, 100);
+            const percentage = Math.min((usageCount / limit) * 100, 100);
             setProgressWidth(percentage);
         }, 100);
 
         return () => clearTimeout(timer);
-    }, [profile]);
+    }, [usageCount, isPro]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -158,7 +174,7 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                     <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
                             <span style={{ color: 'var(--color-text-muted)' }}>Usage Limit</span>
-                            <span style={{ color: 'white' }}>{profile?.usage_count || 0} / {isPro ? 5000 : 25} Used</span>
+                            <span style={{ color: 'white' }}>{usageCount} / {isPro ? 5000 : 25} Used</span>
                         </div>
                         <div style={{
                             width: '100%',
