@@ -188,14 +188,14 @@ export async function POST(request: NextRequest) {
         2. **Spell Out Sizes:** Prefer "Small", "Medium", "Large", "X-Large" over "S", "M", "L", "XL" for better readability. Only abbreviate if you are desperate for space (>80 chars).
         3. **Sizing Priority:** For Pants/Jeans, include BOTH the Tag Size (e.g. 8) AND Measurements (e.g. 28x26) if available.
         4. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around "x".
-        5. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
+        5. **Space Saver:** Change "Men's" to "Men", "Women's" to "Women". (Drop the 's' to save space).
         6. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
         7. **No Spacing Chars:** Remove / - : , (Use spaces only).
         8. **Nike Style Codes:** If you see a Nike/Jordan code (e.g. DV0036-237), KEEP ONLY THE FIRST 6 CHARS (e.g. DV0036). Remove the color code suffix.
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Color > Type > Model No.
+        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Color > Model No > Type.
         - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. Remove the last word entirely if it doesn't fit.
 
         DEFINITIONS:
@@ -203,11 +203,11 @@ export async function POST(request: NextRequest) {
         - **[Type]:** The Style/Cut (e.g. Pullover, Button Up, Skinny, Bootcut). Put this AFTER Size.
 
         STRICT STRUCTURE (Follow this order):
-        [Value Leader] [Product Name] [Gender] [Tag Size] [Color] [Type] [Measurements] [Keywords] [New?] [Low Brand?]
+        [Value Leader] [Product Name] [Gender] [Tag Size] [Color] [Type] [Model No] [Measurements] [Keywords] [New?] [Low Brand?]
 
         Example:
         Input: "Gildan UGA Bulldogs Red Shirt"
-        Output: "UGA Bulldogs Shirt Mens Large Red Polo Football NCAA Gildan" (Color before Type)
+        Output: "UGA Bulldogs Shirt Men Large Red Polo Football NCAA Gildan" (Color before Type)
 
         Example 2:
         Input: "Quince Italian Wool Double Breasted Slouch Coat Black"
