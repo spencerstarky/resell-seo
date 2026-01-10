@@ -607,11 +607,9 @@ export default function ListingEditor({
                                                     setListings(updated);
                                                     saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
                                                 }}
-                                                className="btn"
+                                                className="btn btn-hover-danger"
                                                 title="Ignore / Dismiss"
                                                 style={{ padding: '0.4rem', borderRadius: '6px', flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)', border: '1px solid transparent' }}
-                                                onMouseEnter={e => { e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.borderColor = '#ff4444'; }}
-                                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.borderColor = 'transparent'; }}
                                             >
                                                 <Ban size={14} />
                                             </button>
@@ -628,10 +626,10 @@ export default function ListingEditor({
                                             setListings(updated);
                                             saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
                                         }}
-                                        className="btn"
+                                        className="btn btn-hover-danger"
                                         style={{
                                             padding: '0.3rem', borderRadius: '6px', fontSize: '0.75rem', width: '100%',
-                                            background: 'transparent', color: 'var(--color-text-dim)', border: 'none'
+                                            background: 'transparent', color: 'var(--color-text-dim)', border: '1px solid transparent'
                                         }}
                                     >
                                         Ignore
