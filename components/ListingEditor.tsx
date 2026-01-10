@@ -387,11 +387,20 @@ export default function ListingEditor({
     };
 
     // --- SORTING ---
-    const [sortBy, setSortBy] = useState<'date-desc' | 'score-asc' | 'score-desc' | 'status-pending'>('score-asc');
+    const [sortBy, setSortBy] = useState<'date-desc' | 'score-asc' | 'score-desc' | 'status-pending'>('date-desc');
 
     const getSortedListings = () => {
         const sorted = [...listings];
         return sorted.sort((a, b) => {
+            if (sortBy === 'date-desc') {
+                // eBay Item IDs (e.g. 156...) increase over time. 
+                // Higher ID = Newer Listing.
+                const idA = a.ebay_item_id || '';
+                const idB = b.ebay_item_id || '';
+                // Numeric string sort
+                if (idA.length !== idB.length) return idB.length - idA.length;
+                return idB.localeCompare(idA);
+            }
             if (sortBy === 'score-asc') {
                 return calculateSeoScore(a.original_title) - calculateSeoScore(b.original_title);
             }
@@ -424,6 +433,7 @@ export default function ListingEditor({
                             onChange={(e) => setSortBy(e.target.value as any)}
                             style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
                         >
+                            <option value="date-desc">Newest Uploads</option>
                             <option value="score-asc">Lowest Score (Needs Work)</option>
                             <option value="score-desc">Highest Score</option>
                             <option value="status-pending">Not Optimized First</option>
