@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock, Ban } from 'lucide-react';
+import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock, Ban, Undo2 } from 'lucide-react';
 
 interface Listing {
     id?: string;
@@ -458,39 +458,45 @@ export default function ListingEditor({
                     ) : null}
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <button
-                        onClick={rewriteAll}
-                        className="btn btn-secondary"
-                        disabled={saving || listings.some(l => l.loading)}
-                        style={{ border: '1px solid var(--color-primary)', color: 'var(--color-primary)' }}
-                    >
-                        <Sparkles size={16} /> Rewrite All
-                    </button>
+                {/* Header Actions - ONLY SHOW IN WORKSPACE VIEW */}
+                {!simpleView && (
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button
+                            onClick={rewriteAll}
+                            className="btn btn-secondary"
+                            disabled={saving || listings.some(l => l.loading)}
+                            style={{ border: '1px solid var(--color-primary)', color: 'var(--color-primary)' }}
+                        >
+                            <Sparkles size={16} /> Rewrite All
+                        </button>
 
-                    <button onClick={saveProgress} className="btn btn-secondary">
-                        <Save size={16} /> Save
-                    </button>
+                        <button onClick={saveProgress} className="btn btn-secondary">
+                            <Save size={16} /> Save
+                        </button>
 
-                    <button
-                        onClick={pushAllToEbay}
-                        className="btn btn-primary"
-                        disabled={saving || listings.some(l => l.pushing)}
-                        title={isPro ? "Push all optimized items to eBay" : "Upgrade to Pro to push items"}
-                        style={{ opacity: isPro ? 1 : 0.5, cursor: isPro ? 'pointer' : 'not-allowed' }}
-                    >
-                        {isPro ? <CloudPush size={16} /> : <Lock size={16} />}
-                        {isPro ? ' Push All Live' : ' Push All (Pro)'}
-                    </button>
-                </div>
+                        {showPushLive && (
+                            <button
+                                onClick={pushAllToEbay}
+                                className="btn btn-primary"
+                                disabled={saving || listings.some(l => l.pushing)}
+                                title={isPro ? "Push all optimized items to eBay" : "Upgrade to Pro to push items"}
+                                style={{ opacity: isPro ? 1 : 0.5, cursor: isPro ? 'pointer' : 'not-allowed' }}
+                            >
+                                {isPro ? <CloudPush size={16} /> : <Lock size={16} />}
+                                {isPro ? ' Push All Live' : ' Push All (Pro)'}
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* List Header */}
             {simpleView ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px 40px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     <div>Image</div>
                     <div>Title</div>
                     <div style={{ textAlign: 'right' }}>Score</div>
+                    <div></div>
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -513,7 +519,7 @@ export default function ListingEditor({
                     if (simpleView) {
                         return (
                             <div key={listing.id || realIndex} style={{
-                                display: 'grid', gridTemplateColumns: '80px 1fr 100px', gap: '1.5rem', alignItems: 'center', padding: '1rem 1.5rem',
+                                display: 'grid', gridTemplateColumns: '80px 1fr 100px 40px', gap: '1.5rem', alignItems: 'center', padding: '1rem 1.5rem',
                                 backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
                             }}>
                                 {/* Image */}
@@ -540,6 +546,30 @@ export default function ListingEditor({
                                     <span style={{ fontSize: '1.2rem', fontWeight: 700, color: getScoreColor(calculateSeoScore(listing.optimized_title || listing.original_title)) }}>
                                         {calculateSeoScore(listing.optimized_title || listing.original_title)}
                                     </span>
+                                </div>
+
+                                {/* Restore Action */}
+                                <div style={{ textAlign: 'right' }}>
+                                    {listing.status === 'IGNORED' && (
+                                        <button
+                                            title="Restore to Workspace"
+                                            onClick={() => {
+                                                const updated = [...listings];
+                                                const nextStatus = updated[realIndex].optimized_title ? 'OPTIMIZED' : 'NEW';
+                                                updated[realIndex].status = nextStatus;
+                                                setListings(updated);
+                                                saveSingleRow(realIndex, { ...updated[realIndex], status: nextStatus });
+                                            }}
+                                            className="btn"
+                                            style={{
+                                                padding: '0.4rem', borderRadius: '50%', background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)', cursor: 'pointer'
+                                            }}
+                                            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                                        >
+                                            <Undo2 size={16} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );
