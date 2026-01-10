@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { login, signup } from '@/app/login/actions';
 
-export default function LoginForm() {
+export default function LoginForm({ redirectTo }: { redirectTo?: string }) {
     const [showPassword, setShowPassword] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
 
@@ -16,6 +16,7 @@ export default function LoginForm() {
             action={isLogin ? login : signup}
             style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
         >
+            {redirectTo && <input type="hidden" name="redirect_to" value={redirectTo} />}
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>
                     {isLogin ? 'Sign In' : 'Create Account'}

@@ -39,7 +39,7 @@ export default async function LoginPage({
                     {/* Simplified toggle for now, mostly to isolate the Login form for password managers */}
                 </div>
 
-                <LoginForm />
+                <LoginForm redirectTo={params?.redirect_to as string} />
             </div>
         </div>
     )

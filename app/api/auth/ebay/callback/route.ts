@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_BASE_URL));
+        const loginUrl = new URL('/login', process.env.NEXT_PUBLIC_BASE_URL);
+        // Pass the current full URL (with code & state) as the destination
+        loginUrl.searchParams.set('redirect_to', request.url);
+        return NextResponse.redirect(loginUrl);
     }
 
     // Parse State

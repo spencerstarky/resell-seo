@@ -19,8 +19,10 @@ export async function login(formData: FormData) {
         redirect(`/login?error=${encodeURIComponent(error.message)}`)
     }
 
+    const redirectTo = (formData.get('redirect_to') as string) || '/dashboard'
+
     revalidatePath('/', 'layout')
-    redirect('/dashboard')
+    redirect(redirectTo)
 }
 
 export async function signup(formData: FormData) {
@@ -43,6 +45,8 @@ export async function signup(formData: FormData) {
         redirect('/login?message=Check your email to confirm account')
     }
 
+    const redirectTo = (formData.get('redirect_to') as string) || '/dashboard'
+
     revalidatePath('/', 'layout')
-    redirect('/dashboard')
+    redirect(redirectTo)
 }
