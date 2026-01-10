@@ -267,3 +267,12 @@ a {
 .nav-link:hover::after {
   width: 100%;
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

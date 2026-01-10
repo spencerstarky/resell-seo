@@ -193,7 +193,14 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         onClick={handleFetchEbay}
                         disabled={fetching}
                         className="btn btn-secondary"
-                        style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
+                        style={{
+                            fontSize: '0.9rem',
+                            padding: '0.5rem 1rem',
+                            borderColor: fetching ? 'var(--color-primary)' : 'var(--color-border)',
+                            color: fetching ? 'var(--color-primary)' : 'inherit',
+                            background: fetching ? 'rgba(156, 85, 213, 0.1)' : 'transparent',
+                            transition: 'all 0.3s ease'
+                        }}
                     >
                         <RefreshCw size={16} className={fetching ? 'spin' : ''} style={{ marginRight: '0.5rem' }} />
                         {fetching ? 'Syncing...' : 'Sync eBay'}
