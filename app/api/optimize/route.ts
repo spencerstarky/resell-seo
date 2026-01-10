@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
         5. **Space Saver:** Change "Men's" to "Mens", "Women's" to "Womens", "Levi's" to "Levis". (No apostrophes).
         6. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
         7. **No Spacing Chars:** Remove / - : , (Use spaces only).
+        8. **Nike Style Codes:** If you see a Nike/Jordan code (e.g. DV0036-237), KEEP ONLY THE FIRST 6 CHARS (e.g. DV0036). Remove the color code suffix.
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
