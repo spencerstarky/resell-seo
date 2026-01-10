@@ -193,19 +193,19 @@ export async function POST(request: NextRequest) {
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Type > Model No.
+        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Color > Type > Model No.
         - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. Remove the last word entirely if it doesn't fit.
-        
+
         DEFINITIONS:
         - **[Product Name]:** The Core Category (e.g. Sweater, Shirt, Pants, Hoodie). Keep this BEFORE Size.
         - **[Type]:** The Style/Cut (e.g. Pullover, Button Up, Skinny, Bootcut). Put this AFTER Size.
 
         STRICT STRUCTURE (Follow this order):
-        [Value Leader] [Product Name] [Gender] [Tag Size] [Type] [Measurements] [Keywords] [Color] [New?] [Low Brand?]
+        [Value Leader] [Product Name] [Gender] [Tag Size] [Color] [Type] [Measurements] [Keywords] [New?] [Low Brand?]
 
         Example:
         Input: "Gildan UGA Bulldogs Red Shirt"
-        Output: "UGA Bulldogs Shirt Mens L Polo Red Football NCAA Gildan" (Shirt before Size, Polo after)
+        Output: "UGA Bulldogs Shirt Mens Large Red Polo Football NCAA Gildan" (Color before Type)
 
         Example 2:
         Input: "Quince Italian Wool Double Breasted Slouch Coat Black"
