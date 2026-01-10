@@ -159,8 +159,8 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                     <section className="card glass" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
                         <div style={{
                             padding: '2rem',
-                            background: 'linear-gradient(135deg, rgba(156, 85, 213, 0.2), rgba(121, 40, 202, 0.2))',
-                            border: '1px solid var(--color-primary)',
+                            background: 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(28, 126, 32, 0.2))',
+                            border: '1px solid #4caf50',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
@@ -168,12 +168,19 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                             borderRadius: 'var(--radius-sm)'
                         }}>
                             <div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>Upgrade to ResellSEO Pro</h3>
-                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>Unlimited listings, priority support, and expert SEO keywords.</p>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>Upgrade to Annual Plan</h3>
+                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)' }}>
+                                    Bulk-optimize 5,000 titles to rank higher in eBay search.
+                                </p>
                             </div>
-                            <button className="btn btn-primary" style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(156, 85, 213, 0.4)' }}>
-                                Go Pro Only $59/mo
-                            </button>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                                <button className="btn btn-primary" style={{ whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(76, 175, 80, 0.4)', background: '#4caf50', borderColor: '#4caf50' }}>
+                                    Upgrade and Optimize my store
+                                </button>
+                                <p style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginRight: '0.5rem' }}>
+                                    $99/year - No monthly plan
+                                </p>
+                            </div>
                         </div>
                     </section>
                 )}
