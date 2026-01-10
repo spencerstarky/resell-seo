@@ -192,19 +192,19 @@ export async function POST(request: NextRequest) {
 
         DECISION LOGIC:
         - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Value Leader > Product Name > Type > Gender > Size > Model No > Condition.
+        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Type > Model No.
         - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. Remove the last word entirely if it doesn't fit.
 
         STRICT STRUCTURE (Follow this order):
-        [Value Leader] [Product Name] [Type] [Gender] [Tag Size] [Measurements] [Keywords] [Color] [New?] [Low Brand?]
+        [Value Leader] [Product Name] [Gender] [Tag Size] [Type] [Measurements] [Keywords] [Color] [New?] [Low Brand?]
 
         Example:
         Input: "Gildan UGA Bulldogs Red Shirt"
-        Output: "UGA Bulldogs Shirt Mens L Red Football NCAA Gildan" (Team First)
+        Output: "UGA Bulldogs Shirt Mens L Polo Red Football NCAA Gildan" (Team First, Type moved after Size)
 
         Example 2:
         Input: "Quince Italian Wool Double Breasted Slouch Coat Black"
-        Output: "Quince Italian Wool Slouch Coat Trench Mens XL Double Breasted Black"
+        Output: "Quince Italian Wool Slouch Coat Womens XL Trench Double Breasted Black"
 
         FINAL CHECK:
         - Is "Sz" gone?
