@@ -161,9 +161,7 @@ export async function POST(request: NextRequest) {
         3. **Style & Occasion:** Add strong keywords (e.g. "Boho", "Minimalist", "Oversized", "Vintage", "Y2K", "Office", "Winter").
         4. **Material is Key:** If you see "Silk", "Wool", "Linen" in the images, YOU MUST INCLUDE IT.
         5. **FILL THE SPACE (GREEDY MODE):** You have 80 characters. If you have >10 chars left, ADD MORE KEYWORDS.
-           - **Apparel:** "Stretch", "Breathable", "Tour", "Classic", "Modern", "Print", "Solid", "Lightweight", "Casual".
-           - **Active:** "Gym", "Run", "Performance", "Moisture Wicking", "Athletic".
-           - **Descriptions:** Describe the item! "Blade Collar", "Mock Neck", "Zip", "Button".
+           **WARNING:** NEVER sacrifice the Color or Model No to add a keyword. If space is tight, DROP "Activewear" or "Stretch" to keep "Green" or "VW401".
 
         HALLUCINATION POLICY (ZERO TOLERANCE):
         1. **NO GUESSING:** If the input (Title/Image/Specifics) does not explicitly indicate a Size or Gender, DO NOT ADD IT.
@@ -210,15 +208,17 @@ export async function POST(request: NextRequest) {
         Input: "Gildan UGA Bulldogs Red Shirt"
         Output: "UGA Bulldogs Shirt Men Large Red Polo Football NCAA Gildan" (Color before Type)
 
+
         Example 2:
         Input: "Quince Italian Wool Double Breasted Slouch Coat Black"
         Output: "Quince Italian Wool Slouch Coat Womens XL Trench Double Breasted Black"
 
-        FINAL CHECK:
-        - Is "Sz" gone?
-        - Is "8" present?
-        - Is "New" at the end?
-        - Is it under 80 chars?
+        FINAL SELF-CORRECTION:
+        - Did I include the Color? (e.g. Green). If not, DELETE a keyword and add the Color.
+        - Did I include the Style Code? (e.g. VW401). If not, DELETE a keyword and add the Code.
+        - Is the Brand first (or prioritized correctly)?
+
+
 
         OUTPUT :
         Return ONLY the final string.
