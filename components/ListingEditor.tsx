@@ -539,7 +539,7 @@ export default function ListingEditor({
                                         {listing.optimized_title || listing.original_title}
                                     </div>
                                     {/* Optional Status Badge */}
-                                    {listing.status === 'IGNORED' && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>Ignored</span>}
+                                    {listing.status === 'IGNORED' && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>Ignored (Active on eBay)</span>}
                                     {(listing.status === 'LIVE' || listing.status === 'uploaded') && <span style={{ fontSize: '0.75rem', color: '#4caf50', background: 'rgba(76, 175, 80, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>Live on eBay</span>}
                                 </div>
 
