@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock } from 'lucide-react';
+import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock, Ban } from 'lucide-react';
 
 interface Listing {
     id?: string;
@@ -477,7 +477,7 @@ export default function ListingEditor({
             </div>
 
             {/* List Header */}
-            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 60px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 <div>Image</div>
                 <div>Original Title</div>
                 <div>Optimized Title</div>
@@ -494,7 +494,7 @@ export default function ListingEditor({
 
                     return (
                         <div key={listing.id || realIndex} className="" style={{
-                            display: 'grid', gridTemplateColumns: '80px 1fr 1fr 60px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
+                            display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
                             backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
                         }}
                             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
@@ -550,44 +550,90 @@ export default function ListingEditor({
                                 </div>
                             </div>
 
-                            {/* Actions */}
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingTop: '0.25rem' }}>
-                                <button
-                                    onClick={() => rewriteTitle(realIndex)}
-                                    className="btn"
-                                    style={{
-                                        padding: '0.4rem', borderRadius: '50%',
-                                        background: listing.optimized_title ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
-                                        color: listing.optimized_title ? '#4caf50' : 'var(--color-primary)'
-                                    }}
-                                    title={listing.optimized_title ? "Rewrite Again" : "Optimize"}
-                                    disabled={listing.loading || listing.pushing}
-                                >
-                                    {listing.loading ?
-                                        <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> :
-                                        <Sparkles size={16} />
-                                    }
-                                </button>
-
-                                {listing.optimized_title && (
+                            {/* Actions Column */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'stretch' }}>
+                                {/* Optimize Button - Default Primary Action */}
+                                {!listing.optimized_title && (
                                     <button
-                                        onClick={() => pushToEbay(realIndex)}
+                                        onClick={() => rewriteTitle(realIndex)}
                                         className="btn"
                                         style={{
-                                            padding: '0.4rem', borderRadius: '50%',
-                                            background: !isPro ? 'rgba(255,255,255,0.05)' : listing.status === 'uploaded' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(156, 85, 213, 0.1)',
-                                            color: !isPro ? 'var(--color-text-dim)' : listing.status === 'uploaded' ? '#4caf50' : '#d6bcfa',
-                                            border: listing.status === 'uploaded' ? '1px solid #4caf50' : 'none',
-                                            cursor: !isPro ? 'pointer' : 'pointer'
+                                            padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', width: '100%',
+                                            background: 'rgba(156, 85, 213, 0.15)', color: 'var(--color-primary)', border: '1px solid rgba(156, 85, 213, 0.3)'
                                         }}
-                                        title={!isPro ? "Upgrade to Push Live" : listing.status === 'uploaded' ? "Already on eBay" : "Push to eBay"}
-                                        disabled={listing.pushing || listing.loading}
+                                        disabled={listing.loading}
                                     >
-                                        {listing.pushing ?
-                                            <div className="animate-spin" style={{ width: 16, height: 16, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} /> :
-                                            !isPro ? <Lock size={14} /> :
-                                                listing.status === 'uploaded' ? <CheckCircle size={16} /> : <CloudPush size={16} />
-                                        }
+                                        {listing.loading ? (
+                                            <><div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', marginRight: 6 }} /> Working...</>
+                                        ) : (
+                                            <><Sparkles size={14} style={{ marginRight: 6 }} /> Optimize</>
+                                        )}
+                                    </button>
+                                )}
+
+                                {/* Push/Re-Optimize Actions */}
+                                {listing.optimized_title && (
+                                    <>
+                                        <button
+                                            onClick={() => pushToEbay(realIndex)}
+                                            className="btn"
+                                            style={{
+                                                padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', width: '100%',
+                                                background: !isPro ? 'rgba(255,255,255,0.05)' : listing.status === 'uploaded' ? 'rgba(76, 175, 80, 0.2)' : 'linear-gradient(135deg, var(--color-primary), #7928ca)',
+                                                color: !isPro ? 'var(--color-text-dim)' : listing.status === 'uploaded' ? '#4caf50' : '#fff',
+                                                border: listing.status === 'uploaded' ? '1px solid #4caf50' : 'none',
+                                            }}
+                                            disabled={listing.pushing || !isPro || listing.status === 'uploaded'}
+                                            title={isPro ? "Push to eBay" : "Pro Feature"}
+                                        >
+                                            {listing.pushing ? 'Syncing...' : listing.status === 'uploaded' ? 'Synced' : <><CloudPush size={14} style={{ marginRight: 6 }} /> Push Live</>}
+                                        </button>
+
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                onClick={() => rewriteTitle(realIndex)}
+                                                className="btn"
+                                                title="Try Again"
+                                                style={{ padding: '0.4rem', borderRadius: '6px', flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)' }}
+                                            >
+                                                <Sparkles size={14} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    // Ignore Logic: Set status to IGNORED and save
+                                                    const updated = [...listings];
+                                                    updated[realIndex].status = 'IGNORED';
+                                                    setListings(updated);
+                                                    saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
+                                                }}
+                                                className="btn"
+                                                title="Ignore / Dismiss"
+                                                style={{ padding: '0.4rem', borderRadius: '6px', flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)', border: '1px solid transparent' }}
+                                                onMouseEnter={e => { e.currentTarget.style.color = '#ff4444'; e.currentTarget.style.borderColor = '#ff4444'; }}
+                                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.borderColor = 'transparent'; }}
+                                            >
+                                                <Ban size={14} />
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Initial Ignore (if not optimized yet) */}
+                                {!listing.optimized_title && (
+                                    <button
+                                        onClick={() => {
+                                            const updated = [...listings];
+                                            updated[realIndex].status = 'IGNORED';
+                                            setListings(updated);
+                                            saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
+                                        }}
+                                        className="btn"
+                                        style={{
+                                            padding: '0.3rem', borderRadius: '6px', fontSize: '0.75rem', width: '100%',
+                                            background: 'transparent', color: 'var(--color-text-dim)', border: 'none'
+                                        }}
+                                    >
+                                        Ignore
                                     </button>
                                 )}
                             </div>
