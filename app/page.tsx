@@ -267,10 +267,10 @@ export default function Home() {
       {/* Final CTA */}
       <section style={{ padding: '8rem 0', textAlign: 'center' }}>
         <div className="container">
-          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>Ready to Crush Your Competition?</h2>
-          <p style={{ color: 'var(--color-text-muted)', marginBottom: '3rem', fontSize: '1.2rem' }}>Join hundreds of sellers who have already optimized their stores.</p>
+          <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>Ready to optimize your store?</h2>
+          <p style={{ color: 'var(--color-text-muted)', marginBottom: '3rem', fontSize: '1.2rem' }}>Stop guessing keywords. Start ranking where top buyers are searching.</p>
           <Link href="/login" className="btn btn-primary" style={{ fontSize: '1.1rem', padding: '1.25rem 3rem' }}>
-            Start Your Free Trial Now
+            Start for Free
           </Link>
         </div>
       </section>
