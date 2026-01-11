@@ -237,7 +237,7 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         background: 'none', border: 'none', borderBottomWidth: '2px', cursor: 'pointer'
                     }}
                 >
-                    Optimized & Hidden
+                    Completed
                 </button>
             </div>
 
