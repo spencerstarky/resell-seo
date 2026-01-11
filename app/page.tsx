@@ -120,9 +120,9 @@ export default function Home() {
               <div className="icon-btn" style={{ marginBottom: '1.5rem', width: '50px', height: '50px' }}>
                 <Zap size={24} color="var(--color-secondary)" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Update 100 Listings in Minutes</h3>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Bulk Optimize Your Store</h3>
               <p style={{ color: 'var(--color-text-muted)', lineHeight: '1.6' }}>
-                Replace hours of manual edits with a few clicks. Connect directly to eBay and bulk optimize your titles before your coffee gets cold.
+                Fix thousands of listings in seconds, not hours. Identify low-performing titles instantly and push optimized updates directly to eBay with a single click.
               </p>
             </div>
 
