@@ -36,6 +36,11 @@ export async function POST(request: Request) {
                 userId: user.id,
                 userEmail: user.email || '',
             },
+            subscription_data: {
+                metadata: {
+                    userId: user.id
+                }
+            },
             customer_email: user.email, // Correct param name
         });
 
