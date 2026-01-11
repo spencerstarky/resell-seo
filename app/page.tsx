@@ -221,7 +221,7 @@ export default function Home() {
 
           {/* Why Sellers Choose Pro */}
           <div style={{ maxWidth: '800px', margin: '0 auto', marginBottom: '6rem', padding: '3rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <h3 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '2rem' }}>Why Sellers Choose <span className="text-gradient">Pro</span></h3>
+            <h3 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '2rem' }}>Why Sellers Choose <span className="text-gradient">Annual Access</span></h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '0.5rem', borderRadius: '50%' }}><Check size={20} color="#4caf50" /></div>
@@ -240,8 +240,8 @@ export default function Home() {
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ background: 'rgba(76, 175, 80, 0.1)', padding: '0.5rem', borderRadius: '50%' }}><Check size={20} color="#4caf50" /></div>
                 <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Bulk Actions</h4>
-                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Optimization cycles run in the background. Update 50 listings while you sleep.</p>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Bulk Optimization</h4>
+                  <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Select multiple listings and optimize them simultaneously. Apply high-ranking keywords and push updates to eBay in seconds.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
