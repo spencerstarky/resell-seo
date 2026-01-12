@@ -15,6 +15,30 @@ export async function middleware(request: NextRequest) {
         return response
     }
 
+    // --- LEGACY BLOG REDIRECTS ---
+    // Redirects old sourceandsold.com/[slug] links to resellseo.app/blog/[slug]
+    const pathname = request.nextUrl.pathname;
+
+    // List of known app routes that should NOT be redirected
+    const isAppRoute =
+        pathname === '/' ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/dashboard') ||
+        pathname.startsWith('/account') ||
+        pathname.startsWith('/blog') || // Already correct
+        pathname.startsWith('/api') ||
+        pathname.startsWith('/legal') ||
+        pathname.startsWith('/about') ||
+        pathname.startsWith('/contact') ||
+        pathname.startsWith('/auth') ||
+        pathname.includes('.'); // Exclude files (robots.txt, etc)
+
+    if (!isAppRoute) {
+        // Assume it's a legacy blog post -> 301 Redirect to /blog/[slug]
+        return NextResponse.redirect(new URL(`/blog${pathname}`, request.url), 301);
+    }
+    // -----------------------------
+
     const supabase = createServerClient(
         supabaseUrl,
         supabaseKey,
