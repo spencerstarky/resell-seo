@@ -14,8 +14,8 @@ const supabaseAdmin = createClient(
 // This ensures the page is dynamic
 export const revalidate = 60; // Revalidate every minute
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-    const { slug } = params;
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
 
     // Fetch post from Supabase
     const { data: post, error } = await supabaseAdmin
