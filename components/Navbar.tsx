@@ -57,9 +57,9 @@ export default function Navbar() {
                 <Link href="/blog" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Blog
                 </Link>
-                <a href="mailto:resellseo.app@gmail.com" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                <Link href="/contact" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Contact
-                </a>
+                </Link>
             </div>
 
             {/* Auth Buttons */}

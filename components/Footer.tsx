@@ -24,7 +24,7 @@ export default function Footer() {
                         <li><Link href="/blog">Blog</Link></li>
                         <li><Link href="#">Seller Guide</Link></li>
                         <li><Link href="#">eBay Algorithm Secrets</Link></li>
-                        <li><a href="mailto:resellseo.app@gmail.com">Support</a></li>
+                        <li><Link href="/contact">Support</Link></li>
                     </ul>
                 </div>
                 <div>

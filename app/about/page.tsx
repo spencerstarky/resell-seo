@@ -31,9 +31,9 @@ export default function AboutPage() {
                     <p>
                         Have questions or suggestions? We'd love to hear from you.
                         <br />
-                        <a href="mailto:resellseo.app@gmail.com" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
+                        <Link href="/contact" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>
                             Contact our support team
-                        </a>.
+                        </Link>.
                     </p>
                 </div>
             </main>
