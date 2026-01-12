@@ -197,7 +197,7 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
 
                 {/* Pro Call to Action - Standalone */}
                 {
-                    !isPro && (
+                    !isPro ? (
                         <section className="card glass" style={{ padding: '0', overflow: 'hidden', border: 'none' }}>
                             <div style={{
                                 padding: '2rem',
@@ -243,6 +243,38 @@ export default function AccountClient({ user, profile, hasEbayConnected: initial
                                 </div>
                             </div>
                         </section>
+                    ) : (
+                        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
+                                You are currently on the <strong>Annual Plan</strong>.
+                            </p>
+                            <button
+                                onClick={async () => {
+                                    const res = await fetch('/api/stripe/portal', {
+                                        method: 'POST',
+                                        body: JSON.stringify({
+                                            email: user.email,
+                                            returnUrl: window.location.href
+                                        })
+                                    });
+                                    const data = await res.json();
+                                    if (data.url) window.location.href = data.url;
+                                    else alert('Could not open billing portal. Please contact support.');
+                                }}
+                                style={{
+                                    background: 'transparent',
+                                    border: '1px solid var(--color-border)',
+                                    color: 'var(--color-text-muted)',
+                                    padding: '0.75rem 1.5rem',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                Manage Subscription / Cancel
+                            </button>
+                        </div>
                     )
                 }
 

@@ -24,14 +24,14 @@ export default function Footer() {
                         <li><Link href="/blog">Blog</Link></li>
                         <li><Link href="#">Seller Guide</Link></li>
                         <li><Link href="#">eBay Algorithm Secrets</Link></li>
-                        <li><Link href="#">Support</Link></li>
+                        <li><a href="mailto:support@resellseo.app">Support</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1.5rem' }}>Legal</h4>
                     <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                        <li><Link href="#">Privacy Policy</Link></li>
-                        <li><Link href="#">Terms of Service</Link></li>
+                        <li><Link href="/legal/privacy">Privacy Policy</Link></li>
+                        <li><Link href="/legal/terms">Terms of Service</Link></li>
                     </ul>
                 </div>
             </div>
