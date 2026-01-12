@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
             <section style={{ marginBottom: '2rem' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem' }}>5. Contact Us</h2>
                 <p style={{ lineHeight: '1.6', color: 'var(--color-text-dim)' }}>
-                    If you have questions about this policy, please contact us at: <a href="mailto:support@resellseo.app" style={{ color: 'var(--color-primary)' }}>support@resellseo.app</a>
+                    If you have questions about this policy, please contact us at: <a href="mailto:resellseo.app@gmail.com" style={{ color: 'var(--color-primary)' }}>resellseo.app@gmail.com</a>
                 </p>
             </section>
         </div>

@@ -45,7 +45,7 @@ export default function TermsOfService() {
             <section style={{ marginBottom: '2rem' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1rem' }}>6. Contact</h2>
                 <p style={{ lineHeight: '1.6', color: 'var(--color-text-dim)' }}>
-                    For support or legal inquiries, contact us at: <a href="mailto:support@resellseo.app" style={{ color: 'var(--color-primary)' }}>support@resellseo.app</a>
+                    For support or legal inquiries, contact us at: <a href="mailto:resellseo.app@gmail.com" style={{ color: 'var(--color-primary)' }}>resellseo.app@gmail.com</a>
                 </p>
             </section>
         </div>
