@@ -48,18 +48,18 @@ export default function Navbar() {
 
             {/* Desktop Links */}
             <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-                <Link href="#features" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                    Features
+                <Link href="/about" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                    About Us
                 </Link>
                 <Link href="#pricing" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Pricing
                 </Link>
-                <Link href="#how-it-works" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                    How it Works
-                </Link>
                 <Link href="/blog" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Blog
                 </Link>
+                <a href="mailto:resellseo.app@gmail.com" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                    Contact
+                </a>
             </div>
 
             {/* Auth Buttons */}
