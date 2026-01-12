@@ -1,28 +1,39 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
-export async function POST(request: Request) {
+// Admin client to bypass RLS (if any) and ensure we can write to leads table
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST(req: Request) {
     try {
-        const { email } = await request.json();
+        const { email } = await req.json();
 
         if (!email || !email.includes('@')) {
-            return NextResponse.json({ error: 'Please provide a valid email address.' }, { status: 400 });
+            return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
         }
 
-        const { error } = await supabase
-            .from('newsletter_subscribers')
-            .insert([{ email }]);
+        // Insert into leads table
+        const { error } = await supabaseAdmin
+            .from('leads')
+            .insert({ email })
+            .select();
 
         if (error) {
+            // Handle duplicate email error (Postgres constraint violation)
             if (error.code === '23505') { // Unique violation
-                return NextResponse.json({ message: 'You are already subscribed!' }, { status: 200 });
+                return NextResponse.json({ message: "You're already subscribed!" });
             }
-            throw error;
+            console.error('Newsletter Error:', error);
+            return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 });
         }
 
-        return NextResponse.json({ message: 'Welcome to the list!' }, { status: 200 });
-    } catch (error: any) {
-        console.error('Newsletter Subscribe Error:', error);
-        return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
+        return NextResponse.json({ message: "Thanks for subscribing!" });
+
+    } catch (e: any) {
+        console.error('Newsletter Error:', e);
+        return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }
