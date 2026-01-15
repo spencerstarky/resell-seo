@@ -387,6 +387,7 @@ export default function ListingEditor({
                 user_id: userId,
                 ebay_item_id: item.ebay_item_id,
                 original_title: item.original_title,
+                current_title: item.original_title, // REQUIRED: Fixes "null value in column current_title" error
                 status: 'IGNORED', // Acts as VERIFIED
                 updated_at: new Date().toISOString()
             }));
