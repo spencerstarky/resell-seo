@@ -377,6 +377,50 @@ export default function ListingEditor({
         }
     };
 
+    const handleBatchVerify = async (items: any[]) => {
+        try {
+            const { supabase } = await import('@/lib/supabase');
+            if (!userId || items.length === 0) return;
+
+            const updates = items.map(item => ({
+                id: item.id,
+                user_id: userId,
+                ebay_item_id: item.ebay_item_id,
+                original_title: item.original_title,
+                status: 'IGNORED', // Acts as VERIFIED
+                updated_at: new Date().toISOString()
+            }));
+
+            // DB Update
+            const { error } = await supabase
+                .from('ebay_inventory')
+                .upsert(updates, { onConflict: 'id' });
+
+            if (error) throw error;
+
+            // Local Update (Remove from current view immediately)
+            // We set them to IGNORED, so if we are in WORKSPACE, they will disappear.
+            setListings(prev => {
+                const next = [...prev];
+                items.forEach(item => {
+                    next[item.index].status = 'IGNORED';
+                });
+                return next;
+            });
+
+            // Notify Parent (optional, if using external state management)
+            items.forEach(item => {
+                if (onUpdateItem && item.id) onUpdateItem(item.id, { status: 'IGNORED' });
+            });
+
+            console.log(`[Batch Verify] Moved ${items.length} items to Completed/Verified.`);
+
+        } catch (e: any) {
+            console.error('Batch Verify Failed:', e);
+            alert('Failed to move verified items: ' + e.message);
+        }
+    };
+
     const rewriteAll = async () => {
         if (!checkCredits) return;
 
@@ -397,13 +441,21 @@ export default function ListingEditor({
         let confirmMessage = `Ready to rewrite ${todoIndices.length} titles.`;
 
         if (skippedCount > 0) {
-            confirmMessage = `🎉 We found ${skippedCount} titles that already have a Perfect SEO Score (90+)! \n\nWe will SKIP these to save your credits.\n\nReady to optimize the remaining ${todoIndices.length} items?`;
+            confirmMessage = `🎉 We found ${skippedCount} titles that already have a Perfect SEO Score (90+)! \n\nWe will automatically move these to your 'Completed' tab as VERIFIED.\n\nReady to optimize the remaining ${todoIndices.length} items?`;
         } else {
             confirmMessage = `This will rewrite ${todoIndices.length} titles.`;
         }
 
+        if (todoIndices.length === 0 && skippedCount > 0) {
+            // ONLY high score items found. Just move them and exit.
+            if (confirm(`🎉 found ${skippedCount} titles that already have a Perfect SEO Score (90+)! \n\nMove them to 'Completed' tab now?`)) {
+                await handleBatchVerify(highScoreItems);
+            }
+            return;
+        }
+
         if (todoIndices.length === 0) {
-            alert(`Amazing! All your pending items already have high SEO scores. No optimization needed! 🎉`);
+            alert('All titles are already optimized!');
             return;
         }
 
@@ -412,14 +464,17 @@ export default function ListingEditor({
 
         if (!confirm(`${confirmMessage}\n\nEstimated time: ~${estimatedMinutes} minute(s).\n\nPlease keep this tab open while we work!`)) return;
 
+        // 1. Move High Scores First
+        if (skippedCount > 0) {
+            await handleBatchVerify(highScoreItems);
+        }
+
         setListings((prev: Listing[]) => {
             const next = [...prev];
             // Set loading state ONLY for the ones we are actually doing
             todoIndices.forEach(idx => {
                 next[idx] = { ...next[idx], loading: true };
             });
-            // Optional: Mark the skipped ones as "celebrated" or simply leave them?
-            // For now, let's leave them.
             return next;
         });
 
