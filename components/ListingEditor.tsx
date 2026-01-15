@@ -641,7 +641,7 @@ export default function ListingEditor({
                 </div>
 
                 {/* Header Actions - ONLY SHOW IN WORKSPACE VIEW */}
-                {!simpleView && (
+                {!simpleView && displayListings.length > 0 && (
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <button
                             onClick={rewriteAll}
@@ -672,302 +672,321 @@ export default function ListingEditor({
                 )}
             </div>
 
-            {/* List Header */}
-            {simpleView ? (
-                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px 40px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    <div>Image</div>
-                    <div>Title</div>
-                    <div style={{ textAlign: 'right' }}>Score</div>
-                    <div></div>
-                </div>
+            {/* Empty State / List Header */}
+            {displayListings.length === 0 ? (
+                !simpleView ? (
+                    <div style={{ textAlign: 'center', padding: '4rem 1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)', marginTop: '2rem' }}>
+                        <div style={{ width: 60, height: 60, background: 'rgba(76, 175, 80, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                            <CheckCircle size={30} style={{ color: '#4caf50' }} />
+                        </div>
+                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>You're all caught up!</h3>
+                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', maxWidth: '400px', margin: '0 auto' }}>
+                            No pending listings in your workspace. List more items on eBay, then sync to optimize them!
+                        </p>
+                    </div>
+                ) : (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>No completed items found.</div>
+                )
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    <div>Image</div>
-                    <div>Original Title</div>
-                    <div>Optimized Title</div>
-                    <div style={{ textAlign: 'right' }}>Action</div>
-                </div>
-            )}
+                <>
+                    {/* List Header */}
+                    {simpleView ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px 40px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            <div>Image</div>
+                            <div>Title</div>
+                            <div style={{ textAlign: 'right' }}>Score</div>
+                            <div></div>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', padding: '0.75rem 1.5rem', color: 'var(--color-text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            <div>Image</div>
+                            <div>Original Title</div>
+                            <div>Optimized Title</div>
+                            <div style={{ textAlign: 'right' }}>Action</div>
+                        </div>
+                    )}
 
-            {/* The List Logic */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {displayListings.map((listing, _) => {
-                    // Match sorting to original index
-                    const realIndex = listings.findIndex(l => l.id === listing.id);
-                    // Fallback if ID is missing (should verify handled)
-                    if (realIndex === -1) return null;
+                    {/* The List Logic */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {displayListings.map((listing, _) => {
+                            // Match sorting to original index
+                            const realIndex = listings.findIndex(l => l.id === listing.id);
+                            // Fallback if ID is missing (should verify handled)
+                            if (realIndex === -1) return null;
 
-                    // --- SIMPLE VIEW RENDER ---
-                    if (simpleView) {
-                        return (
-                            <div key={listing.id || realIndex} style={{
-                                display: 'grid', gridTemplateColumns: '80px 1fr 100px 40px', gap: '1.5rem', alignItems: 'center', padding: '1rem 1.5rem',
-                                backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
-                            }}>
-                                {/* Image */}
-                                <div style={{ width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    {listing.image_url ? (
-                                        <img src={listing.image_url} alt="Item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                                    ) : (
-                                        <span style={{ fontSize: '1.5rem', opacity: 0.2 }}>📷</span>
-                                    )}
-                                </div>
-
-                                {/* content */}
-                                <div>
-                                    <div style={{ color: 'var(--color-text-main)', fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>
-                                        {listing.optimized_title || listing.original_title}
-                                    </div>
-                                    {/* Optional Status Badge */}
-                                    {listing.status === 'IGNORED' && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>Ignored (Active on eBay)</span>}
-                                    {(listing.status === 'LIVE' || listing.status === 'uploaded') && <span style={{ fontSize: '0.75rem', color: '#4caf50', background: 'rgba(76, 175, 80, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>Live on eBay</span>}
-                                </div>
-
-                                {/* Score */}
-                                <div style={{ textAlign: 'right' }}>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: getScoreColor(calculateSeoScore(listing.optimized_title || listing.original_title)) }}>
-                                        {calculateSeoScore(listing.optimized_title || listing.original_title)}
-                                    </span>
-                                    {calculateSeoScore(listing.optimized_title || listing.original_title) >= 90 && (
-                                        <div style={{ fontSize: '0.7rem', color: '#4caf50', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '4px' }}>
-                                            <CheckCircle size={12} fill="#4caf50" color="#fff" /> Verified
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Restore Action */}
-                                <div style={{ textAlign: 'right' }}>
-                                    {listing.status === 'IGNORED' && (
-                                        <button
-                                            title="Restore to Workspace"
-                                            onClick={() => {
-                                                const updated = [...listings];
-                                                const nextStatus = updated[realIndex].optimized_title ? 'OPTIMIZED' : 'NEW';
-                                                updated[realIndex].status = nextStatus;
-                                                setListings(updated);
-                                                saveSingleRow(realIndex, { ...updated[realIndex], status: nextStatus });
-                                                onUpdateItem?.(listing.id!, { status: nextStatus });
-                                            }}
-                                            className="btn"
-                                            style={{
-                                                padding: '0.4rem', borderRadius: '50%', background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)', cursor: 'pointer'
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-                                        >
-                                            <Undo2 size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    }
-
-                    // --- COMPEX VIEW RENDER (Existing) ---
-                    return (
-                        <div key={listing.id || realIndex} className="" style={{
-                            display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
-                            backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
-                        }}
-                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
-                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
-                        >
-                            {/* Image Thumbnail */}
-                            <div style={{ width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {listing.image_url ? (
-                                    <img
-                                        src={listing.image_url}
-                                        alt="Item"
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                    />
-                                ) : (
-                                    <span style={{ fontSize: '1.5rem', opacity: 0.2 }}>📷</span>
-                                )}
-                            </div>
-
-                            {/* Original */}
-                            <div style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', lineHeight: 1.4, paddingRight: '1rem', overflowWrap: 'break-word' }}>
-                                <div style={{ marginBottom: '0.5rem' }}>{listing.original_title}</div>
-                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                                    <span style={{ color: getScoreColor(calculateSeoScore(listing.original_title)) }}>
-                                        SEO Score: {calculateSeoScore(listing.original_title)}
-                                    </span>
-                                    {calculateSeoScore(listing.original_title) >= 90 && (
-                                        <CheckCircle size={14} fill="#4caf50" color="#000" style={{ marginLeft: 4 }} />
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Optimized */}
-                            <div>
-                                <textarea
-                                    value={listing.optimized_title || ''}
-                                    onChange={(e) => handleTitleChange(realIndex, e.target.value)}
-                                    placeholder="Click Rewrite to generate..."
-                                    style={{
-                                        width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)',
-                                        backgroundColor: 'rgba(0,0,0,0.2)', color: 'var(--color-text-main)', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', fontSize: '0.95rem'
-                                    }}
-                                />
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.75rem' }}>
-                                    {listing.optimized_title && (
-                                        <span style={{ fontWeight: 600, color: getScoreColor(calculateSeoScore(listing.optimized_title)) }}>
-                                            New Score: {calculateSeoScore(listing.optimized_title)}
-                                            {calculateSeoScore(listing.optimized_title) > calculateSeoScore(listing.original_title) && (
-                                                <span style={{ color: '#4caf50', marginLeft: '4px' }}>(+{calculateSeoScore(listing.optimized_title) - calculateSeoScore(listing.original_title)})</span>
+                            // --- SIMPLE VIEW RENDER ---
+                            if (simpleView) {
+                                return (
+                                    <div key={listing.id || realIndex} style={{
+                                        display: 'grid', gridTemplateColumns: '80px 1fr 100px 40px', gap: '1.5rem', alignItems: 'center', padding: '1rem 1.5rem',
+                                        backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
+                                    }}>
+                                        {/* Image */}
+                                        <div style={{ width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {listing.image_url ? (
+                                                <img src={listing.image_url} alt="Item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                                            ) : (
+                                                <span style={{ fontSize: '1.5rem', opacity: 0.2 }}>📷</span>
                                             )}
-                                        </span>
-                                    )}
-                                    <span style={{ color: getCharCountColor(listing.optimized_title?.length || 0), fontWeight: 600, marginLeft: 'auto' }}>
-                                        {listing.optimized_title?.length || 0}/80
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Actions Column */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'stretch' }}>
-
-                                {/* CASE 1: IGNORED */}
-                                {listing.status === 'IGNORED' ? (
-                                    <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.85rem', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
-                                        <Ban size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }} />
-                                        Ignored
-                                    </div>
-                                ) :
-
-                                    /* CASE 2: LIVE / UPLOADED */
-                                    (listing.status === 'LIVE' || listing.status === 'uploaded') ? (
-                                        <div style={{ textAlign: 'center', color: '#4caf50', fontSize: '0.85rem', padding: '0.5rem', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '6px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
-                                            <CheckCircle size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }} />
-                                            Live on eBay
                                         </div>
-                                    ) :
 
-                                        /* CASE 3: WORKSPACE ACTIONS */
-                                        (
-                                            <>
-                                                {/* Optimize Button - Default Primary Action */}
-                                                {!listing.optimized_title && (
-                                                    <button
-                                                        onClick={() => rewriteTitle(realIndex)}
-                                                        className="btn"
-                                                        style={{
-                                                            padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', width: '100%',
-                                                            background: 'rgba(156, 85, 213, 0.15)', color: 'var(--color-primary)', border: '1px solid rgba(156, 85, 213, 0.3)'
-                                                        }}
-                                                        disabled={listing.loading}
-                                                    >
-                                                        {listing.loading ? (
-                                                            <><div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', marginRight: 6 }} /> Working...</>
-                                                        ) : (
-                                                            <><Sparkles size={14} style={{ marginRight: 6 }} /> Optimize</>
-                                                        )}
-                                                    </button>
-                                                )}
+                                        {/* content */}
+                                        <div>
+                                            <div style={{ color: 'var(--color-text-main)', fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>
+                                                {listing.optimized_title || listing.original_title}
+                                            </div>
+                                            {/* Optional Status Badge */}
+                                            {listing.status === 'IGNORED' && <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>Ignored (Active on eBay)</span>}
+                                            {(listing.status === 'LIVE' || listing.status === 'uploaded') && <span style={{ fontSize: '0.75rem', color: '#4caf50', background: 'rgba(76, 175, 80, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>Live on eBay</span>}
+                                        </div>
 
-                                                {/* Push/Re-Optimize Actions */}
-                                                {listing.optimized_title && (
+                                        {/* Score */}
+                                        <div style={{ textAlign: 'right' }}>
+                                            <span style={{ fontSize: '1.2rem', fontWeight: 700, color: getScoreColor(calculateSeoScore(listing.optimized_title || listing.original_title)) }}>
+                                                {calculateSeoScore(listing.optimized_title || listing.original_title)}
+                                            </span>
+                                            {calculateSeoScore(listing.optimized_title || listing.original_title) >= 90 && (
+                                                <div style={{ fontSize: '0.7rem', color: '#4caf50', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '4px' }}>
+                                                    <CheckCircle size={12} fill="#4caf50" color="#fff" /> Verified
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Restore Action */}
+                                        <div style={{ textAlign: 'right' }}>
+                                            {listing.status === 'IGNORED' && (
+                                                <button
+                                                    title="Restore to Workspace"
+                                                    onClick={() => {
+                                                        const updated = [...listings];
+                                                        const nextStatus = updated[realIndex].optimized_title ? 'OPTIMIZED' : 'NEW';
+                                                        updated[realIndex].status = nextStatus;
+                                                        setListings(updated);
+                                                        saveSingleRow(realIndex, { ...updated[realIndex], status: nextStatus });
+                                                        onUpdateItem?.(listing.id!, { status: nextStatus });
+                                                    }}
+                                                    className="btn"
+                                                    style={{
+                                                        padding: '0.4rem', borderRadius: '50%', background: 'transparent', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)', cursor: 'pointer'
+                                                    }}
+                                                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                                                >
+                                                    <Undo2 size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            // --- COMPEX VIEW RENDER (Existing) ---
+                            return (
+                                <div key={listing.id || realIndex} className="" style={{
+                                    display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px', gap: '1.5rem', alignItems: 'start', padding: '1.5rem',
+                                    backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-sm)', border: '1px solid transparent'
+                                }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'transparent' }}
+                                >
+                                    {/* Image Thumbnail */}
+                                    <div style={{ width: '80px', height: '80px', borderRadius: '6px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {listing.image_url ? (
+                                            <img
+                                                src={listing.image_url}
+                                                alt="Item"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                            />
+                                        ) : (
+                                            <span style={{ fontSize: '1.5rem', opacity: 0.2 }}>📷</span>
+                                        )}
+                                    </div>
+
+                                    {/* Original */}
+                                    <div style={{ color: 'var(--color-text-dim)', fontSize: '0.95rem', lineHeight: 1.4, paddingRight: '1rem', overflowWrap: 'break-word' }}>
+                                        <div style={{ marginBottom: '0.5rem' }}>{listing.original_title}</div>
+                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
+                                            <span style={{ color: getScoreColor(calculateSeoScore(listing.original_title)) }}>
+                                                SEO Score: {calculateSeoScore(listing.original_title)}
+                                            </span>
+                                            {calculateSeoScore(listing.original_title) >= 90 && (
+                                                <CheckCircle size={14} fill="#4caf50" color="#000" style={{ marginLeft: 4 }} />
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Optimized */}
+                                    <div>
+                                        <textarea
+                                            value={listing.optimized_title || ''}
+                                            onChange={(e) => handleTitleChange(realIndex, e.target.value)}
+                                            placeholder="Click Rewrite to generate..."
+                                            style={{
+                                                width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)',
+                                                backgroundColor: 'rgba(0,0,0,0.2)', color: 'var(--color-text-main)', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', fontSize: '0.95rem'
+                                            }}
+                                        />
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.75rem' }}>
+                                            {listing.optimized_title && (
+                                                <span style={{ fontWeight: 600, color: getScoreColor(calculateSeoScore(listing.optimized_title)) }}>
+                                                    New Score: {calculateSeoScore(listing.optimized_title)}
+                                                    {calculateSeoScore(listing.optimized_title) > calculateSeoScore(listing.original_title) && (
+                                                        <span style={{ color: '#4caf50', marginLeft: '4px' }}>(+{calculateSeoScore(listing.optimized_title) - calculateSeoScore(listing.original_title)})</span>
+                                                    )}
+                                                </span>
+                                            )}
+                                            <span style={{ color: getCharCountColor(listing.optimized_title?.length || 0), fontWeight: 600, marginLeft: 'auto' }}>
+                                                {listing.optimized_title?.length || 0}/80
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Actions Column */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'stretch' }}>
+
+                                        {/* CASE 1: IGNORED */}
+                                        {listing.status === 'IGNORED' ? (
+                                            <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.85rem', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+                                                <Ban size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }} />
+                                                Ignored
+                                            </div>
+                                        ) :
+
+                                            /* CASE 2: LIVE / UPLOADED */
+                                            (listing.status === 'LIVE' || listing.status === 'uploaded') ? (
+                                                <div style={{ textAlign: 'center', color: '#4caf50', fontSize: '0.85rem', padding: '0.5rem', background: 'rgba(76, 175, 80, 0.1)', borderRadius: '6px', border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                                                    <CheckCircle size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: 'text-bottom' }} />
+                                                    Live on eBay
+                                                </div>
+                                            ) :
+
+                                                /* CASE 3: WORKSPACE ACTIONS */
+                                                (
                                                     <>
-                                                        <button
-                                                            onClick={() => pushToEbay(realIndex)}
-                                                            className="btn"
-                                                            style={{
-                                                                padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', width: '100%',
-                                                                background: 'linear-gradient(135deg, var(--color-primary), #7928ca)',
-                                                                color: '#fff',
-                                                                border: 'none',
-                                                            }}
-                                                            disabled={listing.pushing}
-                                                            title="Push to eBay"
-                                                        >
-                                                            {listing.pushing ? 'Syncing...' : <><CloudPush size={14} style={{ marginRight: 6 }} /> Push Live</>}
-                                                        </button>
-
-                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        {/* Optimize Button - Default Primary Action */}
+                                                        {!listing.optimized_title && (
                                                             <button
-                                                                onClick={() => {
-                                                                    console.log('Re-optimizing item:', realIndex);
-                                                                    rewriteTitle(realIndex);
+                                                                onClick={() => rewriteTitle(realIndex)}
+                                                                className="btn"
+                                                                style={{
+                                                                    padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', width: '100%',
+                                                                    background: 'rgba(156, 85, 213, 0.15)', color: 'var(--color-primary)', border: '1px solid rgba(156, 85, 213, 0.3)'
                                                                 }}
                                                                 disabled={listing.loading}
-                                                                className="btn"
-                                                                title={listing.loading ? "Optimizing..." : "Try Again (Re-Optimize)"}
-                                                                onMouseEnter={(e) => {
-                                                                    if (listing.loading) return;
-                                                                    e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-                                                                    e.currentTarget.style.color = 'var(--color-primary)';
-                                                                    e.currentTarget.style.transform = 'translateY(-1px)';
-                                                                }}
-                                                                onMouseLeave={(e) => {
-                                                                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                                                                    e.currentTarget.style.color = 'var(--color-text-muted)';
-                                                                    e.currentTarget.style.transform = 'translateY(0)';
-                                                                }}
-                                                                style={{
-                                                                    padding: '0.4rem',
-                                                                    borderRadius: '6px',
-                                                                    flex: 1,
-                                                                    background: 'rgba(255,255,255,0.05)',
-                                                                    color: 'var(--color-text-muted)',
-                                                                    transition: 'all 0.2s ease',
-                                                                    cursor: listing.loading ? 'wait' : 'pointer',
-                                                                    opacity: listing.loading ? 0.7 : 1,
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    justifyContent: 'center'
-                                                                }}
                                                             >
                                                                 {listing.loading ? (
-                                                                    <Loader2 size={14} className="animate-spin" />
+                                                                    <><div className="animate-spin" style={{ width: 14, height: 14, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', marginRight: 6 }} /> Working...</>
                                                                 ) : (
-                                                                    <Sparkles size={14} />
+                                                                    <><Sparkles size={14} style={{ marginRight: 6 }} /> Optimize</>
                                                                 )}
                                                             </button>
+                                                        )}
+
+                                                        {/* Push/Re-Optimize Actions */}
+                                                        {listing.optimized_title && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => pushToEbay(realIndex)}
+                                                                    className="btn"
+                                                                    style={{
+                                                                        padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.8rem', width: '100%',
+                                                                        background: 'linear-gradient(135deg, var(--color-primary), #7928ca)',
+                                                                        color: '#fff',
+                                                                        border: 'none',
+                                                                    }}
+                                                                    disabled={listing.pushing}
+                                                                    title="Push to eBay"
+                                                                >
+                                                                    {listing.pushing ? 'Syncing...' : <><CloudPush size={14} style={{ marginRight: 6 }} /> Push Live</>}
+                                                                </button>
+
+                                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            console.log('Re-optimizing item:', realIndex);
+                                                                            rewriteTitle(realIndex);
+                                                                        }}
+                                                                        disabled={listing.loading}
+                                                                        className="btn"
+                                                                        title={listing.loading ? "Optimizing..." : "Try Again (Re-Optimize)"}
+                                                                        onMouseEnter={(e) => {
+                                                                            if (listing.loading) return;
+                                                                            e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+                                                                            e.currentTarget.style.color = 'var(--color-primary)';
+                                                                            e.currentTarget.style.transform = 'translateY(-1px)';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                                                            e.currentTarget.style.color = 'var(--color-text-muted)';
+                                                                            e.currentTarget.style.transform = 'translateY(0)';
+                                                                        }}
+                                                                        style={{
+                                                                            padding: '0.4rem',
+                                                                            borderRadius: '6px',
+                                                                            flex: 1,
+                                                                            background: 'rgba(255,255,255,0.05)',
+                                                                            color: 'var(--color-text-muted)',
+                                                                            transition: 'all 0.2s ease',
+                                                                            cursor: listing.loading ? 'wait' : 'pointer',
+                                                                            opacity: listing.loading ? 0.7 : 1,
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center'
+                                                                        }}
+                                                                    >
+                                                                        {listing.loading ? (
+                                                                            <Loader2 size={14} className="animate-spin" />
+                                                                        ) : (
+                                                                            <Sparkles size={14} />
+                                                                        )}
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            // Ignore Logic: Set status to IGNORED and save
+                                                                            const updated = [...listings];
+                                                                            updated[realIndex].status = 'IGNORED';
+                                                                            setListings(updated);
+                                                                            saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
+                                                                        }}
+                                                                        className="btn btn-hover-danger"
+                                                                        title="Ignore / Dismiss"
+                                                                        style={{ padding: '0.4rem', borderRadius: '6px', flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)', border: '1px solid transparent' }}
+                                                                    >
+                                                                        <Ban size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        )}
+
+                                                        {/* Initial Ignore (if not optimized yet) */}
+                                                        {!listing.optimized_title && (
                                                             <button
                                                                 onClick={() => {
-                                                                    // Ignore Logic: Set status to IGNORED and save
                                                                     const updated = [...listings];
                                                                     updated[realIndex].status = 'IGNORED';
                                                                     setListings(updated);
                                                                     saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
+                                                                    onUpdateItem?.(listing.id!, { status: 'IGNORED' });
                                                                 }}
                                                                 className="btn btn-hover-danger"
-                                                                title="Ignore / Dismiss"
-                                                                style={{ padding: '0.4rem', borderRadius: '6px', flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)', border: '1px solid transparent' }}
+                                                                style={{
+                                                                    padding: '0.3rem', borderRadius: '6px', fontSize: '0.75rem', width: '100%',
+                                                                    background: 'transparent', color: 'var(--color-text-dim)', border: '1px solid transparent'
+                                                                }}
                                                             >
-                                                                <Ban size={14} />
+                                                                Ignore
                                                             </button>
-                                                        </div>
+                                                        )}
                                                     </>
                                                 )}
-
-                                                {/* Initial Ignore (if not optimized yet) */}
-                                                {!listing.optimized_title && (
-                                                    <button
-                                                        onClick={() => {
-                                                            const updated = [...listings];
-                                                            updated[realIndex].status = 'IGNORED';
-                                                            setListings(updated);
-                                                            saveSingleRow(realIndex, { ...updated[realIndex], status: 'IGNORED' });
-                                                            onUpdateItem?.(listing.id!, { status: 'IGNORED' });
-                                                        }}
-                                                        className="btn btn-hover-danger"
-                                                        style={{
-                                                            padding: '0.3rem', borderRadius: '6px', fontSize: '0.75rem', width: '100%',
-                                                            background: 'transparent', color: 'var(--color-text-dim)', border: '1px solid transparent'
-                                                        }}
-                                                    >
-                                                        Ignore
-                                                    </button>
-                                                )}
-                                            </>
-                                        )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
 
             {/* Render Modal */}
             {showUpgradeModal && <UpgradeModal />}
