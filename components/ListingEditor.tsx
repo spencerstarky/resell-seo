@@ -672,6 +672,11 @@ export default function ListingEditor({
                                     <span style={{ fontSize: '1.2rem', fontWeight: 700, color: getScoreColor(calculateSeoScore(listing.optimized_title || listing.original_title)) }}>
                                         {calculateSeoScore(listing.optimized_title || listing.original_title)}
                                     </span>
+                                    {calculateSeoScore(listing.optimized_title || listing.original_title) >= 90 && (
+                                        <div style={{ fontSize: '0.7rem', color: '#4caf50', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '4px' }}>
+                                            <CheckCircle size={12} fill="#4caf50" color="#fff" /> Verified
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Restore Action */}
@@ -732,6 +737,9 @@ export default function ListingEditor({
                                     <span style={{ color: getScoreColor(calculateSeoScore(listing.original_title)) }}>
                                         SEO Score: {calculateSeoScore(listing.original_title)}
                                     </span>
+                                    {calculateSeoScore(listing.original_title) >= 90 && (
+                                        <CheckCircle size={14} fill="#4caf50" color="#000" style={{ marginLeft: 4 }} />
+                                    )}
                                 </div>
                             </div>
 
