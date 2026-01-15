@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         let allItems: any[] = [];
         let pageNumber = 1;
         let hasMorePages = true;
-        const MAX_PAGES = 20; // Safety limit to prevent infinite loops (approx 4000 items)
+        const MAX_PAGES = 50; // Safety limit increased to support 10,000 items (50 * 200)
 
         while (hasMorePages && pageNumber <= MAX_PAGES) {
             console.log(`[eBay Fetch] Fetching page ${pageNumber}...`);
