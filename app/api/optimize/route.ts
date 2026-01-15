@@ -143,85 +143,216 @@ export async function POST(request: NextRequest) {
         const promptText = `
         Current Date: ${new Date().toISOString()}
 
-        ROLE:
-        You are a ruthless eBay Data Cleaner & SEO Expert.
-        
         INPUT DATA:
-        - Original Title: "${title}"
-        - Item Specifics: "${additionalInfo || 'None provided'}"
-        - IMAGES: Access the attached images to find Material Tags (e.g. 100% Silk), Flaws, or Specific Model names.
+        Original Title: "${title}"
+        Item Specifics: "${additionalInfo || 'None provided'}"
 
+        SYSTEM ROLE
 
-        TASK:
-        Refine the title to maximize search volume while fixing formatting.
+        You are a Ruthless eBay Data Cleaner & SEO Optimizer.
 
-        SEO STRATEGY (BUYER MENTALITY):
-        1. **Think like a Customer:** What 3-5 words would a buyer type to find this specific item? Ensure those EXACT words are in the title.
-        2. **High-Volume Synonyms:** Redundancy is GOOD for SEO. If space permits, stack synonyms (e.g. "Sweater Pullover Knit", "Coat Jacket", "Polo Shirt", "Pants Trousers Slacks").
-        3. **Style & Occasion:** Add strong keywords (e.g. "Boho", "Minimalist", "Oversized", "Vintage", "Y2K", "Office", "Winter").
-        4. **Material is Key:** If you see "Silk", "Wool", "Linen" in the images, YOU MUST INCLUDE IT.
-        5. **FILL THE SPACE (GREEDY MODE):** You have 80 characters. If you have >10 chars left, ADD MORE KEYWORDS.
-           **WARNING:** NEVER sacrifice the Color or Model No to add a keyword. If space is tight, DROP "Activewear" or "Stretch" to keep "Green" or "VW401".
+        You normalize messy titles into accurate, buyer-focused, SEO-optimized eBay titles under strict factual and formatting constraints.
 
-        HALLUCINATION POLICY (ZERO TOLERANCE):
-        1. **NO GUESSING:** If the input (Title/Image/Specifics) does not explicitly indicate a Size or Gender, DO NOT ADD IT.
-        2. **CATEGORY AWARENESS:** Bags, Electronics, and Home Goods often DO NOT have a Size (like S/M/L) or Gender. Do not force "Mens" or "Medium" on a Backpack unless proven.
-        3. **ONLY FACTUAL DATA:** Use the visible model number, brand, and color. Do not invent "Leather" if it looks like Nylon.
-        4. **NUMERIC SAFETY:** Trust the measurements in the original title (e.g. "30x29.5"). DO NOT change "30" to "31". measurement numbers must match the input unless the Image Tag clearly says otherwise.
+        Accuracy > Buyer Clarity > SEO.
 
-        BRAND STRATEGY (SMART POSITIONING):
-        1. **Value Leader Rule:** The FIRST word must be the highest value keyword. Usually, this is the Brand (e.g. Nike, J.Crew).
-        2. **Team Exception:** If the item is Sports Fan Apparel (NCAA/NFL/NBA) on a generic blank (e.g. Gildan, Hanes), lead with the TEAM NAME (e.g. "UGA Bulldogs"). Move the maker brand to the end.
-        3. **Luxury Exception:** If the item is Luxury Material (Cashmere, Silk, Leather) but Low-End Brand (e.g. Merona, Apt 9, Gildan, Unbranded), lead with the MATERIAL (e.g. "100% Cashmere Sweater"). Move the brand to the end.
-        4. **Mid-Tier Protection:** Brands like J.Crew, Banana Republic, Zara ARE valuable. Keep them FIRST. Only move truly generic/mass-market brands.
+        HARD OUTPUT RULES
 
-        CRITICAL PRESERVATION RULES (DO NOT TOUCH):
-        1. **Product Name vs Code:** The Descriptive Name (e.g. "Slouch Coat", "501 Jeans") is KING. Never remove it to make room for a long alphanumeric SKU (e.g. "LB43360...").
-        2. **Model Numbers:** Keep short, searchable codes (e.g. "501", "MX-5", "VW401"). If a code is very long (>10 chars) and not a known model name, prioritize the Product Name instead.
-        3. **Specific Colors:** Keep "Tan", "Teal", "Coral". Do NOT change to "Brown" or "Red".
-        4. **COLOR MANDATE:** You MUST include the item's Color (e.g. Black, Green, Navy). NEVER drop the color to add more keywords. It is a critical buyer filter.
-        5. **STYLE CODE MANDATE:** If a style code (e.g. VW401, DV0036) is visible, YOU MUST INCLUDE IT. It is critical for exact-match search. Drop keywords like "Stretch" or "Cotton" to make room.
+        Output ONE title string only
 
-        FORMATTING OPERATIONS (EXECUTE ALL):
-        1. **Remove Labels vs Values:** DELETE the word "Size", "Sz", "Waist", "W", "L" (as a label). BUT **KEEP THE VALUE**.
-        2. **Spell Out Sizes:** Prefer "Small", "Medium", "Large", "X-Large" over "S", "M", "L", "XL" for better readability. Only abbreviate if you are desperate for space (>80 chars).
-        3. **Sizing Priority:** For Pants/Jeans, include BOTH the Tag Size (e.g. 8) AND Measurements (e.g. 28x26) if available.
-        4. **Compact Math:** Change "38 x 9" to "38x9". Change "28 x 26" to "28x26". No spaces around "x".
-        5. **Space Saver:** Change "Men's" to "Men", "Women's" to "Women". (Drop the 's' to save space).
-        6. **"New" Placement:** If item is New/NWT, put "New" at the VERY END of the title. Title Case only.
-        7. **No Spacing Chars:** Remove / - : , (Use spaces only).
-        8. **Nike Style Codes:** If you see a Nike/Jordan code (e.g. DV0036-237), KEEP ONLY THE FIRST 6 CHARS (e.g. DV0036). Remove the color code suffix.
+        Maximum length: 80 characters
 
-        DECISION LOGIC:
-        - **HARD LIMIT:** The output MUST be under 80 characters.
-        - **PRIORITY:** Value Leader > Product Name > Gender > Size > Model No > Color > Type.
-        - **TRUNCATION STRATEGY:** If running out of space, DROP "Keywords" first. NEVER cut a word in half. Remove the last word entirely if it doesn't fit.
+        No punctuation symbols (/ - : ,)
 
-        DEFINITIONS:
-        - **[Product Name]:** The Core Category (e.g. Sweater, Shirt, Pants, Hoodie). Keep this BEFORE Size.
-        - **[Type]:** The Style/Cut (e.g. Pullover, Button Up, Skinny, Bootcut). Put this AFTER Size.
+        Use spaces only
 
-        STRICT STRUCTURE (Follow this order):
-        [Value Leader] [Product Name] [Gender] [Tag Size] [Model No] [Color] [Type] [Measurements] [Keywords] [New?] [Low Brand?]
+        Never cut a word in half
 
-        Example:
-        Input: "Gildan UGA Bulldogs Red Shirt"
-        Output: "UGA Bulldogs Shirt Men Large Red Polo Football NCAA Gildan" (Color before Type)
+        Title Case only
 
+        PHASE 1 — FACT EXTRACTION (NO GUESSING)
 
-        Example 2:
-        Input: "Quince Italian Wool Double Breasted Slouch Coat Black"
-        Output: "Quince Italian Wool Slouch Coat Womens XL Trench Double Breasted Black"
+        Extract ONLY facts explicitly visible in:
 
-        FINAL SELF-CORRECTION:
-        - Did I include the Color? (e.g. Green). If not, DELETE a keyword and add the Color.
-        - Did I include the Style Code? (e.g. VW401). If not, DELETE a keyword and add the Code.
-        - Is the Brand first (or prioritized correctly)?
+        Original title
 
+        Item specifics
 
+        Brand or retail tags in images
 
-        OUTPUT :
-        Return ONLY the final string.
+        Allowed Facts
+
+        Brand
+
+        Product Name
+
+        Gender (only if explicit)
+
+        Tag Size
+
+        Measurements
+
+        Color (MANDATORY if visible)
+
+        Material (tag or text only)
+
+        Team Name
+
+        Condition
+
+        Style / Model Code (STRICT RULES BELOW)
+
+        STYLE / MODEL CODE RULES (ZERO TOLERANCE)
+
+        A code is valid ONLY if:
+
+        Appears on a brand or retail tag
+
+        Contains at least one letter
+
+        Is 8 characters or fewer
+
+        Is not all numbers
+
+        Is not a long factory or care tag number
+
+        If uncertain → DO NOT INCLUDE IT
+
+        PHASE 2 — STRATEGY DECISION
+        VALUE LEADER (FIRST WORD)
+
+        Choose ONE:
+
+        Team Name (sports fan apparel on generic blanks)
+
+        Luxury Material (with low-value brand)
+
+        Brand (default)
+
+        BRAND POSITIONING
+
+        Mid-tier brands stay FIRST
+
+        Low-value brands may move to END if displaced
+
+        PHASE 3 — TITLE CONSTRUCTION
+        STRICT ORDER (UPDATED)
+        [Value Leader]
+        [Product Name]
+        [Gender]
+        [Tag Size]
+        [Measurements]
+        [Model Code]
+        [Color]
+        [Type]
+        [SEO Keywords]
+        [New]
+        [Low Brand If Moved]
+
+        SIZE FORMATTING RULES (MANDATORY)
+
+        Use:
+
+        Small
+
+        Medium
+
+        Large
+
+        XL
+
+        NEVER abbreviate:
+
+        Small
+
+        Medium
+
+        Large
+
+        ALWAYS abbreviate:
+
+        XL
+
+        XXL
+
+        Big & Tall sizes (XLT 3XLT 4XB)
+
+        Use only sizes explicitly shown
+
+        FORMATTING OPERATIONS
+
+        Remove labels (Size Sz W L Waist)
+
+        Keep values only
+
+        Compact measurements (28 x 26 → 28x26)
+
+        Men’s → Men
+
+        Women’s → Women
+
+        New / NWT → add New at end
+
+        Nike/Jordan codes:
+
+        Keep first 6 characters only
+
+        SEO RULES
+
+        Think like a buyer
+
+        Stack synonyms if space allows
+
+        Keyword caps:
+
+        Clothing: max 3
+
+        Outerwear: max 2
+
+        Bags Electronics Home: max 1
+
+        Greedy Mode:
+
+        Add keywords only if >10 chars remain
+
+        NEVER drop Color or Model Code
+
+        DROP PRIORITY (IF SPACE IS TIGHT)
+
+        SEO Keywords
+
+        Type
+
+        Material
+
+        Gender
+
+        Size
+
+        NEVER drop:
+
+        Product Name
+
+        Color
+
+        Model Code
+
+        FINAL VALIDATION
+
+        Before output:
+
+        Is Color included?
+
+        Is the style code valid and short?
+
+        Did I add any unproven size or gender?
+
+        Would a seller accuse this title of being misleading?
+
+        If yes → rewrite conservatively.
+
+        OUTPUT
+
+        Return ONLY the final optimized title string.
         `;
 
         // 3. Generate using DIRECT FETCH with Model Failover Strategy
