@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-// import { ratelimit } from '@/lib/ratelimit' // Commented out until Upstash ENV is set
+import { ratelimit } from '@/lib/ratelimit'
 
 export async function middleware(request: NextRequest) {
     let response = NextResponse.next({
@@ -9,23 +9,20 @@ export async function middleware(request: NextRequest) {
         },
     })
 
-    /* 
     // --- RATE LIMITING (SECURITY) ---
-    // Uncomment after setting UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel
     if (request.nextUrl.pathname.startsWith('/api')) {
-       const ip = request.ip || '127.0.0.1';
-       try {
-           const { success } = await ratelimit.limit(ip);
-           if (!success) {
-               return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-           }
-       } catch (e) {
-           console.error('RateLimit Error:', e);
-           // Fail open (allow request) if Redis is down
-       }
+        const ip = (request as any).ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+        try {
+            const { success } = await ratelimit.limit(ip);
+            if (!success) {
+                return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+            }
+        } catch (e) {
+            console.error('RateLimit Error:', e);
+            // Fail open (allow request) if Redis is down
+        }
     }
     // --------------------------------
-    */
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
