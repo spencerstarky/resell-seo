@@ -4,7 +4,7 @@ import { Redis } from '@upstash/redis';
 // Create a new ratelimiter, that allows 10 requests per 10 seconds
 export const ratelimit = new Ratelimit({
     redis: Redis.fromEnv(),
-    limiter: Ratelimit.slidingWindow(60, '1 m'), // 60 requests per minute (Human Speed)
+    limiter: Ratelimit.slidingWindow(120, '1 m'), // 120 requests per minute (2 per second)
     analytics: true,
     prefix: '@upstash/ratelimit',
 });

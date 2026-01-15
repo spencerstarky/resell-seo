@@ -398,7 +398,10 @@ export default function ListingEditor({
         // It doesn't predict FUTURE usage. 
         // So we might hit limit mid-batch. That's fine.
 
-        if (!confirm(`This will rewrite ${todoIndices.length} titles. Continue?`)) return;
+        // Estimated Time Calculation (approx 1.5s per 4 items)
+        const estimatedMinutes = Math.ceil((todoIndices.length * 0.4) / 60);
+
+        if (!confirm(`This will rewrite ${todoIndices.length} titles.\n\nEstimated time: ~${estimatedMinutes} minute(s).\n\nPlease keep this tab open while we work!`)) return;
 
         setListings((prev: Listing[]) => {
             const next = [...prev];
@@ -408,18 +411,17 @@ export default function ListingEditor({
             return next;
         });
 
-        const BATCH_SIZE = 2; // Safer batch size
+        // SPEED UP: Batch 4, Delay 1000ms => ~100 items/min
+        const BATCH_SIZE = 4;
         for (let i = 0; i < todoIndices.length; i += BATCH_SIZE) {
             const batch = todoIndices.slice(i, i + BATCH_SIZE);
 
-            // Execute batch
+            // Execute batch in parallel
             await Promise.all(batch.map(idx => rewriteTitle(idx)));
 
-            // artificial delay to respect rate limit (60/min = 1/sec)
-            // Batch takes ~2s to run. We wait another 1s to be safe.
-            // Total throughput ~ 40 items/min
+            // Short delay to let the server breathe, but much faster than before
             if (i + BATCH_SIZE < todoIndices.length) {
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
     };
