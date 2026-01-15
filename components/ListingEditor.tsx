@@ -408,12 +408,19 @@ export default function ListingEditor({
             return next;
         });
 
-        const BATCH_SIZE = 5;
+        const BATCH_SIZE = 2; // Safer batch size
         for (let i = 0; i < todoIndices.length; i += BATCH_SIZE) {
             const batch = todoIndices.slice(i, i + BATCH_SIZE);
-            // We check credits for EACH batch roughly? 
-            // If we run out, rewriteTitle will simply fail/alert on the first failure.
+
+            // Execute batch
             await Promise.all(batch.map(idx => rewriteTitle(idx)));
+
+            // artificial delay to respect rate limit (60/min = 1/sec)
+            // Batch takes ~2s to run. We wait another 1s to be safe.
+            // Total throughput ~ 40 items/min
+            if (i + BATCH_SIZE < todoIndices.length) {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
         }
     };
 
