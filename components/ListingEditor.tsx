@@ -380,34 +380,46 @@ export default function ListingEditor({
     const rewriteAll = async () => {
         if (!checkCredits) return;
 
-        // Find indices of items that need optimization
-        const todoIndices = listings
-            .map((l, i) => ({ ...l, index: i }))
-            .filter(l => !l.optimized_title || l.optimized_title === l.original_title)
-            .map(l => l.index);
+        // SMART FILTER: Identify items that are already great
+        const allPendingIndices = listings
+            .map((l, i) => ({
+                ...l,
+                index: i,
+                score: calculateSeoScore(l.original_title)
+            }))
+            .filter(l => !l.optimized_title || l.optimized_title === l.original_title);
 
-        if (todoIndices.length === 0) {
-            alert('All titles are already optimized!');
-            return;
+        const highScoreItems = allPendingIndices.filter(l => l.score >= 90);
+        const normalItems = allPendingIndices.filter(l => l.score < 90);
+
+        let todoIndices = normalItems.map(l => l.index);
+        let skippedCount = highScoreItems.length;
+        let confirmMessage = `Ready to rewrite ${todoIndices.length} titles.`;
+
+        if (skippedCount > 0) {
+            confirmMessage = `🎉 We found ${skippedCount} titles that already have a Perfect SEO Score (90+)! \n\nWe will SKIP these to save your credits.\n\nReady to optimize the remaining ${todoIndices.length} items?`;
+        } else {
+            confirmMessage = `This will rewrite ${todoIndices.length} titles.`;
         }
 
-        // Limit Check?
-        // Since we don't know EXACT credits here easily without a separate call, we'll iterate and check per item logic, 
-        // OR better, we just warn them.
-        // But checkCredits() is sync boolean. So it checks if CURRENT > LIMIT. 
-        // It doesn't predict FUTURE usage. 
-        // So we might hit limit mid-batch. That's fine.
+        if (todoIndices.length === 0) {
+            alert(`Amazing! All your pending items already have high SEO scores. No optimization needed! 🎉`);
+            return;
+        }
 
         // Estimated Time Calculation (approx 1.5s per 4 items)
         const estimatedMinutes = Math.ceil((todoIndices.length * 0.4) / 60);
 
-        if (!confirm(`This will rewrite ${todoIndices.length} titles.\n\nEstimated time: ~${estimatedMinutes} minute(s).\n\nPlease keep this tab open while we work!`)) return;
+        if (!confirm(`${confirmMessage}\n\nEstimated time: ~${estimatedMinutes} minute(s).\n\nPlease keep this tab open while we work!`)) return;
 
         setListings((prev: Listing[]) => {
             const next = [...prev];
+            // Set loading state ONLY for the ones we are actually doing
             todoIndices.forEach(idx => {
                 next[idx] = { ...next[idx], loading: true };
             });
+            // Optional: Mark the skipped ones as "celebrated" or simply leave them?
+            // For now, let's leave them.
             return next;
         });
 
