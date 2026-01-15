@@ -13,6 +13,8 @@ interface Listing {
     sort_index?: number;
     status?: string;
     ebay_item_id?: string;
+    display_priority?: string; // Optional property from DB that might exist
+    last_optimized_at?: number; // For Rate Limiting
     pushing?: boolean;
 }
 
@@ -419,6 +421,14 @@ export default function ListingEditor({
         const listing = listings[index];
         if (!listing.original_title) return;
 
+        // --- SAFETY: Rate Limit (2s) ---
+        // Prevents UI loops or double-clicks from consuming credits rapidly
+        const now = Date.now();
+        if (listing.last_optimized_at && now - listing.last_optimized_at < 2000) {
+            console.warn(`[SafeGuard] Blocked rapid optimization for item ${index}`);
+            return;
+        }
+
         if (checkCredits && !checkCredits()) {
             setShowUpgradeModal(true);
             setListings((prev: Listing[]) => {
@@ -453,7 +463,13 @@ export default function ListingEditor({
             const data = await res.json();
 
             if (data.optimizedTitle) {
-                const newItem = { ...listings[index], optimized_title: data.optimizedTitle, loading: false };
+                const newItem = {
+                    ...listings[index],
+                    optimized_title: data.optimizedTitle,
+                    loading: false,
+                    last_optimized_at: Date.now() // Set timestamp
+                };
+
                 setListings((prev: Listing[]) => {
                     const next = [...prev];
                     next[index] = newItem;
