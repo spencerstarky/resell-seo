@@ -221,7 +221,9 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         padding: '0.75rem 0',
                         borderBottom: inventoryTab === 'WORKSPACE' ? '2px solid var(--color-primary)' : '2px solid transparent',
                         color: inventoryTab === 'WORKSPACE' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                        fontWeight: inventoryTab === 'WORKSPACE' ? 600 : 400,
+                        fontWeight: inventoryTab === 'WORKSPACE' ? 600 : 500,
+                        fontSize: '1rem',
+                        letterSpacing: '0.02em',
                         background: 'none', border: 'none', borderBottomWidth: '2px', cursor: 'pointer'
                     }}
                 >
@@ -233,7 +235,9 @@ export default function DashboardClient({ initialIsConnected, authUrl, userProfi
                         padding: '0.75rem 0',
                         borderBottom: inventoryTab === 'LIVE' ? '2px solid var(--color-primary)' : '2px solid transparent',
                         color: inventoryTab === 'LIVE' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                        fontWeight: inventoryTab === 'LIVE' ? 600 : 400,
+                        fontWeight: inventoryTab === 'LIVE' ? 600 : 500,
+                        fontSize: '1rem',
+                        letterSpacing: '0.02em',
                         background: 'none', border: 'none', borderBottomWidth: '2px', cursor: 'pointer'
                     }}
                 >

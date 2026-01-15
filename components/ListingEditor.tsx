@@ -621,7 +621,7 @@ export default function ListingEditor({
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as any)}
-                                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', fontSize: '0.95rem', fontWeight: 500, outline: 'none', cursor: 'pointer' }}
                             >
                                 <option value="date-desc">Newest Uploads</option>
                                 <option value="score-asc">Lowest Score (Needs Work)</option>
