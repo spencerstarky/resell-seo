@@ -801,10 +801,31 @@ export default function ListingEditor({
 
                                                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                             <button
-                                                                onClick={() => rewriteTitle(realIndex)}
+                                                                onClick={() => {
+                                                                    console.log('Re-optimizing item:', realIndex);
+                                                                    rewriteTitle(realIndex);
+                                                                }}
                                                                 className="btn"
-                                                                title="Try Again"
-                                                                style={{ padding: '0.4rem', borderRadius: '6px', flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-muted)' }}
+                                                                title="Try Again (Re-Optimize)"
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+                                                                    e.currentTarget.style.color = 'var(--color-primary)';
+                                                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                                                    e.currentTarget.style.color = 'var(--color-text-muted)';
+                                                                    e.currentTarget.style.transform = 'translateY(0)';
+                                                                }}
+                                                                style={{
+                                                                    padding: '0.4rem',
+                                                                    borderRadius: '6px',
+                                                                    flex: 1,
+                                                                    background: 'rgba(255,255,255,0.05)',
+                                                                    color: 'var(--color-text-muted)',
+                                                                    transition: 'all 0.2s ease',
+                                                                    cursor: 'pointer'
+                                                                }}
                                                             >
                                                                 <Sparkles size={14} />
                                                             </button>
