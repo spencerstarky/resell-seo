@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock, Ban, Undo2, X } from 'lucide-react';
+import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock, Ban, Undo2, X, Loader2 } from 'lucide-react';
 
 interface Listing {
     id?: string;
@@ -805,9 +805,11 @@ export default function ListingEditor({
                                                                     console.log('Re-optimizing item:', realIndex);
                                                                     rewriteTitle(realIndex);
                                                                 }}
+                                                                disabled={listing.loading}
                                                                 className="btn"
-                                                                title="Try Again (Re-Optimize)"
+                                                                title={listing.loading ? "Optimizing..." : "Try Again (Re-Optimize)"}
                                                                 onMouseEnter={(e) => {
+                                                                    if (listing.loading) return;
                                                                     e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
                                                                     e.currentTarget.style.color = 'var(--color-primary)';
                                                                     e.currentTarget.style.transform = 'translateY(-1px)';
@@ -824,10 +826,18 @@ export default function ListingEditor({
                                                                     background: 'rgba(255,255,255,0.05)',
                                                                     color: 'var(--color-text-muted)',
                                                                     transition: 'all 0.2s ease',
-                                                                    cursor: 'pointer'
+                                                                    cursor: listing.loading ? 'wait' : 'pointer',
+                                                                    opacity: listing.loading ? 0.7 : 1,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
                                                                 }}
                                                             >
-                                                                <Sparkles size={14} />
+                                                                {listing.loading ? (
+                                                                    <Loader2 size={14} className="animate-spin" />
+                                                                ) : (
+                                                                    <Sparkles size={14} />
+                                                                )}
                                                             </button>
                                                             <button
                                                                 onClick={() => {
