@@ -9,6 +9,7 @@ export default function BrandAdminPage() {
     const supabase = createClientComponentClient();
     const [brands, setBrands] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // New Brand State
     const [newBrandName, setNewBrandName] = useState('');
@@ -22,8 +23,18 @@ export default function BrandAdminPage() {
     const [previewRegex, setPreviewRegex] = useState('');
 
     useEffect(() => {
-        fetchBrands();
+        checkAdmin();
     }, []);
+
+    const checkAdmin = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email === 'resellseo@gmail.com') {
+            setIsAdmin(true);
+            fetchBrands();
+        } else {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (newPatternExample) {
@@ -107,6 +118,18 @@ export default function BrandAdminPage() {
         await supabase.from('style_code_patterns').delete().eq('id', id);
         if (expandedBrandId) fetchPatterns(expandedBrandId);
     };
+
+    if (loading) return <div style={{ padding: '2rem', color: '#fff' }}>Loading...</div>;
+
+    if (!isAdmin) {
+        return (
+            <div style={{ padding: '4rem', textAlign: 'center', color: '#666' }}>
+                <AlertTriangle size={48} style={{ marginBottom: '1rem', color: '#f44336' }} />
+                <h1>Access Denied</h1>
+                <p>You do not have permission to view this page.</p>
+            </div>
+        );
+    }
 
     return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', color: '#fff' }}>
