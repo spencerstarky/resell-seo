@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
 
         Tag Size
 
-        Measurements
+        Measurements (STRICT: Only if explicitly seen. NEVER convert Tag Size to measurements. "Medium" does NOT equal "32x30" unless explicitly written.)
 
         Color (MANDATORY if visible)
 
