@@ -67,9 +67,9 @@ export default function Navbar() {
                 {user ? (
                     <>
                         {user.email === 'resellseo@gmail.com' && (
-                            <Link href="/admin/brands" style={{ color: '#4caf50', fontSize: '0.9rem', fontWeight: 600 }}>
+                            <a href="/admin/brands" style={{ color: '#4caf50', fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none' }}>
                                 Admin
-                            </Link>
+                            </a>
                         )}
                         <Link href="/dashboard" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
                             Go to Dashboard
