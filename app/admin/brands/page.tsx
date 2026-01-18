@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase';
 import { generateRegexFromExample } from '@/lib/regex-generator';
 import { Trash2, Plus, Save, ChevronDown, ChevronRight, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function BrandAdminPage() {
-    const supabase = createClientComponentClient();
+    // const supabase used directly from import
     const [brands, setBrands] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
