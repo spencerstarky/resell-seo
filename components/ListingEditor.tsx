@@ -839,7 +839,8 @@ export default function ListingEditor({
                                     <div>
                                         <textarea
                                             value={listing.optimized_title || ''}
-                                            onChange={(e) => handleTitleChange(realIndex, e.target.value)}
+                                            onChange={(e) => handleTitleChange(realIndex, e.target.value.slice(0, 80))}
+                                            maxLength={80}
                                             placeholder="Click Optimize to generate..."
                                             style={{
                                                 width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)',
