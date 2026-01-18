@@ -299,6 +299,7 @@ export async function POST(request: NextRequest) {
 
         [Value Leader]
         [Product Name]
+        [Type: "Shoes" (MANDATORY IF FOOTWEAR)]
         [Gender]
         [Tag Size]
         [Measurements]
@@ -309,6 +310,10 @@ export async function POST(request: NextRequest) {
         [New]
         [Low Brand If Moved]
 
+        FOOTWEAR MANDATE (CRITICAL)
+        If the item is footwear (sneakers, boots, etc.), you MUST place the word "Shoes" (or specific type like "Boots") immediately after the [Product Name].
+        Usage: "[Brand] [Model] Shoes [Gender]..."
+        
         Style Code Rules (Critical)
         Style code is only included if pre-validated
         Appears as bare alphanumeric text
@@ -324,6 +329,7 @@ export async function POST(request: NextRequest) {
 
         Example
         Patagonia Nano Puff Jacket Men’s Large 22x28 84212 Black Puffer
+        Hoka One One Rincon 3 Shoes Men 10.5 D 1119395 Blue Running
 
         MATERIAL HANDLING
         Material has no dedicated slot.
@@ -369,9 +375,10 @@ export async function POST(request: NextRequest) {
 
         Compact measurements (28 x 26 → 28x26)
 
-        Men’s → Men
-
-        Women’s → Women
+        Gender Formatting:
+        Use "Men's" or "Women's" (Plural with Apostrophe) whenever possible.
+        Fallback to "Mens" or "Womens" only if space is critically low.
+        Avoid singular "Men" or "Women" unless part of a specific product name.
 
         New / NWT → add New at end
 
