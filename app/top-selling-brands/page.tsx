@@ -117,7 +117,7 @@ export default function TopSellingBrandsPage() {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: '400px',
+                        height: '350px',
                         background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%, #0a0a0a 100%)',
                         display: 'flex',
                         alignItems: 'flex-end',
@@ -136,9 +136,9 @@ export default function TopSellingBrandsPage() {
                             boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
                         }}>
                             <Lock size={48} style={{ color: '#6366f1', marginBottom: '1.5rem', margin: '0 auto' }} />
-                            <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Unlock the Full Index</h2>
+                            <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Unlock the full brand list</h2>
                             <p style={{ color: '#aaa', marginBottom: '2rem' }}>
-                                Join 2,000+ resellers. Enter your email to instantly reveal all {totalBrands} brands and get weekly BOLO alerts.
+                                Enter your email to gain access to hundreds of high sell through rate brands.
                             </p>
 
                             <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -180,7 +180,7 @@ export default function TopSellingBrandsPage() {
                                     {submitting ? 'Unlocking...' : <><Unlock size={20} /> Unlock Database Now</>}
                                 </button>
                                 <p style={{ fontSize: '0.8rem', color: '#555', marginTop: '1rem' }}>
-                                    No spam. Unsubscribe anytime. High sell-through only.
+                                    We also need a small text that allows users to unsubscribe themselves for legality. You can unsubscribe at any time.
                                 </p>
                             </form>
                         </div>
