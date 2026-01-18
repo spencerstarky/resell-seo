@@ -65,9 +65,16 @@ export default function Navbar() {
             {/* Auth Buttons */}
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 {user ? (
-                    <Link href="/dashboard" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
-                        Go to Dashboard
-                    </Link>
+                    <>
+                        {user.email === 'resellseo@gmail.com' && (
+                            <Link href="/admin/brands" style={{ color: '#4caf50', fontSize: '0.9rem', fontWeight: 600 }}>
+                                Admin
+                            </Link>
+                        )}
+                        <Link href="/dashboard" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.9rem' }}>
+                            Go to Dashboard
+                        </Link>
+                    </>
                 ) : (
                     <>
                         <Link href="/login" style={{ color: 'var(--color-text-main)', fontSize: '0.9rem', fontWeight: 500 }}>
