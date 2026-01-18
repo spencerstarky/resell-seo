@@ -302,7 +302,7 @@ export async function POST(request: NextRequest) {
         [Type: "Shoes" (MANDATORY IF FOOTWEAR)]
         [Gender]
         [Tag Size]
-        [Measurements]
+        [Measurements (OPTIONAL - SKIP IF NOT IN ORIGINAL TITLE)]
         [Style Code]          <-- NEW: validated only, bare code, no label
         [Color]
         [Type]
