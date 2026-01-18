@@ -458,12 +458,12 @@ export default function ListingEditor({
 
         let todoIndices = normalItems.map(l => l.index);
         let skippedCount = highScoreItems.length;
-        let confirmMessage = `Ready to rewrite ${todoIndices.length} titles.`;
+        let confirmMessage = `Ready to optimize ${todoIndices.length} titles.`;
 
         if (skippedCount > 0) {
             confirmMessage = `🎉 We found ${skippedCount} titles that already have a Perfect SEO Score (90+)! \n\nWe will automatically move these to your 'Completed' tab as VERIFIED.\n\nReady to optimize the remaining ${todoIndices.length} items?`;
         } else {
-            confirmMessage = `This will rewrite ${todoIndices.length} titles.`;
+            confirmMessage = `This will optimize ${todoIndices.length} titles.`;
         }
 
         if (todoIndices.length === 0 && skippedCount > 0) {
@@ -668,7 +668,7 @@ export default function ListingEditor({
                             disabled={saving || listings.some(l => l.loading)}
                             style={{ border: '1px solid var(--color-primary)', color: 'var(--color-primary)' }}
                         >
-                            <Sparkles size={16} /> Rewrite All
+                            <Sparkles size={16} /> Optimize All
                         </button>
 
                         <button onClick={saveProgress} className="btn btn-secondary">
@@ -840,7 +840,7 @@ export default function ListingEditor({
                                         <textarea
                                             value={listing.optimized_title || ''}
                                             onChange={(e) => handleTitleChange(realIndex, e.target.value)}
-                                            placeholder="Click Rewrite to generate..."
+                                            placeholder="Click Optimize to generate..."
                                             style={{
                                                 width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)',
                                                 backgroundColor: 'rgba(0,0,0,0.2)', color: 'var(--color-text-main)', resize: 'vertical', minHeight: '60px', fontFamily: 'inherit', fontSize: '0.95rem'
