@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
 
         Tag Size
 
-        Measurements (STRICT: Only if explicitly seen. NEVER convert Tag Size to measurements. "Medium" does NOT equal "32x30" unless explicitly written.)
+        Measurements (STRICT: Source from ORIGINAL TITLE ONLY. Do NOT extract from Item Specifics or Images. If not in title, do not include.)
 
         Color (MANDATORY if visible)
 
