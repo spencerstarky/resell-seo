@@ -142,6 +142,38 @@ export async function POST(request: NextRequest) {
 
         // 2. Prepare Prompt
 
+        // --- STYLE SIGNAL INTELLIGENCE (NEW: Moved Up to allow logging) ---
+        // Fetch active styles and their signals to feed the AI
+        let styleContext = "NO ACTIVE STYLES FOUND.";
+        try {
+            const { data: activeStyles } = await supabase
+                .from('style_taxonomy')
+                .select(`
+                    style_name,
+                    display_name,
+                    category_whitelist,
+                    confidence_floor,
+                    style_signals (
+                        signal_type,
+                        signal_value,
+                        weight
+                    )
+                `);
+
+            if (activeStyles && activeStyles.length > 0) {
+                styleContext = activeStyles.map((style: any) => {
+                    const signals = style.style_signals.map((s: any) => `${s.signal_value} (${s.signal_type}: ${s.weight})`).join(', ');
+                    return `
+                    STYLE: ${style.display_name} (Threshold: ${style.confidence_floor})
+                    Allowed Categories: ${JSON.stringify(style.category_whitelist)}
+                    SIGNALS: ${signals}
+                    `;
+                }).join('\n');
+            }
+        } catch (err) {
+            console.error('Failed to fetch style signals:', err);
+        }
+
         // --- STYLE CODE INTELLIGENCE ---
         let verifiedStyleCode: string | null = null;
         let detectedBrand = '';
@@ -293,6 +325,19 @@ export async function POST(request: NextRequest) {
         Hard Rule
         Only one Value Leader
         Value Leader is always the first token in the title
+
+        PHASE 2.5 — STYLE SIGNAL INTELLIGENCE (OPTIONAL)
+        You have access to a database of Style Signals below.
+        
+        INSTRUCTIONS:
+        1. Check the item's Category (from Item Specifics) against the "Allowed Categories" for each style.
+        2. If allowed, check for matches in the Title, Item Specifics, or Visuals against the "SIGNALS" list.
+        3. Sum the weights of matched signals.
+        4. If Total Weight >= Threshold, you MAY include the [Style Keyword] (e.g., Gorpcore).
+        5. If included, place it in the [SEO Keywords] slot.
+        
+        AVAILABLE STYLES & SIGNALS:
+        ${styleContext}
 
         PHASE 3 — TITLE CONSTRUCTION
         STRICT ORDER (UPDATED WITH STYLE CODE)
