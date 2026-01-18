@@ -270,35 +270,66 @@ export async function POST(request: NextRequest) {
                 : `*** NO TRUSTED STYLE CODE DETECTED ***\n        Do NOT guess or invent a style code. Use ONLY what is explicitly proven.`}
 
         PHASE 2 — STRATEGY DECISION
-        VALUE LEADER (FIRST WORD)
+        VALUE LEADER (FIRST TOKEN)
+
+        The AI must select one and only one Value Leader.
 
         Choose ONE:
 
-        Team Name (sports fan apparel on generic blanks)
+        Team Name
+        Use when apparel is on a generic or low-value blank
+        Example: Jerzees, Gildan, Hanes
+        Title starts with team/entity name (e.g., Chicago Bulls)
 
-        Luxury Material (with low-value brand)
+        Luxury Material
+        Use when brand is low-value AND material is high buyer intent
+        Example: Forever 21 + 100% Leather
+        Title starts with material (e.g., Leather Jacket)
 
-        Brand (default)
+        Brand (Default)
+        Use when brand carries meaningful buyer search value
+        Example: Patagonia, Nike, Levi’s
 
-        BRAND POSITIONING
-
-        Mid-tier brands stay FIRST
-
-        Low-value brands may move to END if displaced
+        Hard Rule
+        Only one Value Leader
+        Value Leader is always the first token in the title
 
         PHASE 3 — TITLE CONSTRUCTION
-        STRICT ORDER (UPDATED)
+        STRICT ORDER (UPDATED WITH STYLE CODE)
+
         [Value Leader]
         [Product Name]
         [Gender]
         [Tag Size]
         [Measurements]
-        [Model Code]
+        [Style Code]          <-- NEW: validated only, bare code, no label
         [Color]
         [Type]
         [SEO Keywords]
         [New]
         [Low Brand If Moved]
+
+        Style Code Rules (Critical)
+        Style code is only included if pre-validated
+        Appears as bare alphanumeric text
+        ❌ No “Style”, “Model”, “#”, or punctuation
+        ❌ Never inferred
+        ❌ Never front-loaded
+        ❌ Never mid-title
+
+        Placement Rule
+        Always appears after Measurements
+        Always part of the core title
+        Appears before Color / Type / SEO Keywords
+
+        Example
+        Patagonia Nano Puff Jacket Men’s Large 22x28 84212 Black Puffer
+
+        MATERIAL HANDLING
+        Material has no dedicated slot.
+        Material only appears as:
+        Value Leader (Luxury Material case), OR
+        SEO Keyword
 
         SIZE FORMATTING RULES (MANDATORY)
 
@@ -362,48 +393,33 @@ export async function POST(request: NextRequest) {
 
         Bags Electronics Home: max 1
 
-        Greedy Mode:
+        PHASE 4 — SPACE SAVING / DROP PRIORITY
+        UPDATED DROP LOGIC (Style Code–Aware)
 
-        Add keywords only if >10 chars remain
+        If title exceeds 80 characters, remove items in this exact order:
 
-        NEVER drop Color or Model Code
+        DROP PRIORITY (LOW → HIGH VALUE)
+        1. SEO Keywords
+        2. Type
+        3. Material (if present)
+        4. Gender
+        5. Tag Size
 
-        DROP PRIORITY (IF SPACE IS TIGHT)
+        PROTECTED (DO NOT DROP UNLESS ABSOLUTELY REQUIRED)
+        1. Value Leader
+        2. Product Name
+        3. Measurements
+        4. Style Code ← NEW PROTECTION
+        5. Color
 
-        SEO Keywords
+        Style code may only be dropped after all non-core attributes are removed
+        and only if keeping it would truncate Product Name or Measurements
 
-        Type
-
-        Material
-
-        Gender
-
-        Size
-
-        NEVER drop:
-
-        Product Name
-
-        Color
-
-        Model Code
-
-        FINAL VALIDATION
-
-        Before output:
-
-        Is Color included?
-
-        Is the style code valid and short?
-
-        Did I add any unproven size or gender?
-
-        Would a seller accuse this title of being misleading?
-
-        If yes → rewrite conservatively.
-
+        FINAL AI REMINDER
+        When space is limited, drop descriptive words before dropping identifiers.
+        Never guess, never label style codes, and never move them earlier in the title.
+        
         OUTPUT
-
         Return ONLY the final optimized title string.
         `;
 
