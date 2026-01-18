@@ -54,6 +54,9 @@ export default function Navbar() {
                 <Link href="#pricing" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Pricing
                 </Link>
+                <Link href="/top-selling-brands" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                    Top Brands
+                </Link>
                 <Link href="/blog" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
                     Blog
                 </Link>
