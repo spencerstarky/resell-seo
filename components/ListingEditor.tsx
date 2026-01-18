@@ -335,12 +335,31 @@ export default function ListingEditor({
             }
         } catch (e: any) {
             console.error(e);
-            alert('Push failed: ' + e.message);
-            setListings((prev: Listing[]) => {
-                const next = [...prev];
-                next[index] = { ...next[index], pushing: false };
-                return next;
-            });
+
+            // Handle "Ended Listing" Error specifically
+            if (e.message && (e.message.includes('revise ended listings') || e.message.includes('ended'))) {
+                alert('This item has ended or sold on eBay. Removing from workspace.');
+
+                // Mark as IGNORED/ENDED in DB
+                const { supabase } = await import('@/lib/supabase');
+                if (listing.id && userId) {
+                    await supabase.from('ebay_inventory').update({ status: 'IGNORED' }).eq('id', listing.id);
+                }
+
+                // Remove from UI
+                setListings((prev: Listing[]) => {
+                    const next = [...prev];
+                    next[index] = { ...next[index], pushing: false, status: 'IGNORED' };
+                    return next;
+                });
+            } else {
+                alert('Push failed: ' + e.message);
+                setListings((prev: Listing[]) => {
+                    const next = [...prev];
+                    next[index] = { ...next[index], pushing: false };
+                    return next;
+                });
+            }
         }
     };
 
