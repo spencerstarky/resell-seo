@@ -399,6 +399,12 @@ export async function POST(request: NextRequest) {
         Outerwear: max 2
 
         Bags Electronics Home: max 1
+        
+        REDUNDANCY CHECK (CRITICAL)
+        If [Tag Size] is exactly the same as the first number in [Measurements], DROP [Tag Size].
+        Example: "36" + "36x32" -> Keep ONLY "36x32".
+        Example: "34" + "34x30" -> Keep ONLY "34x30".
+        Reason: Measurements implies the size. Eliminate redundancy.
 
         PHASE 4 — SPACE SAVING / DROP PRIORITY
         UPDATED DROP LOGIC (Style Code–Aware)
