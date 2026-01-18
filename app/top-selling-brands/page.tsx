@@ -180,7 +180,7 @@ export default function TopSellingBrandsPage() {
                                     {submitting ? 'Unlocking...' : <><Unlock size={20} /> Unlock Database Now</>}
                                 </button>
                                 <p style={{ fontSize: '0.8rem', color: '#555', marginTop: '1rem' }}>
-                                    We also need a small text that allows users to unsubscribe themselves for legality. You can unsubscribe at any time.
+                                    We also need a small text that allows users to <a href="/unsubscribe" style={{ color: '#777', textDecoration: 'underline' }}>unsubscribe</a> themselves for legality. You can <a href="/unsubscribe" style={{ color: '#777', textDecoration: 'underline' }}>unsubscribe</a> at any time.
                                 </p>
                             </form>
                         </div>
