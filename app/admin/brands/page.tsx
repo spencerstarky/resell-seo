@@ -133,6 +133,11 @@ export default function BrandAdminPage() {
 
     return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', color: '#fff' }}>
+            <div style={{ marginBottom: '2rem' }}>
+                <a href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#888', textDecoration: 'none', fontSize: '0.9rem' }}>
+                    ← Back to Dashboard
+                </a>
+            </div>
             <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Brand & Style Code Admin</h1>
             <p style={{ color: '#aaa', marginBottom: '2rem' }}>Manage recognized brands and their style code formats.</p>
 
