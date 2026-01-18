@@ -13,3 +13,6 @@ BEGIN
   WHERE id = user_id;
 END;
 $$;
+
+-- Improvement: Add text column to capture brand names for unknown brands
+ALTER TABLE style_code_detections ADD COLUMN IF NOT EXISTS detected_brand_name text;

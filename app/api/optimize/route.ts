@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { getValidAccessToken, getDetailedItemInfo } from '@/lib/ebay-api';
 import crypto from 'crypto';
+import { StyleCodeEngine } from '@/lib/style-code-intelligence';
 
 // NOTE: Bypassing Google Generative AI SDK temporarily to debug connectivity/Key issues directly.
 // We use native 'fetch' to control the exact request and see the raw response.
@@ -140,6 +141,53 @@ export async function POST(request: NextRequest) {
         }
 
         // 2. Prepare Prompt
+
+        // --- STYLE CODE INTELLIGENCE ---
+        let verifiedStyleCode: string | null = null;
+        let detectedBrand = '';
+
+        // Attempt to extract Brand from Item Specifics (most reliable)
+        const brandMatch = additionalInfo.match(/Brand:\s*([^,]+)/i);
+        if (brandMatch) {
+            detectedBrand = brandMatch[1].trim();
+        }
+
+        if (detectedBrand) {
+            console.log(`[StyleEngine] Analyzing for Brand: ${detectedBrand}`);
+            const styleEngine = new StyleCodeEngine(supabase);
+
+            // Gather all text sources
+            const combinedText = `${title} ${additionalInfo}`;
+            const candidates = styleEngine.extractCandidatesFromText(combinedText);
+
+            console.log(`[StyleEngine] Found ${candidates.length} candidates:`, candidates);
+
+            for (const cand of candidates) {
+                const result = await styleEngine.validateCandidate(cand, detectedBrand, combinedText);
+
+                // Log detection (Telemetry)
+                // We fire-and-forget this insert to not slow down the user
+                supabase.from('style_code_detections').insert({
+                    brand_id: result.brandId || null,
+                    detected_brand_name: detectedBrand, // Helpful for unknown brands
+                    candidate_code: cand,
+                    confidence_score: result.confidenceScore,
+                    source: 'text_scan',
+                    accepted: result.isValid,
+                    user_confirmed: false
+                }).then(({ error }) => {
+                    if (error) console.warn('[StyleEngine] Log Error:', error.message);
+                });
+
+                if (result.isValid) {
+                    verifiedStyleCode = result.candidate;
+                    console.log(`[StyleEngine] VALID MATCH: ${verifiedStyleCode} (Score: ${result.confidenceScore})`);
+                    break; // Stop at first valid match (greedy)
+                }
+            }
+        }
+        // -------------------------------
+
         const promptText = `
         Current Date: ${new Date().toISOString()}
 
@@ -216,6 +264,10 @@ export async function POST(request: NextRequest) {
         Is not a long factory or care tag number
 
         If uncertain → DO NOT INCLUDE IT
+
+        ${verifiedStyleCode
+                ? `*** FORCE INCLUSION ***\n        TRUSTED STYLE CODE DETECTED: "${verifiedStyleCode}"\n        You MUST include "${verifiedStyleCode}" at the end of the title.`
+                : `*** NO TRUSTED STYLE CODE DETECTED ***\n        Do NOT guess or invent a style code. Use ONLY what is explicitly proven.`}
 
         PHASE 2 — STRATEGY DECISION
         VALUE LEADER (FIRST WORD)
