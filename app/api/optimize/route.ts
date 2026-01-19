@@ -263,6 +263,7 @@ export async function POST(request: NextRequest) {
         Allowed Facts
 
         Brand
+        (EXCEPTION: Never include "Unbranded", "Unknown", "No Brand", or "Generic")
 
         Product Name
 
@@ -321,6 +322,7 @@ export async function POST(request: NextRequest) {
 
         Brand (Default)
         Use when brand carries meaningful buyer search value
+        NEVER use "Unbranded" as a Value Leader. If brand is "Unbranded", use Product Name or Material instead.
         Example: Patagonia, Nike, Levi’s
 
         Hard Rule
