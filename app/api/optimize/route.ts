@@ -448,6 +448,11 @@ export async function POST(request: NextRequest) {
         
         REDUNDANCY CHECK (CRITICAL)
         If [Tag Size] is exactly the same as the first number in [Measurements], DROP [Tag Size].
+        
+        STYLE STACKING (NEW RULE)
+        If multiple styles are highly relevant (e.g. "Vintage" AND "Skater"), you MAY include both if space permits in the [SEO Keywords] slot.
+        Prioritize the most distinct style first.
+        Example: "Vintage Skater" is better than just "Vintage".
         Example: "36" + "36x32" -> Keep ONLY "36x32".
         Example: "34" + "34x30" -> Keep ONLY "34x30".
         Reason: Measurements implies the size. Eliminate redundancy.
