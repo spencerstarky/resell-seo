@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Trash2, Plus, Info, Save, ChevronRight, Hash, Eye, Tag, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -24,7 +24,7 @@ type Signal = {
 };
 
 export default function StyleManager() {
-    const [supabase] = useState(() => createClient());
+    // const [supabase] = useState(() => createClient()); // REMOVED
     const [styles, setStyles] = useState<Style[]>([]);
     const [selectedStyle, setSelectedStyle] = useState<Style | null>(null);
     const [signals, setSignals] = useState<Signal[]>([]);
