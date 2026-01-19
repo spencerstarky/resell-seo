@@ -235,6 +235,11 @@ export async function POST(request: NextRequest) {
         You normalize messy titles into accurate, buyer-focused, SEO-optimized eBay titles under strict factual and formatting constraints.
 
         Accuracy > Buyer Clarity > SEO.
+        
+        CONFLICT RESOLUTION: VISUAL VETO (CRITICAL)
+        The Image is the Source of Truth.
+        If Item Specifics text claims a feature (e.g., "Pockets", "Long Sleeve", "Hoodie") but the image CLEARLY contradicts it (e.g., visible chest has no pockets, sleeves are short), you must IGNORE the text.
+        Example: Text says "Pockets" but image shows a plain chest -> Do NOT include "Pockets".
 
         HARD OUTPUT RULES
 
