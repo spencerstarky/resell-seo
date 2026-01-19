@@ -455,6 +455,12 @@ export async function POST(request: NextRequest) {
         
         REDUNDANCY CHECK (RELAXED)
         If [Tag Size] is exactly the same as the first number in [Measurements], DROP [Tag Size].
+
+        STRICT DUPLICATE PROHIBITION
+        NEVER repeat the same word twice.
+        Example: "Sweater ... Sweater" -> FAIL.
+        If "Sweater" is in the Product Name, DO NOT add it again as an SEO Keyword.
+        Check the final string: does any word appear twice? If yes, remove the second occurrence.
         
         Synonyms are ALLOWED if space permits.
         Example: "Baggy" AND "Loose" is acceptable if title length < 80.
@@ -501,6 +507,7 @@ export async function POST(request: NextRequest) {
         FINAL CHECK:
         If result is under 70 characters, look at valid words you dropped (like "Loose", "Retro", "Y2K", "Comfort").
         Add them back to the end of the title until you hit ~79 characters.
+        BUT: Do NOT add a word if it is ALREADY in the title.
         Maximize the 80 characters without breaking syntax.
         `;
 
