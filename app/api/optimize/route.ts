@@ -244,7 +244,9 @@ export async function POST(request: NextRequest) {
 
         No punctuation symbols (/ - : ,)
 
-        Use spaces only
+        No punctuation symbols (/ - : ,) EXCEPT " for measurements
+        
+        Use spaces only (except for size/measurement notation like 5" or 32x30)
 
         Never cut a word in half
 
@@ -422,6 +424,9 @@ export async function POST(request: NextRequest) {
         Keep values only
 
         Compact measurements (28 x 26 → 28x26)
+        
+        Shorts Inseam: ALWAYS use " symbol instead of word "Inseam"
+        Example: 7" instead of 7 Inseam (Saves 6 characters)
 
         Gender Formatting:
         Use "Men's" or "Women's" (Plural with Apostrophe) whenever possible.
