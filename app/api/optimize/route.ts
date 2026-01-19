@@ -448,8 +448,13 @@ export async function POST(request: NextRequest) {
 
         Bags Electronics Home: max 1
         
-        REDUNDANCY CHECK (CRITICAL)
+        REDUNDANCY CHECK (RELAXED)
         If [Tag Size] is exactly the same as the first number in [Measurements], DROP [Tag Size].
+        
+        Synonyms are ALLOWED if space permits.
+        Example: "Baggy" AND "Loose" is acceptable if title length < 80.
+        Example: "Wide Leg" AND "Relaxed" is acceptable.
+        DO NOT aggressively de-duplicate typically searching synonyms unless you exceed 80 characters.
         
         STYLE STACKING (NEW RULE)
         If multiple styles are highly relevant (e.g. "Vintage" AND "Skater"), you MAY include both if space permits in the [SEO Keywords] slot.
@@ -487,6 +492,11 @@ export async function POST(request: NextRequest) {
         
         OUTPUT
         Return ONLY the final optimized title string.
+        
+        FINAL CHECK:
+        If result is under 70 characters, look at valid words you dropped (like "Loose", "Retro", "Y2K", "Comfort").
+        Add them back to the end of the title until you hit ~79 characters.
+        Maximize the 80 characters without breaking syntax.
         `;
 
         // 3. Generate using DIRECT FETCH with Model Failover Strategy
