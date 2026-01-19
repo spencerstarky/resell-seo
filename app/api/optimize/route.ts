@@ -661,6 +661,44 @@ export async function POST(request: NextRequest) {
                     optimizedTitle = optimizedTitle.replace(/\bWomens\b/gi, '').replace(/\s+/g, ' ').trim();
                 }
             }
+
+            // 3. CHECK FOR HALLUCINATED MEASUREMENTS (Global Rule)
+            // Pattern: Number x Number (e.g., 24x28, 20"x30", 12 x 12)
+            // If this specific number sequence is NOT in the original title (ignoring space/case), REMOVE IT.
+            const measRegex = /\b(\d+(?:\.\d+)?)\s*["']?\s*[xX]\s*(\d+(?:\.\d+)?)\s*["']?\b/g;
+            let match;
+            // Create a "clean" original title for comparison (remove spaces/punctuation to fuzzy match numbers)
+            const cleanOrig = lowerOrig.replace(/[^0-9x.]/g, '');
+
+            // We must loop manually because replace with global regex behaves partly on iteration
+            optimizedTitle = optimizedTitle.replace(measRegex, (fullMatch, n1, n2) => {
+                // Check if this n1 x n2 combo exists in original
+                // We verify if n1 and n2 exist nearby in original, or if the exact block "n1xn2" exists in the "clean" original
+                const simpleLook = `${n1}x${n2}`;
+
+                // If the cleaned original contains "24x28", it's valid.
+                if (cleanOrig.includes(simpleLook)) {
+                    return fullMatch; // Keep it
+                }
+
+                // Also check strict original text for spaced versions "24 x 28"
+                if (lowerOrig.includes(n1) && lowerOrig.includes(n2) && lowerOrig.indexOf(n1) < lowerOrig.indexOf(n2)) {
+                    // This is a weak check (could match Size 24 ... Item 28), but we only strip if we are SURE it's not there.
+                    // Actually, safer: If the EXACT numeric pair isn't found as a block, kill it.
+                    // Hallucination usually looks like "24x28" when original had nothing.
+                    // Real data usually looks like "Size 24x28" or "24 x 28".
+
+                    // Strict Check:
+                    const hasSpaced = new RegExp(`${n1}\\s*[xX]\\s*${n2}`).test(lowerOrig);
+                    if (hasSpaced) return fullMatch;
+                }
+
+                console.log(`[Filter] Removing hallucinated measurement: ${fullMatch}`);
+                return ''; // Remove it
+            });
+
+            // Clean up double spaces left by removal
+            optimizedTitle = optimizedTitle.replace(/\s+/g, ' ').trim();
         }
         // -------------------------------------
 
