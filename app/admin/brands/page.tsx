@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { generateRegexFromExample } from '@/lib/regex-generator';
 import { Trash2, Plus, Save, ChevronDown, ChevronRight, CheckCircle, AlertTriangle } from 'lucide-react';
+import { AdminNav } from '@/components/admin/AdminNav';
 
 export default function BrandAdminPage() {
     // const supabase used directly from import
@@ -133,10 +134,10 @@ export default function BrandAdminPage() {
 
     return (
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', color: '#fff' }}>
+            <AdminNav />
+
             <div style={{ marginBottom: '2rem' }}>
-                <a href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#888', textDecoration: 'none', fontSize: '0.9rem' }}>
-                    ← Back to Dashboard
-                </a>
+                {/* Back link removed in favor of nav */}
             </div>
             <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Brand & Style Code Admin</h1>
             <p style={{ color: '#aaa', marginBottom: '2rem' }}>Manage recognized brands and their style code formats.</p>

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Trash2, Plus, Info, Save, ChevronRight, Hash, Eye, Tag, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { AdminNav } from '@/components/admin/AdminNav';
 
 // Types
 type Style = {
@@ -149,11 +150,14 @@ export default function StyleManager() {
         }
     };
 
+
+
     return (
         <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', color: '#fff' }}>
+            <AdminNav />
+
             <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                    <Link href="/admin" style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'inline-block' }}>← Back to Admin</Link>
                     <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>Style Intelligence Engine</h1>
                     <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Define visual trends, keywords, and logic for automated style detection.</p>
                 </div>
