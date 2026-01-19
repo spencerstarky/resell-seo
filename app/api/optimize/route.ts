@@ -170,6 +170,7 @@ export async function POST(request: NextRequest) {
                     `;
                 }).join('\n');
             }
+            console.log('[StyleSignalEngine] Context Prepared:', styleContext.substring(0, 500) + '...');
         } catch (err) {
             console.error('Failed to fetch style signals:', err);
         }
