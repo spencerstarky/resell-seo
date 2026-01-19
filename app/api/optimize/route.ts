@@ -475,6 +475,11 @@ export async function POST(request: NextRequest) {
         Example: "34" + "34x30" -> Keep ONLY "34x30".
         Reason: Measurements implies the size. Eliminate redundancy.
 
+        KEYWORD SYNTHESIS (HIGH VALUE)
+        If the item description or title implies it is a "Shirt Jacket" (or contains both words), you MUST add "Shacket" if space permits.
+        This is a high-value search term.
+        Example: "Flannel Shirt Jacket" -> "... Flannel Shirt Jacket Shacket"
+
         PHASE 4 — SPACE SAVING / DROP PRIORITY
         UPDATED DROP LOGIC (Style Code–Aware)
 
