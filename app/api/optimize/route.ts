@@ -281,7 +281,15 @@ export async function POST(request: NextRequest) {
 
         Team Name
 
+        Team Name
+        
         Condition
+        
+        COLLAR RULE (STRICT)
+        'Button Down' refers to the COLLAR, not the front closure.
+        NEVER use "Button Down Collar" unless you see physical buttons on the collar points.
+        For a shirt that buttons up the front, use "Button Front" or "Button Up".
+        Do not infer collar type. If unsure, omit it.
 
         Style / Model Code (STRICT RULES BELOW)
 
