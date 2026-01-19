@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Trash2, Plus, Info, Save, ChevronRight, Hash, Eye, Tag, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, Info, Save, ChevronRight, Hash, Eye, Tag, AlertCircle, Edit2, X } from 'lucide-react';
 import Link from 'next/link';
 import { AdminNav } from '@/components/admin/AdminNav';
 
@@ -39,6 +39,10 @@ export default function StyleManager() {
     const [newSignalValue, setNewSignalValue] = useState('');
     const [newSignalType, setNewSignalType] = useState<'visual' | 'text' | 'attribute'>('text');
     const [newSignalWeight, setNewSignalWeight] = useState(0.3);
+
+    // Editing State
+    const [editingSignalId, setEditingSignalId] = useState<string | null>(null);
+    const [editWeight, setEditWeight] = useState(0.0);
 
     useEffect(() => {
         fetchStyles();
@@ -137,6 +141,22 @@ export default function StyleManager() {
         } else {
             setStyles(styles.map(s => s.id === id ? { ...s, ...updates } : s));
             if (selectedStyle?.id === id) setSelectedStyle({ ...selectedStyle, ...updates });
+        }
+    };
+
+    const startEditing = (signal: Signal) => {
+        setEditingSignalId(signal.id);
+        setEditWeight(signal.weight);
+    };
+
+    const saveSignalWeight = async (id: string) => {
+        const { error } = await supabase.from('style_signals').update({ weight: editWeight }).eq('id', id);
+        if (error) {
+            alert('Update failed: ' + error.message);
+        } else {
+            // Update local state
+            setSignals(signals.map(s => s.id === id ? { ...s, weight: editWeight } : s).sort((a, b) => b.weight - a.weight));
+            setEditingSignalId(null);
         }
     };
 
@@ -325,7 +345,7 @@ export default function StyleManager() {
 
                                     {signals.map(signal => (
                                         <div key={signal.id} style={{
-                                            display: 'grid', gridTemplateColumns: '40px 1fr 80px 40px', gap: '1rem', alignItems: 'center',
+                                            display: 'grid', gridTemplateColumns: '40px 1fr 100px 80px', gap: '1rem', alignItems: 'center',
                                             padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)', borderRadius: '8px'
                                         }}>
                                             <div title={signal.signal_type.toUpperCase()} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -337,17 +357,45 @@ export default function StyleManager() {
                                                 <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: 'var(--color-text-dim)', textTransform: 'uppercase' }}>{signal.signal_type}</span>
                                             </div>
 
-                                            <div style={{ fontWeight: 600, color: signal.weight >= 0.5 ? '#4caf50' : 'var(--color-text-muted)' }}>
-                                                +{signal.weight}
-                                            </div>
+                                            {/* Weight Column (View/Edit) */}
+                                            {editingSignalId === signal.id ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <input
+                                                        type="number" step="0.1" min="0" max="1"
+                                                        value={editWeight}
+                                                        onChange={e => setEditWeight(parseFloat(e.target.value))}
+                                                        style={{ width: '60px', padding: '4px', borderRadius: '4px', background: 'black', border: '1px solid #444', color: 'white' }}
+                                                        autoFocus
+                                                    />
+                                                    <button onClick={() => saveSignalWeight(signal.id)} className="text-green-400 hover:text-green-300"><Save size={16} /></button>
+                                                    <button onClick={() => setEditingSignalId(null)} className="text-gray-400 hover:text-gray-300"><X size={16} /></button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ fontWeight: 600, color: signal.weight >= 0.5 ? '#4caf50' : 'var(--color-text-muted)' }}>
+                                                    +{signal.weight}
+                                                </div>
+                                            )}
 
-                                            <button
-                                                onClick={() => deleteSignal(signal.id)}
-                                                style={{ color: 'var(--color-text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0.6 }}
-                                                className="hover:text-red-400 hover:opacity-100"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                {editingSignalId !== signal.id && (
+                                                    <button
+                                                        onClick={() => startEditing(signal)}
+                                                        style={{ color: 'var(--color-text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0.6 }}
+                                                        className="hover:text-blue-400 hover:opacity-100"
+                                                        title="Edit Weight"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => deleteSignal(signal.id)}
+                                                    style={{ color: 'var(--color-text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0.6 }}
+                                                    className="hover:text-red-400 hover:opacity-100"
+                                                    title="Delete Signal"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
