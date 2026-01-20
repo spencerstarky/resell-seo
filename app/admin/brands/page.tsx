@@ -12,6 +12,31 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
     const [description, setDescription] = useState(brand.description || '');
     const [saving, setSaving] = useState(false);
     const [boloList, setBoloList] = useState<any[]>(brand.marketing_metadata?.bolos || []);
+    const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+
+    const handleFileUpload = async (file: File, index: number) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `bolo-${brand.id}-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        // 1. Upload
+        const { error: uploadError } = await supabase.storage
+            .from('brand_assets')
+            .upload(filePath, file);
+
+        if (uploadError) {
+            alert('Upload failed: ' + uploadError.message);
+            return;
+        }
+
+        // 2. Get URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('brand_assets')
+            .getPublicUrl(filePath);
+
+        // 3. Update State
+        updateBolo(index, 'image_url', publicUrl);
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -106,22 +131,43 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
                         }}>
                             {/* Image Uploader */}
                             <div style={{ width: '100px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                <div style={{
-                                    width: '100px',
-                                    height: '100px',
-                                    background: '#111',
-                                    border: '1px dashed #444',
-                                    borderRadius: '6px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    overflow: 'hidden',
-                                    position: 'relative'
-                                }}>
+                                <div
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        setDraggingIndex(i);
+                                    }}
+                                    onDragLeave={(e) => {
+                                        e.preventDefault();
+                                        setDraggingIndex(null);
+                                    }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        setDraggingIndex(null);
+                                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                            handleFileUpload(e.dataTransfer.files[0], i);
+                                        }
+                                    }}
+                                    style={{
+                                        width: '100px',
+                                        height: '100px',
+                                        background: draggingIndex === i ? 'rgba(76, 175, 80, 0.1)' : '#111',
+                                        border: draggingIndex === i ? '2px dashed #4caf50' : '1px dashed #444',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        overflow: 'hidden',
+                                        position: 'relative',
+                                        transition: 'all 0.2s',
+                                        cursor: 'pointer'
+                                    }}
+                                >
                                     {item.image_url ? (
                                         <img src={item.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
-                                        <span style={{ fontSize: '2rem' }}>{item.emoji || '📷'}</span>
+                                        <div style={{ textAlign: 'center', color: '#666' }}>
+                                            {draggingIndex === i ? <span style={{ fontSize: '0.8rem', color: '#4caf50' }}>Drop Here</span> : <span style={{ fontSize: '2rem' }}>{item.emoji || '📷'}</span>}
+                                        </div>
                                     )}
                                 </div>
                                 <label className="btn" style={{
@@ -133,35 +179,15 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
                                     borderRadius: '4px',
                                     cursor: 'pointer'
                                 }}>
-                                    Upload
+                                    {item.image_url ? 'Change Image' : 'Upload Image'}
                                     <input
                                         type="file"
                                         accept="image/*"
                                         style={{ display: 'none' }}
-                                        onChange={async (e) => {
-                                            if (!e.target.files || e.target.files.length === 0) return;
-                                            const file = e.target.files[0];
-                                            const fileExt = file.name.split('.').pop();
-                                            const fileName = `bolo-${brand.id}-${Date.now()}.${fileExt}`;
-                                            const filePath = `${fileName}`;
-
-                                            // 1. Upload
-                                            const { error: uploadError } = await supabase.storage
-                                                .from('brand_assets')
-                                                .upload(filePath, file);
-
-                                            if (uploadError) {
-                                                alert('Upload failed: ' + uploadError.message);
-                                                return;
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files.length > 0) {
+                                                handleFileUpload(e.target.files[0], i);
                                             }
-
-                                            // 2. Get URL
-                                            const { data: { publicUrl } } = supabase.storage
-                                                .from('brand_assets')
-                                                .getPublicUrl(filePath);
-
-                                            // 3. Update State
-                                            updateBolo(i, 'image_url', publicUrl);
                                         }}
                                     />
                                 </label>
