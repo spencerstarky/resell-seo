@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { BadgeCheck, GraduationCap, Store, TrendingUp, User, Search, ArrowRight } from 'lucide-react';
+import { BadgeCheck, GraduationCap, Store, TrendingUp, User, Search, ArrowRight, BookOpen, ShoppingBag } from 'lucide-react';
 
 export default function AboutPage() {
     return (
@@ -12,23 +12,30 @@ export default function AboutPage() {
                 {/* Hero Section */}
                 <section className="container" style={{ textAlign: 'center', marginBottom: '8rem' }}>
                     <div className="animate-fade-in">
-                        <span className="badge">Our Story</span>
+                        <span className="badge">About ResellSEO</span>
                         <h1 className="section-title text-gradient" style={{ marginBottom: '1.5rem', fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
                             Built by a Reseller,<br />For Resellers.
                         </h1>
                         <p style={{
                             fontSize: '1.25rem',
                             color: 'var(--color-text-dim)',
-                            maxWidth: '600px',
+                            maxWidth: '800px',
                             margin: '0 auto 3rem',
                             lineHeight: 1.6
                         }}>
-                            Bridging the gap between professional digital marketing and <br className="hidden md:block" /> the daily hustle of selling online.
+                            ResellSEO was created to solve a problem I ran into every single day as an active eBay reseller:
+                            <span style={{ color: 'var(--color-text-main)' }}> great products don’t sell if they can’t be found.</span>
                         </p>
+
+                        <div style={{ maxWidth: '700px', margin: '0 auto', color: 'var(--color-text-muted)', lineHeight: '1.8', fontSize: '1.1rem' }}>
+                            After years of sourcing, photographing, listing, and shipping thousands of items, I realized that success on marketplaces like eBay isn’t just about having good inventory, it’s about search visibility. Titles matter. Keywords matter. Structure matters. And yet, most resellers are left guessing.
+                            <br /><br />
+                            <strong style={{ color: 'var(--color-primary)' }}>ResellSEO exists to remove that guesswork.</strong>
+                        </div>
                     </div>
                 </section>
 
-                {/* The Origin Story - Grid Layout */}
+                {/* The Founder Story - Grid Layout */}
                 <section className="container" style={{ marginBottom: '10rem' }}>
                     <div style={{
                         display: 'grid',
@@ -38,18 +45,15 @@ export default function AboutPage() {
                     }}>
                         {/* Text Content */}
                         <div className="animate-fade-in delay-100">
-                            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>It Started With a Problem</h2>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '1.5rem', lineHeight: 1.2 }}>
+                                The Founder: Where Marketing Meets Real-World Reselling
+                            </h2>
                             <div style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem', lineHeight: 1.8 }}>
                                 <p style={{ marginBottom: '1.5rem' }}>
-                                    Hi, I'm <strong>Spencer Starkey</strong>, the founder of ResellSEO.
-                                </p>
-                                <p style={{ marginBottom: '1.5rem' }}>
-                                    Like many of you, I started reselling because I loved the thrill of the hunt. But as I scaled my eBay store, I hit a wall.
-                                    I had great inventory, but my listings weren't getting the visibility they deserved.
-                                    The items were there, but the buyers weren't finding them.
+                                    I’m the founder of ResellSEO, a full-time reseller turned product builder with a Bachelor’s degree in Digital Marketing and years of hands-on eBay business experience.
                                 </p>
                                 <p>
-                                    I realized that selling online isn't just about having the product—it's about <strong>communicating its value</strong> to the search algorithms.
+                                    My background in digital marketing taught me how search engines work, how keywords, structure, relevance, and intent influence visibility. My years as a reseller taught me the real constraints sellers face: limited time, inconsistent data, messy item specifics, and constantly changing trends.
                                 </p>
                             </div>
                         </div>
@@ -79,23 +83,18 @@ export default function AboutPage() {
                                         <Store size={20} color="var(--color-secondary)" />
                                         <span>Active eBay Top Rated Seller</span>
                                     </li>
-                                    <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <BadgeCheck size={20} color="var(--color-secondary)" />
-                                        <span>E-commerce Consultant</span>
-                                    </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* The "Secret Sauce" Section - 3 Column */}
+                {/* The "Intersection" Section - 3 Column */}
                 <section style={{ backgroundColor: 'var(--color-bg-surface)', padding: '8rem 0' }}>
                     <div className="container">
                         <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
-                            <span className="badge">Why It Works</span>
-                            <h2 style={{ fontSize: '2.5rem', fontWeight: 700 }}>The Perfect Intersection</h2>
-                            <p style={{ color: 'var(--color-text-dim)', marginTop: '1rem' }}>Where academic theory meets street-smart selling.</p>
+                            <span className="badge">Our Advantage</span>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: 700 }}>ResellSEO sits at the intersection of two worlds</h2>
                         </div>
 
                         <div style={{
@@ -115,12 +114,11 @@ export default function AboutPage() {
                                     justifyContent: 'center',
                                     marginBottom: '1.5rem'
                                 }}>
-                                    <GraduationCap size={24} color="var(--color-primary)" />
+                                    <BookOpen size={24} color="var(--color-primary)" />
                                 </div>
-                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Professional Marketing Background</h3>
+                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Marketing Theory</h3>
                                 <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                                    My Bachelor's degree gave me a deep understanding of SEO, keywords, and consumer psychology.
-                                    I learned how search engines "think"—and I applied that knowledge directly to eBay's algorithm.
+                                    SEO, keyword intent, and search optimization. We apply the science of search to your listings.
                                 </p>
                             </div>
 
@@ -136,17 +134,16 @@ export default function AboutPage() {
                                     justifyContent: 'center',
                                     marginBottom: '1.5rem'
                                 }}>
-                                    <Store size={24} color="#38bdf8" />
+                                    <ShoppingBag size={24} color="#38bdf8" />
                                 </div>
-                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Built in the Trenches</h3>
+                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Marketplace Reality</h3>
                                 <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                                    I don't just write code; I pack boxes. Every feature in ResellSEO was built because I needed it myself.
-                                    I know the pain of slow listing speeds and the frustration of "0 views" because I've lived it.
+                                    Thrifted inventory, inconsistent tags, and limited product info. We understand the actual constraints you face.
                                 </p>
                             </div>
 
                             {/* Card 3 */}
-                            <div className="card" style={{ height: '100%' }}>
+                            <div className="card" style={{ height: '100%', borderColor: 'var(--color-primary)' }}>
                                 <div style={{
                                     width: '50px',
                                     height: '50px',
@@ -159,11 +156,9 @@ export default function AboutPage() {
                                 }}>
                                     <TrendingUp size={24} color="#ec4899" />
                                 </div>
-                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Validated by Results</h3>
+                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Actual Store Data</h3>
                                 <p style={{ color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                                    I use this software daily on my own <strong>actual eBay store</strong>.
-                                    Before I release a feature to you, it's already generated sales for me.
-                                    This isn't just theory; it's practically applied revenue growth.
+                                    This product wasn’t built in a vacuum. It was built inside my actual eBay store.
                                 </p>
                             </div>
                         </div>
@@ -193,14 +188,10 @@ export default function AboutPage() {
                         }} />
 
                         <div style={{ position: 'relative', zIndex: 1 }}>
-                            <h2 style={{ fontSize: '2rem', marginBottom: '2rem', fontFamily: 'serif', fontStyle: 'italic', color: 'var(--color-secondary)' }}>
-                                "I built the tool that I wished existed when I started."
+                            <span className="badge" style={{ marginBottom: '2rem' }}>Built in Production, Not in Theory</span>
+                            <h2 style={{ fontSize: '2rem', marginBottom: '2rem', fontFamily: 'serif', fontStyle: 'italic', color: 'var(--color-text-main)' }}>
+                                "Every feature in ResellSEO exists because I needed it myself."
                             </h2>
-                            <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem', marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem' }}>
-                                ResellSEO is the culmination of years of learning, testing, and selling.
-                                It's designed to give you the same advantage that professional marketers have,
-                                packaged for the busy reseller.
-                            </p>
 
                             <Link href="/dashboard" className="btn btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
                                 Start Optimizing Your Store <ArrowRight size={18} />
