@@ -34,9 +34,12 @@ export default function TopSellingBrandsPage() {
         setLoading(false);
     };
 
+    const [statusMessage, setStatusMessage] = useState('');
+
     const handleUnlock = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setStatusMessage('');
         setSubmitting(true);
 
         if (!email.includes('@')) {
@@ -46,21 +49,39 @@ export default function TopSellingBrandsPage() {
         }
 
         try {
-            // Save lead
-            await supabase.from('marketing_leads').insert({
+            // Try to save lead
+            const { error } = await supabase.from('marketing_leads').insert({
                 email,
                 source: 'top-selling-brands_guide'
             });
 
-            // Unlock
+            if (error) {
+                // Check for duplicate (Postgres code 23505)
+                if (error.code === '23505') {
+                    setStatusMessage("Welcome back! Unlocking...");
+                } else {
+                    // unexpected error, but we still want to let them in (fail open)
+                    console.error('Marketing lead error:', error);
+                    setStatusMessage("Access Unlocked!");
+                }
+            } else {
+                setStatusMessage("Access Granted!");
+            }
+
+            // Save state
             localStorage.setItem('brand_guide_unlocked', 'true');
-            setIsUnlocked(true);
+
+            // Give them a moment to read the success message
+            setTimeout(() => {
+                setIsUnlocked(true);
+            }, 1000);
+
         } catch (err) {
-            // Even if duplicate/error, let them in to avoid friction (fail open for UX)
+            // Fallback for any other crash
             localStorage.setItem('brand_guide_unlocked', 'true');
             setIsUnlocked(true);
         } finally {
-            setSubmitting(false);
+            // setSubmitting(false); // Valid to keep submitting true during the timeout transition
         }
     };
 
@@ -230,10 +251,16 @@ export default function TopSellingBrandsPage() {
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            gap: '0.5rem'
+                                            gap: '0.5rem',
+                                            background: statusMessage ? '#4caf50' : 'var(--color-primary)', // Green if success
+                                            transition: 'background 0.3s'
                                         }}
                                     >
-                                        {submitting ? 'Unlocking...' : <><Unlock size={20} /> Unlock Database</>}
+                                        {statusMessage ? (
+                                            <><CheckCircle size={20} /> {statusMessage}</>
+                                        ) : (
+                                            submitting ? 'Unlocking...' : <><Unlock size={20} /> Unlock Database</>
+                                        )}
                                     </button>
                                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '0.5rem' }}>
                                         Join 500+ sellers improving their sourcing game. <Link href="/unsubscribe" style={{ textDecoration: 'underline' }}>Unsubscribe</Link> anytime.
