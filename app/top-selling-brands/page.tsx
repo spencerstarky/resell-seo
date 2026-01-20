@@ -27,7 +27,7 @@ export default function TopSellingBrandsPage() {
         // Fetch only safe public fields
         const { data } = await supabase
             .from('brands')
-            .select('name, confidence_tier')
+            .select('name, confidence_tier, slug, logo_url')
             .order('name', { ascending: true });
 
         setBrands(data || []);
@@ -116,32 +116,37 @@ export default function TopSellingBrandsPage() {
                     }}>
                         {/* Show Full List if Unlocked, otherwise just Teaser */}
                         {(isUnlocked ? brands : teaserList).map((brand, i) => (
-                            <div key={i} className="card glass" style={{
-                                padding: '1.5rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '1rem',
-                                transition: 'transform 0.2s',
-                                cursor: 'default'
-                            }}>
-                                <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
-                                    borderRadius: '10px',
+                            <Link key={i} href={`/top-selling-brands/${brand.slug || '#'}`} style={{ display: 'contents' }}>
+                                <div className="card glass" style={{
+                                    padding: '1.5rem',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '1.1rem',
-                                    fontWeight: 'bold',
-                                    color: '#fff',
-                                    flexShrink: 0
-                                }}>
-                                    {brand.name.substring(0, 1)}
+                                    gap: '1rem',
+                                    transition: 'transform 0.2s',
+                                    cursor: 'pointer'
+                                }}
+                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                                >
+                                    <div style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                                        borderRadius: '10px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '1.1rem',
+                                        fontWeight: 'bold',
+                                        color: '#fff',
+                                        flexShrink: 0
+                                    }}>
+                                        {brand.logo_url ? <img src={brand.logo_url} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px', background: 'white', padding: '2px' }} /> : brand.name.substring(0, 1)}
+                                    </div>
+                                    <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{brand.name}</span>
+                                    {brand.confidence_tier === 1 && <CheckCircle size={16} color="#4caf50" style={{ marginLeft: 'auto' }} />}
                                 </div>
-                                <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{brand.name}</span>
-                                {brand.confidence_tier === 1 && <CheckCircle size={16} color="#4caf50" style={{ marginLeft: 'auto' }} />}
-                            </div>
+                            </Link>
                         ))}
 
                         {/* Artificial blurred cards for effect if locked */}
