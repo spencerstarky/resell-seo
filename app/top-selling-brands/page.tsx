@@ -91,18 +91,23 @@ export default function TopSellingBrandsPage() {
                         fontWeight: 800,
                         marginBottom: '1.5rem'
                     }}>
-                        High Sell-Through Rate<br />Brand Index
+                        {totalBrands} Brands That Actually Sell
                     </h1>
 
-                    <p style={{
+                    <div style={{
                         fontSize: '1.25rem',
                         color: 'var(--color-text-muted)',
                         maxWidth: '600px',
                         margin: '0 auto',
                         lineHeight: 1.6
                     }}>
-                        Stop guessing at the bins. Access our curated list of <strong>{totalBrands || '100+'} verified brands</strong> that active resellers use to generate consistent profit.
-                    </p>
+                        <p style={{ marginBottom: '1rem' }}>
+                            Skip the guesswork. This high sell-through brand guide shows you what brands to sell for profit.
+                        </p>
+                        <p>
+                            Each brand includes best-selling categories and common item types to help you sell more items.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Main Content Area */}
