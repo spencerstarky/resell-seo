@@ -6,6 +6,73 @@ import { generateRegexFromExample } from '@/lib/regex-generator';
 import { Trash2, Plus, Save, ChevronDown, ChevronRight, CheckCircle, AlertTriangle } from 'lucide-react';
 import { AdminNav } from '@/components/admin/AdminNav';
 
+function BrandMetadataEditor({ brand }: { brand: any }) {
+    const [slug, setSlug] = useState(brand.slug || '');
+    const [logoUrl, setLogoUrl] = useState(brand.logo_url || '');
+    const [description, setDescription] = useState(brand.description || '');
+    const [saving, setSaving] = useState(false);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const { error } = await supabase
+                .from('brands')
+                .update({ slug, logo_url: logoUrl, description })
+                .eq('id', brand.id);
+
+            if (error) throw error;
+            alert('Saved!');
+        } catch (e: any) {
+            alert('Error updating brand: ' + e.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.4rem', color: '#aaa' }}>Slug (URL)</label>
+                    <input
+                        className="input"
+                        value={slug}
+                        onChange={e => setSlug(e.target.value)}
+                        style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
+                    />
+                </div>
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.4rem', color: '#aaa' }}>Logo URL</label>
+                    <input
+                        className="input"
+                        value={logoUrl}
+                        onChange={e => setLogoUrl(e.target.value)}
+                        placeholder="https://..."
+                        style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
+                    />
+                </div>
+            </div>
+            <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.4rem', color: '#aaa' }}>Description (HTML ok)</label>
+                <textarea
+                    className="input"
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    rows={3}
+                    style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
+                />
+            </div>
+            <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{ alignSelf: 'flex-start', padding: '0.5rem 1.5rem', background: '#4caf50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            >
+                {saving ? 'Saving...' : 'Save Details'}
+            </button>
+        </div>
+    );
+}
+
 export default function BrandAdminPage() {
     // const supabase used directly from import
     const [brands, setBrands] = useState<any[]>([]);
@@ -189,10 +256,18 @@ export default function BrandAdminPage() {
                                 </button>
                             </div>
 
-                            {/* Patterns Section (Expanded) */}
+                            {/* Patterns & Details Section (Expanded) */}
                             {expandedBrandId === brand.id && (
                                 <div style={{ padding: '1.5rem', borderTop: '1px solid #333', background: '#111' }}>
-                                    <h4 style={{ fontSize: '0.9rem', color: '#888', textTransform: 'uppercase', marginBottom: '1rem' }}>Known Patterns</h4>
+
+                                    {/* 1. Brand Metadata Editor */}
+                                    <div style={{ marginBottom: '2rem', paddingBottom: '2rem', borderBottom: '1px dashed #333' }}>
+                                        <h4 style={{ fontSize: '0.9rem', color: '#888', textTransform: 'uppercase', marginBottom: '1rem' }}>Brand Details (Marketing)</h4>
+                                        <BrandMetadataEditor brand={brand} />
+                                    </div>
+
+                                    {/* 2. Patterns List */}
+                                    <h4 style={{ fontSize: '0.9rem', color: '#888', textTransform: 'uppercase', marginBottom: '1rem' }}>Known Style Code Patterns</h4>
 
                                     {patterns.length === 0 ? (
                                         <div style={{ marginBottom: '1rem', color: '#666', fontStyle: 'italic' }}>No patterns yet. Required for detection.</div>
