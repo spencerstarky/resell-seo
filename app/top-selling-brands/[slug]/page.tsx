@@ -83,10 +83,38 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ sl
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                                 {brand.marketing_metadata.bolos.map((item: any, i: number) => (
                                     <div key={i} className="card" style={{ padding: '0', background: 'rgba(255,255,255,0.03)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                                        {/* Image Header */}
-                                        <div style={{ height: '200px', background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {/* Image Header with Blur Backdrop */}
+                                        <div style={{ height: '240px', position: 'relative', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                             {item.image_url ? (
-                                                <img src={item.image_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                <>
+                                                    {/* Blur Layer */}
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        backgroundImage: `url(${item.image_url})`,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center',
+                                                        filter: 'blur(20px) brightness(0.5)',
+                                                        transform: 'scale(1.1)' // Prevent blur edges
+                                                    }} />
+
+                                                    {/* Main Image */}
+                                                    <img
+                                                        src={item.image_url}
+                                                        alt={item.title}
+                                                        style={{
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            objectFit: 'contain',
+                                                            position: 'relative',
+                                                            zIndex: 10,
+                                                            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))'
+                                                        }}
+                                                    />
+                                                </>
                                             ) : (
                                                 <div style={{ fontSize: '4rem', opacity: 0.8 }}>{item.emoji}</div>
                                             )}
