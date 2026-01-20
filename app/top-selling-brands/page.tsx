@@ -114,10 +114,16 @@ export default function TopSellingBrandsPage() {
                 <div style={{ position: 'relative', marginTop: '2rem' }}>
 
                     {/* The Grid */}
+                    {/* The Grid: Faded at bottom if locked */}
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-                        gap: '1.5rem'
+                        gap: '1.5rem',
+                        position: 'relative',
+                        // Mask the bottom if locked to fade out cleanly
+                        maskImage: !isUnlocked ? 'linear-gradient(to bottom, black 40%, transparent 100%)' : 'none',
+                        WebkitMaskImage: !isUnlocked ? 'linear-gradient(to bottom, black 40%, transparent 100%)' : 'none',
+                        marginBottom: !isUnlocked ? '-150px' : '0' // Pull the lock card up into the faded area
                     }}>
                         {/* Show Full List if Unlocked, otherwise just Teaser */}
                         {(isUnlocked ? brands : teaserList).map((brand, i) => (
@@ -153,37 +159,16 @@ export default function TopSellingBrandsPage() {
                                 </div>
                             </Link>
                         ))}
-
-                        {/* Artificial blurred cards for effect if locked */}
-                        {!isUnlocked && Array.from({ length: 8 }).map((_, i) => (
-                            <div key={`ghost-${i}`} className="card glass" style={{
-                                padding: '1.5rem',
-                                opacity: 0.3,
-                                filter: 'blur(6px)',
-                                pointerEvents: 'none'
-                            }}>
-                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                    <div style={{ width: '40px', height: '40px', background: '#333', borderRadius: '10px' }}></div>
-                                    <div style={{ height: '16px', background: '#333', width: '60%', borderRadius: '4px' }}></div>
-                                </div>
-                            </div>
-                        ))}
                     </div>
 
-                    {/* The Locked Gate (Overlay) */}
+                    {/* The Locked Gate (Clean Block) */}
                     {!isUnlocked && (
                         <div style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            top: '20%', // Start fading in partway down
-                            background: 'linear-gradient(to bottom, transparent 0%, var(--color-bg-base) 60%, var(--color-bg-base) 100%)',
-                            display: 'flex',
-                            alignItems: 'flex-end',
-                            justifyContent: 'center',
+                            position: 'relative',
                             zIndex: 10,
-                            paddingBottom: '2rem'
+                            display: 'flex',
+                            justifyContent: 'center',
+                            marginTop: '2rem'
                         }}>
                             <div className="card glass" style={{
                                 width: '100%',
@@ -191,7 +176,9 @@ export default function TopSellingBrandsPage() {
                                 padding: '3rem',
                                 textAlign: 'center',
                                 boxShadow: '0 20px 80px rgba(0,0,0,0.6)',
-                                border: '1px solid rgba(255,255,255,0.1)'
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'rgba(10, 10, 10, 0.85)', // slightly more opaque to stand out against fade
+                                backdropFilter: 'blur(20px)'
                             }}>
                                 <div style={{
                                     width: '60px',
@@ -208,7 +195,7 @@ export default function TopSellingBrandsPage() {
 
                                 <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.75rem' }}>Unlock the full list</h2>
                                 <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                                    Enter your email to instantly access our database of 100+ high-performing reseller brands.
+                                    Enter your email to instantly access our database of {totalBrands}+ high-performing reseller brands.
                                 </p>
 
                                 <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
