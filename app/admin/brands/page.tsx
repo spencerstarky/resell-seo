@@ -13,6 +13,31 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
     const [saving, setSaving] = useState(false);
     const [boloList, setBoloList] = useState<any[]>(brand.marketing_metadata?.bolos || []);
     const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+    const [isDraggingLogo, setIsDraggingLogo] = useState(false);
+
+    const handleLogoUpload = async (file: File) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `logo-${brand.id}-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        // 1. Upload
+        const { error: uploadError } = await supabase.storage
+            .from('brand_assets')
+            .upload(filePath, file);
+
+        if (uploadError) {
+            alert('Upload failed: ' + uploadError.message);
+            return;
+        }
+
+        // 2. Get URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('brand_assets')
+            .getPublicUrl(filePath);
+
+        // 3. Update State
+        setLogoUrl(publicUrl);
+    };
 
     const handleFileUpload = async (file: File, index: number) => {
         const fileExt = file.name.split('.').pop();
@@ -41,19 +66,16 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
     const handleSave = async () => {
         setSaving(true);
         try {
-            // Merge existing metadata with new BOLOs
-            const newMetadata = {
-                ...brand.marketing_metadata,
-                bolos: boloList
-            };
-
             const { error } = await supabase
                 .from('brands')
                 .update({
                     slug,
                     logo_url: logoUrl,
                     description,
-                    marketing_metadata: newMetadata
+                    marketing_metadata: {
+                        ...brand.marketing_metadata,
+                        bolos: boloList
+                    }
                 })
                 .eq('id', brand.id);
 
@@ -92,15 +114,79 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
                         style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
                     />
                 </div>
+
+                {/* Logo Uploader */}
                 <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.4rem', color: '#aaa' }}>Logo URL</label>
-                    <input
-                        className="input"
-                        value={logoUrl}
-                        onChange={e => setLogoUrl(e.target.value)}
-                        placeholder="https://..."
-                        style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
-                    />
+                    <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.4rem', color: '#aaa' }}>Brand Logo</label>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <div
+                            onDragOver={(e) => {
+                                e.preventDefault();
+                                setIsDraggingLogo(true);
+                            }}
+                            onDragLeave={(e) => {
+                                e.preventDefault();
+                                setIsDraggingLogo(false);
+                            }}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                setIsDraggingLogo(false);
+                                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                    handleLogoUpload(e.dataTransfer.files[0]);
+                                }
+                            }}
+                            style={{
+                                width: '60px',
+                                height: '60px',
+                                background: isDraggingLogo ? 'rgba(76, 175, 80, 0.1)' : '#111',
+                                border: isDraggingLogo ? '2px dashed #4caf50' : '1px dashed #444',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden',
+                                position: 'relative',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {logoUrl ? (
+                                <img src={logoUrl} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '5px' }} />
+                            ) : (
+                                <span style={{ fontSize: '1.5rem', color: '#444' }}>🖼️</span>
+                            )}
+                        </div>
+
+                        <div style={{ flex: 1 }}>
+                            <input
+                                className="input"
+                                value={logoUrl}
+                                onChange={e => setLogoUrl(e.target.value)}
+                                placeholder="https://..."
+                                style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px', marginBottom: '0.5rem' }}
+                            />
+                            <label className="btn" style={{
+                                fontSize: '0.75rem',
+                                padding: '0.4rem 0.8rem',
+                                background: '#333',
+                                color: '#ddd',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                display: 'inline-block'
+                            }}>
+                                Upload New Logo
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files.length > 0) {
+                                            handleLogoUpload(e.target.files[0]);
+                                        }
+                                    }}
+                                />
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div>
