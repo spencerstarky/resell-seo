@@ -64,9 +64,10 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ sl
 
                     {/* Description */}
                     {brand.description ? (
-                        <div style={{ fontSize: '1.2rem', lineHeight: 1.6, color: 'var(--color-text-muted)', maxWidth: '800px', marginBottom: '3rem' }}>
-                            {brand.description}
-                        </div>
+                        <div
+                            style={{ fontSize: '1.2rem', lineHeight: 1.6, color: 'var(--color-text-muted)', maxWidth: '800px', marginBottom: '3rem' }}
+                            dangerouslySetInnerHTML={{ __html: brand.description }}
+                        />
                     ) : (
                         <p style={{ color: 'var(--color-text-dim)', fontStyle: 'italic', marginBottom: '3rem' }}>
                             Detailed sourcing guide coming soon.
