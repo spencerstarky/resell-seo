@@ -11,13 +11,25 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
     const [logoUrl, setLogoUrl] = useState(brand.logo_url || '');
     const [description, setDescription] = useState(brand.description || '');
     const [saving, setSaving] = useState(false);
+    const [boloList, setBoloList] = useState<any[]>(brand.marketing_metadata?.bolos || []);
 
     const handleSave = async () => {
         setSaving(true);
         try {
+            // Merge existing metadata with new BOLOs
+            const newMetadata = {
+                ...brand.marketing_metadata,
+                bolos: boloList
+            };
+
             const { error } = await supabase
                 .from('brands')
-                .update({ slug, logo_url: logoUrl, description })
+                .update({
+                    slug,
+                    logo_url: logoUrl,
+                    description,
+                    marketing_metadata: newMetadata
+                })
                 .eq('id', brand.id);
 
             if (error) throw error;
@@ -27,6 +39,20 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
         } finally {
             setSaving(false);
         }
+    };
+
+    const addBolo = () => {
+        setBoloList([...boloList, { emoji: '👕', title: '', description: '' }]);
+    };
+
+    const updateBolo = (index: number, field: string, value: string) => {
+        const newList = [...boloList];
+        newList[index] = { ...newList[index], [field]: value };
+        setBoloList(newList);
+    };
+
+    const removeBolo = (index: number) => {
+        setBoloList(boloList.filter((_, i) => i !== index));
     };
 
     return (
@@ -62,10 +88,53 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
                     style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
                 />
             </div>
+
+            {/* BOLO Section */}
+            <div style={{ borderTop: '1px solid #333', paddingTop: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.8rem', color: '#aaa', fontWeight: 'bold' }}>WHAT TO LOOK FOR (BOLO)</label>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {boloList.map((item, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                            <input
+                                value={item.emoji}
+                                onChange={(e) => updateBolo(i, 'emoji', e.target.value)}
+                                placeholder="Emoji"
+                                style={{ width: '50px', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px', textAlign: 'center' }}
+                            />
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <input
+                                    value={item.title}
+                                    onChange={(e) => updateBolo(i, 'title', e.target.value)}
+                                    placeholder="Title (e.g. T-Shirts)"
+                                    style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
+                                />
+                                <input
+                                    value={item.description}
+                                    onChange={(e) => updateBolo(i, 'description', e.target.value)}
+                                    placeholder="Description (e.g. Look for vintage tags...)"
+                                    style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#bbb', borderRadius: '4px', fontSize: '0.9rem' }}
+                                />
+                            </div>
+                            <button onClick={() => removeBolo(i)} style={{ padding: '0.5rem', color: '#ff4444', border: '1px solid #ff4444', background: 'transparent', borderRadius: '4px', cursor: 'pointer' }}>
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                <button
+                    onClick={addBolo}
+                    style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.4rem 0.8rem', background: '#333', color: '#ddd', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                    <Plus size={14} /> Add Item
+                </button>
+            </div>
+
             <button
                 onClick={handleSave}
                 disabled={saving}
-                style={{ alignSelf: 'flex-start', padding: '0.5rem 1.5rem', background: '#4caf50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                style={{ alignSelf: 'flex-start', padding: '0.5rem 1.5rem', background: '#4caf50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '1rem' }}
             >
                 {saving ? 'Saving...' : 'Save Details'}
             </button>

@@ -74,27 +74,23 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ sl
                     )}
 
                     {/* Top Picks / Placeholder */}
-                    <div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--color-border)' }}>
-                            What to Look For (BOLO)
-                        </h3>
-                        {/* 
-                            TODO: Pull this from marketing_metadata or a related table 
-                            For now, we'll show a static placeholder or the raw JSON if available
-                        */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                            <div className="card" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)' }}>
-                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.5 }}>👕</div>
-                                <h4 style={{ fontWeight: 600 }}>T-Shirts</h4>
-                                <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Graphic tees and vintage tags usually perform best.</p>
-                            </div>
-                            <div className="card" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)' }}>
-                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.5 }}>🧥</div>
-                                <h4 style={{ fontWeight: 600 }}>Outerwear</h4>
-                                <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>Look for technical fabrics and 90s styles.</p>
+                    {/* Top Picks / BOLO Section */}
+                    {brand.marketing_metadata?.bolos && brand.marketing_metadata.bolos.length > 0 && (
+                        <div>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--color-border)' }}>
+                                What to Look For (BOLO)
+                            </h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                                {brand.marketing_metadata.bolos.map((item: any, i: number) => (
+                                    <div key={i} className="card" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)' }}>
+                                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.8 }}>{item.emoji}</div>
+                                        <h4 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.title}</h4>
+                                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>{item.description}</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </main>
 
