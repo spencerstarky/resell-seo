@@ -5,6 +5,9 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function BrandDetailPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     const supabase = await createClient();
