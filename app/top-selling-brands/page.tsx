@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Lock, Unlock, CheckCircle, TrendingUp, Mail } from 'lucide-react';
+import { Lock, Unlock, CheckCircle, TrendingUp, Mail, ArrowRight } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import Link from 'next/link';
 
 export default function TopSellingBrandsPage() {
     const [brands, setBrands] = useState<any[]>([]);
@@ -63,143 +66,225 @@ export default function TopSellingBrandsPage() {
 
     // Calculate stats
     const totalBrands = brands.length;
-    const teaserCount = 8;
+    const teaserCount = 12; // Show a bit more to tease
     const teaserList = brands.slice(0, teaserCount);
 
-    // Aesthetic Styles
-    const containerStyle = { maxWidth: '900px', margin: '0 auto', padding: '4rem 1.5rem', color: '#fff' };
-    const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' };
-    const cardStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' };
-
     return (
-        <div style={containerStyle}>
-            {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(76, 175, 80, 0.15)', color: '#4caf50', padding: '0.4rem 1rem', borderRadius: '100px', fontSize: '0.9rem', fontWeight: 600, marginBottom: '1.5rem' }}>
-                    <TrendingUp size={16} /> Live Database • Updated Daily
-                </div>
-                <h1 className="text-gradient" style={{ fontSize: '3.5rem', lineHeight: 1.1, fontWeight: 800, marginBottom: '1.5rem' }}>
-                    High Sell-Through Rate<br />Brand Index
-                </h1>
-                <p style={{ fontSize: '1.2rem', color: '#aaa', maxWidth: '600px', margin: '0 auto', lineHeight: 1.6 }}>
-                    Stop guessing at the bins. Access our curated list of <strong>{totalBrands || '100+'} verified brands</strong> that active resellers use to generate consistent profit.
-                </p>
-            </div>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <Navbar />
 
-            {/* Content Area */}
-            <div style={{ position: 'relative' }}>
+            <main className="container" style={{
+                paddingTop: '8rem',
+                paddingBottom: '8rem',
+                flex: 1
+            }}>
+                {/* Header Section */}
+                <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
 
-                {/* The Grid */}
-                <div style={gridStyle}>
-                    {/* Show Full List if Unlocked, otherwise just Teaser */}
-                    {(isUnlocked ? brands : teaserList).map((brand, i) => (
-                        <div key={i} style={cardStyle}>
-                            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                {brand.name.substring(0, 1)}
-                            </div>
-                            <span style={{ fontWeight: 600, fontSize: '1.05rem' }}>{brand.name}</span>
-                        </div>
-                    ))}
+                    <div className="badge" style={{ marginBottom: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <TrendingUp size={14} /> Live Database • Updated Daily
+                    </div>
 
-                    {/* Fake ghost cards for effect if locked */}
-                    {!isUnlocked && Array.from({ length: 6 }).map((_, i) => (
-                        <div key={`ghost-${i}`} style={{ ...cardStyle, opacity: 0.3, filter: 'blur(4px)' }}>
-                            <div style={{ width: '32px', height: '32px', background: '#333', borderRadius: '8px' }}></div>
-                            <div style={{ height: '16px', background: '#333', width: '60%', borderRadius: '4px' }}></div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* The Gate (Overlay) */}
-                {!isUnlocked && (
-                    <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: '350px',
-                        background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%, #0a0a0a 100%)',
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        justifyContent: 'center',
-                        paddingBottom: '4rem',
-                        zIndex: 10
+                    <h1 className="text-gradient" style={{
+                        fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                        lineHeight: 1.1,
+                        fontWeight: 800,
+                        marginBottom: '1.5rem'
                     }}>
-                        <div style={{
-                            background: 'rgba(20, 20, 30, 0.9)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '20px',
-                            padding: '3rem',
-                            textAlign: 'center',
-                            maxWidth: '500px',
-                            backdropFilter: 'blur(20px)',
-                            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-                        }}>
-                            <Lock size={48} style={{ color: '#6366f1', marginBottom: '1.5rem', margin: '0 auto' }} />
-                            <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Unlock the full brand list</h2>
-                            <p style={{ color: '#aaa', marginBottom: '2rem' }}>
-                                Enter your email to gain access to hundreds of high sell through rate brands.
-                            </p>
+                        High Sell-Through Rate<br />Brand Index
+                    </h1>
 
-                            <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div style={{ position: 'relative' }}>
-                                    <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
-                                    <input
-                                        type="email"
-                                        placeholder="Enter your email address..."
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '1rem 1rem 1rem 3rem',
-                                            borderRadius: '8px',
-                                            border: '1px solid #333',
-                                            background: '#000',
-                                            color: '#fff',
-                                            fontSize: '1rem'
-                                        }}
-                                        required
-                                    />
+                    <p style={{
+                        fontSize: '1.25rem',
+                        color: 'var(--color-text-muted)',
+                        maxWidth: '600px',
+                        margin: '0 auto',
+                        lineHeight: 1.6
+                    }}>
+                        Stop guessing at the bins. Access our curated list of <strong>{totalBrands || '100+'} verified brands</strong> that active resellers use to generate consistent profit.
+                    </p>
+                </div>
+
+                {/* Main Content Area */}
+                <div style={{ position: 'relative', marginTop: '2rem' }}>
+
+                    {/* The Grid */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                        gap: '1.5rem'
+                    }}>
+                        {/* Show Full List if Unlocked, otherwise just Teaser */}
+                        {(isUnlocked ? brands : teaserList).map((brand, i) => (
+                            <div key={i} className="card glass" style={{
+                                padding: '1.5rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '1rem',
+                                transition: 'transform 0.2s',
+                                cursor: 'default'
+                            }}>
+                                <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                                    borderRadius: '10px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '1.1rem',
+                                    fontWeight: 'bold',
+                                    color: '#fff',
+                                    flexShrink: 0
+                                }}>
+                                    {brand.name.substring(0, 1)}
                                 </div>
-                                {error && <div style={{ color: '#f44336', fontSize: '0.9rem' }}>{error}</div>}
-                                <button
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="btn btn-primary"
-                                    style={{
-                                        padding: '1rem',
-                                        width: '100%',
-                                        fontSize: '1.1rem',
-                                        fontWeight: 'bold',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '0.5rem'
-                                    }}
-                                >
-                                    {submitting ? 'Unlocking...' : <><Unlock size={20} /> Unlock Database Now</>}
-                                </button>
-                                <p style={{ fontSize: '0.8rem', color: '#555', marginTop: '1rem' }}>
-                                    We also need a small text that allows users to <a href="/unsubscribe" style={{ color: '#777', textDecoration: 'underline' }}>unsubscribe</a> themselves for legality. You can <a href="/unsubscribe" style={{ color: '#777', textDecoration: 'underline' }}>unsubscribe</a> at any time.
+                                <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{brand.name}</span>
+                                {brand.confidence_tier === 1 && <CheckCircle size={16} color="#4caf50" style={{ marginLeft: 'auto' }} />}
+                            </div>
+                        ))}
+
+                        {/* Artificial blurred cards for effect if locked */}
+                        {!isUnlocked && Array.from({ length: 8 }).map((_, i) => (
+                            <div key={`ghost-${i}`} className="card glass" style={{
+                                padding: '1.5rem',
+                                opacity: 0.3,
+                                filter: 'blur(6px)',
+                                pointerEvents: 'none'
+                            }}>
+                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                    <div style={{ width: '40px', height: '40px', background: '#333', borderRadius: '10px' }}></div>
+                                    <div style={{ height: '16px', background: '#333', width: '60%', borderRadius: '4px' }}></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* The Locked Gate (Overlay) */}
+                    {!isUnlocked && (
+                        <div style={{
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            top: '20%', // Start fading in partway down
+                            background: 'linear-gradient(to bottom, transparent 0%, var(--color-bg-base) 60%, var(--color-bg-base) 100%)',
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            justifyContent: 'center',
+                            zIndex: 10,
+                            paddingBottom: '2rem'
+                        }}>
+                            <div className="card glass" style={{
+                                width: '100%',
+                                maxWidth: '500px',
+                                padding: '3rem',
+                                textAlign: 'center',
+                                boxShadow: '0 20px 80px rgba(0,0,0,0.6)',
+                                border: '1px solid rgba(255,255,255,0.1)'
+                            }}>
+                                <div style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    background: 'rgba(156, 85, 213, 0.1)',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    margin: '0 auto 1.5rem auto'
+                                }}>
+                                    <Lock size={28} color="var(--color-primary)" />
+                                </div>
+
+                                <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.75rem' }}>Unlock the full list</h2>
+                                <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
+                                    Enter your email to instantly access our database of 100+ high-performing reseller brands.
                                 </p>
-                            </form>
+
+                                <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div style={{ position: 'relative' }}>
+                                        <Mail size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-dim)' }} />
+                                        <input
+                                            type="email"
+                                            placeholder="Enter your email address..."
+                                            value={email}
+                                            onChange={e => setEmail(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '1rem 1rem 1rem 3rem',
+                                                borderRadius: 'var(--radius-lg)',
+                                                border: '1px solid var(--color-border)',
+                                                background: 'rgba(0,0,0,0.3)',
+                                                color: 'var(--color-text-main)',
+                                                fontSize: '1rem'
+                                            }}
+                                            required
+                                        />
+                                    </div>
+                                    {error && <div style={{ color: '#f44336', fontSize: '0.9rem' }}>{error}</div>}
+                                    <button
+                                        type="submit"
+                                        disabled={submitting}
+                                        className="btn btn-primary"
+                                        style={{
+                                            padding: '1rem',
+                                            width: '100%',
+                                            fontSize: '1.1rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem'
+                                        }}
+                                    >
+                                        {submitting ? 'Unlocking...' : <><Unlock size={20} /> Unlock Database</>}
+                                    </button>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-dim)', marginTop: '0.5rem' }}>
+                                        Join 500+ sellers improving their sourcing game. <Link href="/unsubscribe" style={{ textDecoration: 'underline' }}>Unsubscribe</Link> anytime.
+                                    </p>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Upsell Section (Visible only when unlocked) */}
+                {isUnlocked && (
+                    <div className="card glass" style={{
+                        marginTop: '6rem',
+                        padding: '4rem 2rem',
+                        textAlign: 'center',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Decorative background accent */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '-50%',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '400px',
+                            height: '400px',
+                            background: 'radial-gradient(circle, rgba(156, 85, 213, 0.2) 0%, transparent 70%)',
+                            filter: 'blur(60px)',
+                            zIndex: 0
+                        }}></div>
+
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <h3 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>
+                                Don't just list them. <span className="text-gradient">Optimize them.</span>
+                            </h3>
+                            <p style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)', maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
+                                Identifying the brand is step 1. Writing a title that ranks on eBay is step 2. ResellSEO optimizes your titles automatically.
+                            </p>
+                            <Link href="/login" className="btn btn-primary" style={{ padding: '1.25rem 3rem', fontSize: '1.1rem' }}>
+                                Start Optimizing Free <ArrowRight size={20} />
+                            </Link>
                         </div>
                     </div>
                 )}
-            </div>
+            </main>
 
-            {/* Footer Upsell */}
-            {isUnlocked && (
-                <div style={{ marginTop: '6rem', padding: '3rem', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                    <h3 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem' }}>Don't just list them. Optimize them.</h3>
-                    <p style={{ color: '#ccc', maxWidth: '600px', margin: '0 auto 2rem auto', fontSize: '1.1rem' }}>
-                        Knowing the brand is step 1. Listing it with the perfect SEO title is step 2. ResellSEO recognizes these brands automatically.
-                    </p>
-                    <a href="/login" className="btn btn-primary" style={{ padding: '0.8rem 2rem', fontSize: '1.1rem' }}>
-                        Start Optimizing for Free
-                    </a>
-                </div>
-            )}
+            <Footer />
         </div>
     );
 }

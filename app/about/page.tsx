@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'About Us | ResellSEO',
+    description: 'Built by a reseller, for resellers. ResellSEO brings professional digital marketing tools to your eBay store.',
+};
 
 export default function AboutPage() {
     return (

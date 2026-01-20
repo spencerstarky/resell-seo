@@ -2,7 +2,13 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TitleTicker from '@/components/TitleTicker';
-import { Sparkles, Zap, BarChart3, ShieldCheck, Check, ArrowRight, Star, Quote } from 'lucide-react';
+import { Sparkles, Zap, ShieldCheck, Check, ArrowRight } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'ResellSEO | The #1 AI Title Optimizer for eBay Sellers',
+  description: 'Boost your eBay sales with AI-optimized titles. Stop guessing keywords and start ranking where buyers are searching.',
+};
 
 export default function Home() {
   return (
