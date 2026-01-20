@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-server';
 export const revalidate = 3600; // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = 'https://www.resellseo.com'; // TODO: Update this if your domain is different
+    const baseUrl = 'https://resellseo.app';
     const supabase = await createClient();
 
     // 1. Fetch all brands

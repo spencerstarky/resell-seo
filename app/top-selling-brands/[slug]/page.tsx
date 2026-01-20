@@ -96,6 +96,32 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ sl
                                             <h4 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.title}</h4>
                                             <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>{item.description}</p>
                                         </div>
+
+                                        {/* Conversion CTA */}
+                                        <div style={{ marginTop: '4rem', textAlign: 'center' }}>
+                                            <div className="card glass" style={{
+                                                padding: '3rem',
+                                                background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(156, 85, 213, 0.05) 100%)',
+                                                border: '1px solid rgba(156, 85, 213, 0.3)',
+                                                maxWidth: '700px',
+                                                margin: '0 auto'
+                                            }}>
+                                                <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem' }}>
+                                                    Sell Online?
+                                                </h2>
+                                                <p style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
+                                                    Optimize your listing titles instantly with ResellSEO. Get seen by more buyers and sell faster.
+                                                </p>
+                                                <Link href="/" className="btn btn-primary" style={{
+                                                    fontSize: '1.2rem',
+                                                    padding: '1rem 2.5rem',
+                                                    display: 'inline-flex',
+                                                    borderRadius: '50px'
+                                                }}>
+                                                    Try It Free
+                                                </Link>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
