@@ -82,10 +82,20 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ sl
                             </h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                                 {brand.marketing_metadata.bolos.map((item: any, i: number) => (
-                                    <div key={i} className="card" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)' }}>
-                                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem', opacity: 0.8 }}>{item.emoji}</div>
-                                        <h4 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.title}</h4>
-                                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>{item.description}</p>
+                                    <div key={i} className="card" style={{ padding: '0', background: 'rgba(255,255,255,0.03)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                                        {/* Image Header */}
+                                        <div style={{ height: '200px', background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {item.image_url ? (
+                                                <img src={item.image_url} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <div style={{ fontSize: '4rem', opacity: 0.8 }}>{item.emoji}</div>
+                                            )}
+                                        </div>
+                                        {/* Content */}
+                                        <div style={{ padding: '1.5rem', flex: 1 }}>
+                                            <h4 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.title}</h4>
+                                            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>{item.description}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

@@ -93,26 +93,93 @@ function BrandMetadataEditor({ brand }: { brand: any }) {
             <div style={{ borderTop: '1px solid #333', paddingTop: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.8rem', color: '#aaa', fontWeight: 'bold' }}>WHAT TO LOOK FOR (BOLO)</label>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
                     {boloList.map((item, i) => (
-                        <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                            <input
-                                value={item.emoji}
-                                onChange={(e) => updateBolo(i, 'emoji', e.target.value)}
-                                placeholder="Emoji"
-                                style={{ width: '50px', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px', textAlign: 'center' }}
-                            />
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <div key={i} style={{
+                            display: 'flex',
+                            gap: '1rem',
+                            alignItems: 'flex-start',
+                            background: 'rgba(255,255,255,0.02)',
+                            padding: '1rem',
+                            borderRadius: '8px',
+                            border: '1px solid #333'
+                        }}>
+                            {/* Image Uploader */}
+                            <div style={{ width: '100px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <div style={{
+                                    width: '100px',
+                                    height: '100px',
+                                    background: '#111',
+                                    border: '1px dashed #444',
+                                    borderRadius: '6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    overflow: 'hidden',
+                                    position: 'relative'
+                                }}>
+                                    {item.image_url ? (
+                                        <img src={item.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <span style={{ fontSize: '2rem' }}>{item.emoji || '📷'}</span>
+                                    )}
+                                </div>
+                                <label className="btn" style={{
+                                    fontSize: '0.7rem',
+                                    padding: '0.3rem',
+                                    background: '#333',
+                                    color: '#fff',
+                                    textAlign: 'center',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}>
+                                    Upload
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        onChange={async (e) => {
+                                            if (!e.target.files || e.target.files.length === 0) return;
+                                            const file = e.target.files[0];
+                                            const fileExt = file.name.split('.').pop();
+                                            const fileName = `bolo-${brand.id}-${Date.now()}.${fileExt}`;
+                                            const filePath = `${fileName}`;
+
+                                            // 1. Upload
+                                            const { error: uploadError } = await supabase.storage
+                                                .from('brand_assets')
+                                                .upload(filePath, file);
+
+                                            if (uploadError) {
+                                                alert('Upload failed: ' + uploadError.message);
+                                                return;
+                                            }
+
+                                            // 2. Get URL
+                                            const { data: { publicUrl } } = supabase.storage
+                                                .from('brand_assets')
+                                                .getPublicUrl(filePath);
+
+                                            // 3. Update State
+                                            updateBolo(i, 'image_url', publicUrl);
+                                        }}
+                                    />
+                                </label>
+                            </div>
+
+                            {/* Text Fields */}
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                 <input
                                     value={item.title}
                                     onChange={(e) => updateBolo(i, 'title', e.target.value)}
                                     placeholder="Title (e.g. T-Shirts)"
-                                    style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }}
+                                    style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px', fontWeight: 'bold' }}
                                 />
-                                <input
+                                <textarea
                                     value={item.description}
                                     onChange={(e) => updateBolo(i, 'description', e.target.value)}
                                     placeholder="Description (e.g. Look for vintage tags...)"
+                                    rows={2}
                                     style={{ width: '100%', padding: '0.5rem', background: '#222', border: '1px solid #444', color: '#bbb', borderRadius: '4px', fontSize: '0.9rem' }}
                                 />
                             </div>
