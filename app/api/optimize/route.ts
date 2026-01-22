@@ -485,7 +485,11 @@ export async function POST(request: NextRequest) {
         Fallback to "Mens" or "Womens" only if space is critically low.
         Avoid singular "Men" or "Women" unless part of a specific product name.
 
-        New / NWT → add New at end
+        CONDITION MANDATE (CRITICAL):
+        Check Input & Item Specifics for: "New with tags", "NWT", "Brand New", "NIB", "Unused".
+        IF FOUND: You MUST include the word "New" at the end of the title.
+        Example: "... Black Jacket New"
+        This overrides the "Low Value" rule for descriptions—Condition is CRITICAL.
 
         Nike/Jordan codes:
 
