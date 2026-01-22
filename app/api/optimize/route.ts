@@ -402,10 +402,26 @@ export async function POST(request: NextRequest) {
         Hoka One One Rincon 3 Shoes Men 10.5 D 1119395 Blue Running
 
         MATERIAL HANDLING
-        Material has no dedicated slot.
         Material only appears as:
         Value Leader (Luxury Material case), OR
         SEO Keyword
+
+        NEGATIVE KEYWORD LIST (BANNED)
+        Do NOT use these words unless part of a specific Product Name (e.g. "Summer Breeze Dress"):
+        - Winter
+        - Summer
+        - Spring
+        - Fall
+        - Autumn
+        - Season
+
+        SOURCE HIERARCHY
+        1. Visuals / Photos (Primary Truth)
+        2. Original Title (Strong Signal)
+        3. Style Engine (High Value Keywords)
+        4. Item Specifics / Description (LOW VALUE - LAST RESORT ONLY)
+           - Do NOT pull filler words (like "Winter", "Cute", "Nice") from description.
+           - Only use description to verify facts like material or country of origin.
 
         SIZE FORMATTING RULES (MANDATORY)
 
@@ -550,12 +566,10 @@ export async function POST(request: NextRequest) {
         // List of models to try in order of preference
         // We prioritize Flash (multimodal) then fallback to Pro (text-only)
         const candidateModels = [
-            'gemini-2.5-flash',      // Detected available model
-            'gemini-2.0-flash',      // Detected available model
-            'gemini-2.0-flash-exp',  // Detected available model
-            'gemini-1.5-flash',      // Fallback
-            'gemini-1.5-flash-001',
-            'gemini-pro'
+            'gemini-2.0-flash-exp', // Latest
+            'gemini-1.5-pro',       // Stable High-Intel
+            'gemini-1.5-flash',     // Stable Fast
+            'gemini-1.5-flash-001'
         ];
 
         // Prepare Image Data (Multi-Image Level 3)
