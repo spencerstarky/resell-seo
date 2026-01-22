@@ -428,6 +428,14 @@ export async function POST(request: NextRequest) {
 
         Big & Tall sizes (XLT 3XLT 4XB)
 
+
+        SPECIAL NUMERICAL SIZING (CRITICAL PRESERVATION)
+        For brands that use numerical sizing (James Perse 0-4, Ted Baker 1-6, Torrid 00-6, etc.), you MUST preserve the number.
+        Output Format: "[Number] [Standard Conversion]"
+        Example: "Size 3 Large" or "3 Large"
+        Do NOT strip the number if it is the official tag size.
+        If the input contains "3 Large", keep "3 Large".
+
         Use only sizes explicitly shown
 
         FORMATTING OPERATIONS
