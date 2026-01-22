@@ -269,6 +269,13 @@ export async function POST(request: NextRequest) {
 
         Allowed Facts
 
+        VISUAL EXTRACTION RULES (CRITICAL)
+        1. Lululemon Size Dots: If you see a small white circle with a number in the middle, READ THE TEXT AROUND THE RIM.
+           - It is curved text.
+           - It usually starts with "LW", "LM", or "W".
+           - Example: "LW5BMUS"
+           - You MUST extract this code if visible.
+
         Brand
         (EXCEPTION: Never include "Unbranded", "Unknown", "No Brand", or "Generic")
 
