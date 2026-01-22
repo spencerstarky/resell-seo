@@ -727,70 +727,84 @@ export async function POST(request: NextRequest) {
 
             // Clean up double spaces left by removal
             optimizedTitle = optimizedTitle.replace(/\s+/g, ' ').trim();
-        }
-        // -------------------------------------
 
-        if (!optimizedTitle) {
-            // Debugging: Try to list models to see what IS available
-            let debugInfo = '';
-            try {
-                const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-                const listRes = await fetch(listUrl);
-                if (listRes.ok) {
-                    const listData = await listRes.json();
-                    const modelNames = listData.models ? listData.models.map((m: any) => m.name.replace('models/', '')) : [];
-                    debugInfo = `Available Models: ${modelNames.join(', ')}`;
-                } else {
-                    debugInfo = `ListModels Query Failed: ${listRes.status}`;
-                }
-            } catch (dbgErr) {
-                debugInfo = 'ListModels Exception';
-            }
+            // 4. CHECK FOR FALSE "NEW" (Strict eBay Rule)
+            // If the AI inserts "New" but the original text has NO mention of "New", "NWT", or "NWOT", strip it.
+            // We assume "Excellent", "Mint", "Great" != "New".
+            const lowerInfo = (additionalInfo || '').toLowerCase(); // Check Item Specifics too
+            const combinedSource = lowerOrig + ' ' + lowerInfo;
 
-            throw new Error(`All models failed. Last error: ${lastError}. ${debugInfo}`);
-        }
-
-        optimizedTitle = optimizedTitle.trim().replace(/^"|"$/g, '');
-
-        if (optimizedTitle.length > 80) {
-            // Smart Truncate: Don't cut words in half
-            const words = optimizedTitle.split(' ');
-            let currentTitle = '';
-
-            for (const word of words) {
-                const potentialTitle = currentTitle ? `${currentTitle} ${word}` : word;
-                if (potentialTitle.length <= 80) {
-                    currentTitle = potentialTitle;
-                } else {
-                    break; // Stop adding words if we hit the limit
+            if (/\bNew\b/i.test(optimizedTitle)) {
+                // If source does NOT contain "new", "nwt", or "nwot"
+                if (!/\b(new|nwt|nwot)\b/i.test(combinedSource)) {
+                    console.log('[Filter] Removing hallucinated "New" keyword');
+                    // Remove "New" (case-insensitive) but keep surrounding spaces clean
+                    optimizedTitle = optimizedTitle.replace(/\bNew\b/gi, '').replace(/\s+/g, ' ').trim();
                 }
             }
-            optimizedTitle = currentTitle;
+            // -------------------------------------
+
+            if (!optimizedTitle) {
+                // Debugging: Try to list models to see what IS available
+                let debugInfo = '';
+                try {
+                    const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+                    const listRes = await fetch(listUrl);
+                    if (listRes.ok) {
+                        const listData = await listRes.json();
+                        const modelNames = listData.models ? listData.models.map((m: any) => m.name.replace('models/', '')) : [];
+                        debugInfo = `Available Models: ${modelNames.join(', ')}`;
+                    } else {
+                        debugInfo = `ListModels Query Failed: ${listRes.status}`;
+                    }
+                } catch (dbgErr) {
+                    debugInfo = 'ListModels Exception';
+                }
+
+                throw new Error(`All models failed. Last error: ${lastError}. ${debugInfo}`);
+            }
+
+            optimizedTitle = optimizedTitle.trim().replace(/^"|"$/g, '');
+
+            if (optimizedTitle.length > 80) {
+                // Smart Truncate: Don't cut words in half
+                const words = optimizedTitle.split(' ');
+                let currentTitle = '';
+
+                for (const word of words) {
+                    const potentialTitle = currentTitle ? `${currentTitle} ${word}` : word;
+                    if (potentialTitle.length <= 80) {
+                        currentTitle = potentialTitle;
+                    } else {
+                        break; // Stop adding words if we hit the limit
+                    }
+                }
+                optimizedTitle = currentTitle;
+            }
+
+            // --- SAVE TO HISTORY ---
+            // Store result so next time it is free
+            await supabase.from('optimization_history').insert({
+                user_id: user.id,
+                original_title: title,
+                original_title_hash: inputHash,
+                optimized_title: optimizedTitle
+            });
+            // -----------------------
+
+            // Increment Usage
+            await supabase.rpc('increment_usage', { user_id: user.id });
+
+            return NextResponse.json({ optimizedTitle, fromCache: false });
+
+        } catch (error: any) {
+            console.error('Gemini Optimization Error:', error);
+
+            const apiKeyHint = process.env.GEMINI_API_KEY ? `(Key ends in ...${process.env.GEMINI_API_KEY.slice(-4)})` : '(No Key Configured)';
+            let detailedError = error.message;
+
+            return NextResponse.json({
+                error: `Gemini Error: ${detailedError} ${apiKeyHint}`
+            }, { status: 500 });
         }
-
-        // --- SAVE TO HISTORY ---
-        // Store result so next time it is free
-        await supabase.from('optimization_history').insert({
-            user_id: user.id,
-            original_title: title,
-            original_title_hash: inputHash,
-            optimized_title: optimizedTitle
-        });
-        // -----------------------
-
-        // Increment Usage
-        await supabase.rpc('increment_usage', { user_id: user.id });
-
-        return NextResponse.json({ optimizedTitle, fromCache: false });
-
-    } catch (error: any) {
-        console.error('Gemini Optimization Error:', error);
-
-        const apiKeyHint = process.env.GEMINI_API_KEY ? `(Key ends in ...${process.env.GEMINI_API_KEY.slice(-4)})` : '(No Key Configured)';
-        let detailedError = error.message;
-
-        return NextResponse.json({
-            error: `Gemini Error: ${detailedError} ${apiKeyHint}`
-        }, { status: 500 });
     }
-}
