@@ -553,11 +553,17 @@ export async function POST(request: NextRequest) {
         OUTPUT
         Return ONLY the final optimized title string.
         
-        FINAL CHECK:
-        If result is under 70 characters, look at valid words you dropped (like "Loose", "Retro", "Y2K", "Comfort").
-        Add them back to the end of the title until you hit ~79 characters.
-        BUT: Do NOT add a word if it is ALREADY in the title.
-        Maximize the 80 characters without breaking syntax.
+        FINAL CHECK: TARGET 75-80 CHARACTERS (AGGRESSIVE)
+        If the title is under 75 characters, you MUST add more High Value Keywords to fill the space.
+        
+        Priority for Fillers:
+        1. Fit (e.g. "Straight", "Relaxed", "Slim", "Loose") - HIGH VALUE
+        2. Material (e.g. "Cotton", "Denim", "Canvas")
+        3. Style Synonyms (e.g. "Work", "Utility", "Outdoor")
+        
+        Rule: Never leave more than 5 characters unused if valid keywords exist. 
+        Do NOT add "New" or banned seasonal words.
+        USE THE SPACE.
         `;
 
         // 3. Generate using DIRECT FETCH with Model Failover Strategy
