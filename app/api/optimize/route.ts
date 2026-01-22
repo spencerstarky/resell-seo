@@ -401,6 +401,14 @@ export async function POST(request: NextRequest) {
         Patagonia Nano Puff Jacket Men’s Large 22x28 84212 Black Puffer
         Hoka One One Rincon 3 Shoes Men 10.5 D 1119395 Blue Running
 
+        STYLE PRIORITY (CRITICAL CONFLICT RESOLUTION):
+        1. "Fishing" TRUMPS "Gorpcore".
+           - IF Brand is Columbia PFG, Huk, Simms, Salt Life, OR Model is "Silver Ridge", "Bahama" -> USE "Fishing".
+           - Do NOT use "Gorpcore" for Fishing gear.
+        2. "Western" TRUMPS "Boho" for Pearl Snap shirts.
+        3. "Y2K" TRUMPS "Vintage" if the item has specific Y2K traits (McBling, Rhinestone).
+        
+
         MATERIAL HANDLING
         Material only appears as:
         Value Leader (Luxury Material case), OR
@@ -755,8 +763,8 @@ export async function POST(request: NextRequest) {
             const combinedSource = lowerOrig + ' ' + lowerInfo;
 
             if (/\bNew\b/i.test(optimizedTitle)) {
-                // If source does NOT contain "new", "nwt", or "nwot"
-                if (!/\b(new|nwt|nwot)\b/i.test(combinedSource)) {
+                // If source does NOT contain "new", "nwt", "nwot", or strong indicators like "nib", "tags", "unused"
+                if (!/\b(new|nwt|nwot|nib|tags|unused|sealed|box)\b/i.test(combinedSource)) {
                     console.log('[Filter] Removing hallucinated "New" keyword');
                     // Remove "New" (case-insensitive) but keep surrounding spaces clean
                     optimizedTitle = optimizedTitle.replace(/\bNew\b/gi, '').replace(/\s+/g, ' ').trim();
