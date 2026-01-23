@@ -486,10 +486,18 @@ export async function POST(request: NextRequest) {
         FINAL FILL RULE
         Target 75–80 characters.
 
-        If under 75, add in this order:
-        1. Fit
-        2. Material
-        3. Style Synonyms
+        If under 75, prioritize keywords based on ITEM TYPE:
+
+        TYPE A: ACTIVEWEAR / OUTDOORS (e.g. T-Shirt, Shorts, Leggings)
+        1. Activity (e.g. Gym, Run, Training, Yoga, Hike)
+        2. Functional Benefit (e.g. Breathable, Lightweight, Stretch, Wicking)
+        3. Fit (e.g. Athletic, Slim)
+        4. Structural (e.g. Crewneck, V-Neck) <-- LAST RESORT
+
+        TYPE B: CASUAL / DENIM / FORMAL
+        1. Fit (e.g. Relaxed, Straight, Skinny)
+        2. Material (e.g. Cotton, Silk, Wool)
+        3. Style (e.g. Vintage, Y2K, Modern)
 
         Never add banned seasonal words.
 
