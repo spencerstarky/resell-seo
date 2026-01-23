@@ -483,8 +483,10 @@ export async function POST(request: NextRequest) {
         CONDITION MANDATE
         If New / NWT / Brand New / NIB / Unused detected → append "New" at end
 
-        FINAL FILL RULE
+        MANDATORY SPACE FILLING (CRITICAL)
         Target 75–80 characters.
+        
+        PENALTY: If title is under 80 chars and meaningful keywords were skipped, you have FAILED.
 
         If under 75, prioritize keywords based on ITEM TYPE:
 
@@ -673,39 +675,45 @@ export async function POST(request: NextRequest) {
                 }
             }
 
-            // 3. CHECK FOR HALLUCINATED MEASUREMENTS (Global Rule)
-            // Pattern: Number x Number (e.g., 24x28, 20"x30", 12 x 12)
-            // If this specific number sequence is NOT in the original title (ignoring space/case), REMOVE IT.
+            // 3. CHECK FOR HALLUCINATED MEASUREMENTS (NxN format)
             const measRegex = /\b(\d+(?:\.\d+)?)\s*["']?\s*[xX]\s*(\d+(?:\.\d+)?)\s*["']?\b/g;
-            let match;
             // Create a "clean" original title for comparison (remove spaces/punctuation to fuzzy match numbers)
             const cleanOrig = lowerOrig.replace(/[^0-9x.]/g, '');
 
             // We must loop manually because replace with global regex behaves partly on iteration
             optimizedTitle = optimizedTitle.replace(measRegex, (fullMatch, n1, n2) => {
                 // Check if this n1 x n2 combo exists in original
-                // We verify if n1 and n2 exist nearby in original, or if the exact block "n1xn2" exists in the "clean" original
                 const simpleLook = `${n1}x${n2}`;
+                if (cleanOrig.includes(simpleLook)) return fullMatch;
 
-                // If the cleaned original contains "24x28", it's valid.
-                if (cleanOrig.includes(simpleLook)) {
-                    return fullMatch; // Keep it
-                }
-
-                // Also check strict original text for spaced versions "24 x 28"
-                if (lowerOrig.includes(n1) && lowerOrig.includes(n2) && lowerOrig.indexOf(n1) < lowerOrig.indexOf(n2)) {
-                    // This is a weak check (could match Size 24 ... Item 28), but we only strip if we are SURE it's not there.
-                    // Actually, safer: If the EXACT numeric pair isn't found as a block, kill it.
-                    // Hallucination usually looks like "24x28" when original had nothing.
-                    // Real data usually looks like "Size 24x28" or "24 x 28".
-
-                    // Strict Check:
-                    const hasSpaced = new RegExp(`${n1}\\s*[xX]\\s*${n2}`).test(lowerOrig);
-                    if (hasSpaced) return fullMatch;
-                }
+                // Strict Check:
+                const hasSpaced = new RegExp(`${n1}\\s*[xX]\\s*${n2}`).test(lowerOrig);
+                if (hasSpaced) return fullMatch;
 
                 console.log(`[Filter] Removing hallucinated measurement: ${fullMatch}`);
                 return ''; // Remove it
+            });
+
+            // 4. CHECK FOR HALLUCINATED SINGLE MEASUREMENTS (e.g. 26", 29")
+            // Pattern: Number followed by quote (26", 26')
+            const singleMeasRegex = /\b(\d+(?:\.\d+)?)\s*["']\b/g;
+            optimizedTitle = optimizedTitle.replace(singleMeasRegex, (fullMatch, num) => {
+                // Check if this number exists in the original title
+                // We verify if "26" exists as a whole word in lowerOrig
+                const val = num.trim();
+                // Simple check: does the original title contain this number? 
+                // We use a boundary check regex for the number
+                if (new RegExp(`\\b${val}\\b`).test(lowerOrig)) {
+                    return fullMatch;
+                }
+
+                // Also check if original had it with quote (e.g. 26")
+                if (lowerOrig.includes(fullMatch.toLowerCase().trim())) {
+                    return fullMatch;
+                }
+
+                console.log(`[Filter] Removing hallucinated single measurement: ${fullMatch}`);
+                return '';
             });
 
             // Clean up double spaces left by removal
