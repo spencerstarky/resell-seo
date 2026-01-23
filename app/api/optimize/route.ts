@@ -578,7 +578,10 @@ export async function POST(request: NextRequest) {
         USE THE SPACE.
         `;
 
-        // 3. Generate using DIRECT FETCH with Model Failover Strategy
+        // DEBUG: Log the full prompt for user inspection
+        console.log('\n--- GENERATED PROMPT START ---');
+        console.log(promptText);
+        console.log('--- GENERATED PROMPT END ---\n');
         const apiKey = process.env.GEMINI_API_KEY;
 
         // List of models to try in order of preference
