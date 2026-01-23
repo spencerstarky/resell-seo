@@ -624,9 +624,22 @@ export async function POST(request: NextRequest) {
         }
 
         // --- POST-PROCESSING SAFETY FILTER ---
-        // AI models (especially Flash) are stubborn about adding "Mens Medium" to bags.
-        // We manually strip these if they weren't in the original and the category suggests they are wrong.
         if (optimizedTitle) {
+            // 0. CLEANUP INTERNAL MONOLOGUE (AI forgot to be silent)
+            if (optimizedTitle.includes('PHASE') || optimizedTitle.includes('STEP')) {
+                console.log('[Filter] Detected Internal Monologue. Cleaning...');
+                const lines = optimizedTitle.split('\n');
+                // Look for the last substantial line that DOES NOT contain internal keywords
+                const cleanLine = lines.reverse().find(l =>
+                    l.trim().length > 10 &&
+                    !l.includes('PHASE') &&
+                    !l.includes('STEP') &&
+                    !l.includes('Input:')
+                );
+                if (cleanLine) optimizedTitle = cleanLine.trim();
+            }
+
+            // AI models (especially Flash) are stubborn about adding "Mens Medium" to bags.
             const lowerOrig = (title || '').toLowerCase();
             const lowerOpt = optimizedTitle.toLowerCase();
             const isBagOrTech = /backpack|bag|tote|purse|wallet|camera|laptop|phone|monitor|console|remote/.test(lowerOrig);
