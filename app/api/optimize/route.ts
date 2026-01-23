@@ -228,8 +228,8 @@ export async function POST(request: NextRequest) {
         Original Title: "${title}"
         Item Specifics: "${additionalInfo || 'None provided'}"
 
-        SPEC VERSION: v1.0
-        STATUS: LOCKED
+        SPEC VERSION: v1.1
+        STATUS: REVISED
 
         CHANGE POLICY:
         - This specification is authoritative.
@@ -320,6 +320,8 @@ export async function POST(request: NextRequest) {
         Measurements
         - Source ONLY from Original Title
         - Never extract from Item Specifics or Images
+        - STRICT LOCK: If not present in Original Title, DO NOT INCLUDE.
+        - NO INFERENCE from size charts or standards.
 
         Color
         - Mandatory if visible
@@ -483,6 +485,11 @@ export async function POST(request: NextRequest) {
         CONDITION MANDATE
         If New / NWT / Brand New / NIB / Unused detected → append "New" at end
 
+        CATEGORY KEYWORD PRIORITY (SPECIFIC)
+        1. Lululemon Performance Tops:
+           - Preferred: "Athleisure"
+           - Fallback: "Activewear" (Only if Athleisure unavailable)
+
         MANDATORY SPACE FILLING (CRITICAL)
         Target 75–80 characters.
         
@@ -490,7 +497,15 @@ export async function POST(request: NextRequest) {
 
         If under 75, prioritize keywords based on ITEM TYPE:
 
-        TYPE A: ACTIVEWEAR / OUTDOORS (e.g. T-Shirt, Shorts, Leggings)
+        TYPE A: ACTIVEWEAR / OUTDOORS
+        
+        SUB-RULE: T-SHIRTS (Specific Priority)
+        1. Sleeve Type (Short Sleeve / Long Sleeve)
+        2. Use-case (Gym, Training)
+        3. Material Performance (Breathable, Lightweight)
+        * Generic category terms must not displace these.
+
+        GENERAL ACTIVEWEAR:
         1. Activity (e.g. Gym, Run, Training, Yoga, Hike)
         2. Functional Benefit (e.g. Breathable, Lightweight, Stretch, Wicking)
         3. Fit (e.g. Athletic, Slim)
