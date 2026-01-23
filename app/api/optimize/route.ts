@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
         Original Title: "${title}"
         Item Specifics: "${additionalInfo || 'None provided'}"
 
-        SPEC VERSION: v1.1
+        SPEC VERSION: v1.2
         STATUS: REVISED
 
         CHANGE POLICY:
@@ -478,6 +478,14 @@ export async function POST(request: NextRequest) {
         - No word may appear twice
         - If Tag Size equals first measurement number, drop Tag Size
         - Measurements imply size → avoid duplication
+
+        SEMANTIC DIVERSITY (ANTI-STACKING)
+        - GOAL: Maximize unique search intent.
+        - RULE: Do NOT stack semantically identical style terms.
+        - PROHIBITED STACK: [Athleisure, Activewear, Athletic]
+          → ACTION: Choose ONE (Priority: Athleisure > Activewear > Athletic).
+          → DELETE the others.
+        - PROHIBITED STACK: [Vintage, Retro] -> Choose "Vintage".
 
         KEYWORD SYNTHESIS
         - If Shirt + Jacket implied → add "Shacket" if space permits
