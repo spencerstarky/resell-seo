@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
         Original Title: "${title}"
         Item Specifics: "${additionalInfo || 'None provided'}"
 
-        SPEC VERSION: v1.2
+        SPEC VERSION: v1.3
         STATUS: REVISED
 
         CHANGE POLICY:
@@ -322,6 +322,8 @@ export async function POST(request: NextRequest) {
         - Never extract from Item Specifics or Images
         - STRICT LOCK: If not present in Original Title, DO NOT INCLUDE.
         - NO INFERENCE from size charts or standards.
+        - NEVER infer sleeve length measurement (e.g. 28").
+
 
         Color
         - Mandatory if visible
@@ -489,6 +491,21 @@ export async function POST(request: NextRequest) {
 
         KEYWORD SYNTHESIS
         - If Shirt + Jacket implied → add "Shacket" if space permits
+
+        PARTIAL PHRASE BAN (STRICT)
+        - Never use "Sleeve" alone.
+        - Must be "Short Sleeve" or "Long Sleeve".
+        - If space is tight, drop "Sleeve" entirely > using partial "Sleeve".
+
+        PARTIAL PHRASE BAN (STRICT)
+        - Never use "Sleeve" alone.
+        - Must be "Short Sleeve" or "Long Sleeve".
+        - If space is tight, drop "Sleeve" entirely > using partial "Sleeve".
+
+        PARTIAL PHRASE BAN (STRICT)
+        - Never use "Sleeve" alone.
+        - Must be "Short Sleeve" or "Long Sleeve".
+        - If space is tight, drop "Sleeve" entirely > using partial "Sleeve".
 
         CONDITION MANDATE
         If New / NWT / Brand New / NIB / Unused detected → append "New" at end
@@ -719,7 +736,7 @@ export async function POST(request: NextRequest) {
 
             // 4. CHECK FOR HALLUCINATED SINGLE MEASUREMENTS (e.g. 26", 29")
             // Pattern: Number followed by quote (26", 26')
-            const singleMeasRegex = /\b(\d+(?:\.\d+)?)\s*["']\b/g;
+            const singleMeasRegex = /\b(\d+(?:\.\d+)?)\s*["'\u201C\u201D\u2033\u2036]\b/g;
             optimizedTitle = optimizedTitle.replace(singleMeasRegex, (fullMatch, num) => {
                 // Check if this number exists in the original title
                 // We verify if "26" exists as a whole word in lowerOrig
@@ -738,6 +755,16 @@ export async function POST(request: NextRequest) {
                 console.log(`[Filter] Removing hallucinated single measurement: ${fullMatch}`);
                 return '';
             });
+
+            // 5. ORPHAN KEYWORD CLEANUP
+            // Remove "Sleeve" if it is not preceded by "Short" or "Long"
+            if (/\b(?<!Short\s)(?<!Long\s)Sleeve\b/i.test(optimizedTitle)) {
+                // Check if "Sleeve" was in original title alone? If not, remove it.
+                if (!lowerOrig.includes(' sleeve ')) {
+                    console.log('[Filter] Removing orphan "Sleeve"');
+                    optimizedTitle = optimizedTitle.replace(/\b(?<!Short\s)(?<!Long\s)Sleeve\b/gi, '').trim();
+                }
+            }
 
             // Clean up double spaces left by removal
             optimizedTitle = optimizedTitle.replace(/\s+/g, ' ').trim();
