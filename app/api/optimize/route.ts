@@ -625,7 +625,14 @@ export async function POST(request: NextRequest) {
 
         // --- POST-PROCESSING SAFETY FILTER ---
         if (optimizedTitle) {
-            // 0. CLEANUP INTERNAL MONOLOGUE (AI forgot to be silent)
+            // 0. CLEANUP MARKDOWN & LABELS
+            // Remove markdown code blocks (```text, ```)
+            optimizedTitle = optimizedTitle.replace(/```[a-z]*\s*/gi, '').replace(/```/g, '').trim();
+
+            // Remove explicit labels if the model added them
+            optimizedTitle = optimizedTitle.replace(/^(OUTPUT|Final Title|Title|Optimized Title):\s*/i, '');
+
+            // 0.5. CLEANUP INTERNAL MONOLOGUE (AI forgot to be silent)
             if (optimizedTitle.includes('PHASE') || optimizedTitle.includes('STEP')) {
                 console.log('[Filter] Detected Internal Monologue. Cleaning...');
                 const lines = optimizedTitle.split('\n');
