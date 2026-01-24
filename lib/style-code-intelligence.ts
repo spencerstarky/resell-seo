@@ -134,13 +134,15 @@ export class StyleCodeEngine {
                 }
             }
 
-            if (!bestMatch) {
-                // Fallback if no match found across all brands
-                return { isValid: false, confidenceScore: 0, candidate: cleanCandidate, rejectionReason: 'No matching pattern found', brandId: brands[0]?.id };
-            }
+        }
 
-            return bestMatch;
-        } // End validateCandidate
+        if (!bestMatch) {
+            // Fallback if no match found across all brands
+            return { isValid: false, confidenceScore: 0, candidate: cleanCandidate, rejectionReason: 'No matching pattern found', brandId: brands[0]?.id };
+        }
+
+        return bestMatch;
+    }
 
     /**
      * Checks if the candidate appears near forbidden words (RN, CA, etc.)
