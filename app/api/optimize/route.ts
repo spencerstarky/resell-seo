@@ -371,6 +371,17 @@ export async function POST(request: NextRequest) {
                 ? `*** FORCE INCLUSION ***\n        TRUSTED STYLE CODE DETECTED: "${verifiedStyleCode}"\n        You MUST include "${verifiedStyleCode}" at the end of the title.`
                 : `*** NO TRUSTED STYLE CODE DETECTED ***\n        Do NOT guess or invent a style code. Use ONLY what is explicitly proven.`}
 
+        SPORTS ASSOCIATION RULES (LEAGUE ID)
+        - When a professional or collegiate sports team is present, identify the correct league ONLY if it can be determined with high confidence (Team Name, Logos, Imagery).
+        - COMMON LEAGUES:
+          * NFL (Miami Dolphins, Dallas Cowboys, Green Bay Packers, etc.)
+          * MLB (NY Yankees, LA Dodgers, Boston Red Sox, etc.)
+          * NBA (LA Lakers, Boston Celtics, Chicago Bulls, etc.)
+          * NHL (Chicago Blackhawks, NY Rangers, Boston Bruins, etc.)
+          * NCAA (Alabama, Ohio State, Michigan, UNC, etc.)
+        - OUTPUT GUIDELINE: Include the league acronym (NFL, MLB, NBA, NHL, NCAA) in the title if confidence is high.
+        - STRICT RULE: Do NOT guess. If uncertain, OMIT the league.
+
         PHASE 2 — STRATEGY DECISION
         VALUE LEADER (FIRST TOKEN)
 
@@ -633,12 +644,12 @@ export async function POST(request: NextRequest) {
         PROTECTED (DO NOT DROP UNLESS ABSOLUTELY REQUIRED)
         1. Value Leader
         2. Product Name
-        3. Explicit Fit/Cut (Cropped, Boxy, Oversized, Slim)
-        4. Material (Core: Linen, Cotton, Wool, Silk, Leather, Denim)
-        5. Sleeve Length
-        6. Measurements
-        5. Style Code ← NEW PROTECTION
-        6. Color
+        3. Style Code (Verified)
+        4. Explicit Fit/Cut (Cropped, Boxy, Oversized, Slim)
+        5. Material (Core: Linen, Cotton, Wool, Silk, Leather, Denim)
+        6. Sleeve Length
+        7. Measurements
+        8. Color
 
         Style code may only be dropped after all non-core attributes are removed
         and only if keeping it would truncate Product Name or Measurements
