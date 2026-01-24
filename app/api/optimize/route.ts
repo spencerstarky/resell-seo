@@ -331,11 +331,14 @@ export async function POST(request: NextRequest) {
         Any standalone number (e.g. 8076) visible in images must be treated as a seller SKU and ignored.
         If a code appears on a shipping bag, sticker, tape, or handwritten label -> REJECT IT.
 
+        BRAND SPECIFIC EXCEPTIONS:
+        - UNIQLO: Valid codes are EXACTLY 6 digits (e.g. 477683). May appear as ###-######. Alphanumerics (HT0018PNK) are INVALID.
+
         A code is valid ONLY if:
         - Appears on a brand or retail tag
-        - Contains at least one letter
+        - Contains at least one letter (UNLESS it matches a Brand Exception like Uniqlo)
         - Is 8 characters or fewer
-        - Is not all numbers
+        - Is not all numbers (UNLESS Uniqlo)
         - Is not a factory or care tag number
 
         If uncertain → DO NOT INCLUDE IT
@@ -365,6 +368,11 @@ export async function POST(request: NextRequest) {
         Use when brand carries meaningful buyer search value
         NEVER use "Unbranded" as a Value Leader. If brand is "Unbranded", use Product Name or Material instead.
         Example: Patagonia, Nike, Levi’s
+
+        COLLABORATION EXCEPTION (CRITICAL)
+        If distinct brands are explicitly currently in the original title (e.g. "JW Anderson Uniqlo", "Nike Off-White", "Supreme North Face"), you MUST PRESERVE BOTH.
+        Do not force a single Value Leader if it destroys the collaboration value.
+        Output: "JW Anderson Uniqlo [Product Name]..."
 
         Hard Rule
         Only one Value Leader
@@ -508,6 +516,7 @@ export async function POST(request: NextRequest) {
         Check Input & Item Specifics for: "New with tags", "NWT", "Brand New", "NIB", "Unused".
         IF FOUND: You MUST include the word "New" at the end of the title.
         Example: "... Black Jacket New"
+        This matches eBay's "New" metadata requirement.
         This overrides the "Low Value" rule for descriptions—Condition is CRITICAL.
 
         Nike/Jordan codes:
