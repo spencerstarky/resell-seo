@@ -795,31 +795,61 @@ export async function POST(request: NextRequest) {
                 }
             }
 
-            // 6. MEASUREMENT LABEL CLEANUP (Orphaned descriptors)
-            // If specific words like "Pit to Pit", "P2P", "Length" exist but no numbers are near them (or we just stripped them), REMOVE THEM.
-            // These add no SEO value and clutter the title.
-            // We strip them unless they are part of a product name (unlikely for these terms).
-            const measLabels = [
+            // 6. CONTEXTUAL MEASUREMENT CLEANUP (Aggressive)
+            // If we see a pattern like "38 Length" or "Pit 24" where the number was NOT in the original title, nuke it.
+            const measKeywords = ['Pit', 'P2P', 'Length', 'Width', 'Inseam', 'Rise', 'Waist', 'Chest', 'Bust', 'Sleeve', 'Shoulder'];
+
+            measKeywords.forEach(kw => {
+                // Regex to find "NumberKW" or "KWNumber"
+                // Match: (Number) (Possible Unit) (Keyword) OR (Keyword) (Number)
+                const patterns = [
+                    new RegExp(`\\b(\\d+(?:\\.\\d+)?)\\s*(?:["']|in|cm)?\\s*${kw}\\b`, 'gi'), // "38 Length"
+                    new RegExp(`\\b${kw}\\s*:?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:["']|in|cm)?\\b`, 'gi') // "Length: 38"
+                ];
+
+                patterns.forEach(regex => {
+                    optimizedTitle = optimizedTitle.replace(regex, (match, num) => {
+                        // Check if the number (e.g. "38") is in the original title.
+                        // Use strict boundary check.
+                        if (num && new RegExp(`\\b${num.trim()}\\b`).test(lowerOrig)) {
+                            return match; // It's valid (e.g. original said "38 Length")
+                        }
+                        console.log(`[Filter] Removing contextual measurement hallucination: ${match}`);
+                        return '';
+                    });
+                });
+            });
+
+            // 7. ORPHAN MEASUREMENT LABEL CHECK
+            // Clean up any surviving labels (e.g. "Pit to Pit") that lost their numbers
+            const orphanLabels = [
                 /\bPit\s+To\s+Pit\b/gi,
                 /\bP2P\b/gi,
                 /\b(Shoulder\s+)?To\s+(Shoulder|Hem|Cuff)\b/gi,
                 /\bLength\b/gi,
                 /\bInseam\b/gi,
-                /\bWidth\b/gi
+                /\bWidth\b/gi,
+                /\bRise\b/gi
             ];
-
-            measLabels.forEach(regex => {
-                if (regex.test(optimizedTitle)) {
-                    // Safety: Only remove if NOT in original title. IF original title had "Maxi Length Dress", we keep it.
-                    // But "38 Length" is bad.
-                    // Check if lowerOrig contains the match.
-                    const matches = optimizedTitle.match(regex) || [];
-                    const matchStr = matches[0]; // simplistic
-                    if (matchStr && !lowerOrig.includes(matchStr.toLowerCase())) {
-                        console.log(`[Filter] Removing orphan measurement label: ${matchStr}`);
-                        optimizedTitle = optimizedTitle.replace(regex, '').trim();
-                    }
+            orphanLabels.forEach(regex => {
+                const matches = optimizedTitle.match(regex);
+                if (matches) {
+                    matches.forEach(m => {
+                        if (!lowerOrig.includes(m.toLowerCase())) {
+                            console.log(`[Filter] Removing orphan label: ${m}`);
+                            optimizedTitle = optimizedTitle.replace(m, '').trim();
+                        }
+                    });
                 }
+            });
+
+            // 8. FINAL UNIT SWEEP
+            // Catch "24in" or "24cm" leftovers
+            const unitRegex = /\b(\d+(?:\.\d+)?)\s*(?:in|inch|inches|cm|mm)\b/gi;
+            optimizedTitle = optimizedTitle.replace(unitRegex, (match, num) => {
+                if (new RegExp(`\\b${num.trim()}\\b`).test(lowerOrig)) return match;
+                console.log(`[Filter] Removing unit measurement: ${match}`);
+                return '';
             });
 
             // Clean up double spaces left by removal
