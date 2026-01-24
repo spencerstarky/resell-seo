@@ -586,17 +586,19 @@ export async function POST(request: NextRequest) {
 
         FINAL CHECK: FILL THE SPACE (MANDATORY)
         Target: 75–80 characters.
-        Current performance is stopping short (e.g. 63 chars). This is UNACCEPTABLE.
+        Current performance is stopping short (e.g. 66 chars). This is UNACCEPTABLE.
 
         IF TITLE < 75 CHARACTERS:
         You MUST add high-value keywords until you hit the limit.
 
+        NON-TERMINAL STYLE RULE (CRITICAL)
+        Style keywords (e.g. "Gorpcore") do NOT end the optimization.
+        After adding a style, you MUST continue to evaluate "Functional Descriptors" to fill the remaining space.
+
         PRIORITY OF FILLER KEYWORDS (STRICT HIERARCHY):
         1. STYLE ENGINE OUTPUT (e.g. "Athleisure", "Gorpcore", "Y2K") - HIGHEST VALUE
-           - Always prioritize these over specific Item Specifics.
-           - Example: If Style Engine says "Athleisure", USE IT. Do not use generic "Activewear".
-        2. High-Intent Descriptors (Fit, Function)
-           - e.g. "Slim Fit", "Waterproof", "Insulated", "Stretch"
+        2. FUNCTIONAL APPAREL DESCRIPTORS (Post-Style Fill)
+           - Insulated, Packable, Lightweight, Quilted, Puffer, Down
         3. Item Specifics (LOWEST PRIORITY)
            - Only use if no Style Keywords or Functional terms are available.
 
@@ -604,6 +606,10 @@ export async function POST(request: NextRequest) {
         - "Athleisure" > "Activewear" (Always prefer Athleisure)
         - "Vintage" > "Retro"
         - "Gorpcore" > "Outdoor" / "Utility" / "Insulated" (If authorized)
+
+        Rule: Do NOT leave 15 unused characters on the table. Fill it with value.
+        Do NOT add "New" or banned seasonal words.
+        USE THE SPACE.
 
         Rule: Do NOT leave 15 unused characters on the table. Fill it with value.
         Do NOT add "New" or banned seasonal words.
