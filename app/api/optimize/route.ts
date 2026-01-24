@@ -412,7 +412,9 @@ export async function POST(request: NextRequest) {
         [Type: "Shoes" (MANDATORY IF FOOTWEAR)]
         [Gender]
         [Tag Size]
+        [Tag Size]
         [Measurements (OPTIONAL - SKIP IF NOT IN ORIGINAL TITLE)]
+        [Material (Core Fabrics Only)]
         [Style Code]          <-- NEW: validated only, bare code, no label
         [Color]
         [Type]
@@ -450,9 +452,9 @@ export async function POST(request: NextRequest) {
 
 
         MATERIAL HANDLING
-        Material only appears as:
-        Value Leader (Luxury Material case), OR
-        SEO Keyword
+        Core Fabrics (Linen, Cotton, Wool, Silk, Leather, Denim) are PROTECTED.
+        Never drop them to make space for SEO keywords.
+        Other materials appear as SEO Keywords only if space permits.
 
         NEGATIVE KEYWORD LIST (BANNED)
         Do NOT use these words unless part of a specific Product Name (e.g. "Summer Breeze Dress") OR if the material is Linen/Seersucker (Exception: "Summer" allowed for Linen):
@@ -599,18 +601,18 @@ export async function POST(request: NextRequest) {
         If title exceeds 80 characters, remove items in this exact order:
 
         DROP PRIORITY (LOW → HIGH VALUE)
-        1. SEO Keywords
+        1. SEO Keywords (Generic adjectives first)
         2. Type
-        3. Material (if present)
-        4. Gender
-        5. Tag Size
+        3. Gender
+        4. Tag Size
 
         PROTECTED (DO NOT DROP UNLESS ABSOLUTELY REQUIRED)
         1. Value Leader
         2. Product Name
-        3. Measurements
-        4. Style Code ← NEW PROTECTION
-        5. Color
+        3. Material (Core: Linen, Cotton, Wool, Silk, Leather, Denim)
+        4. Measurements
+        5. Style Code ← NEW PROTECTION
+        6. Color
 
         Style code may only be dropped after all non-core attributes are removed
         and only if keeping it would truncate Product Name or Measurements
