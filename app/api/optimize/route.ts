@@ -229,6 +229,8 @@ export async function POST(request: NextRequest) {
             cleanInfo = cleanInfo.replace(/\b\d+(?:\.\d+)?\s*(?:"|'|in|cm|mm|ft)?\s*(?:Length|Chest|Pit|Sleeve|Inseam|Waist|Rise|Width)\b/gi, '[REDACTED_MEASUREMENT]');
             // Strip explicit "Size: 44" type patterns if they look like measurements (simple heuristic)
             cleanInfo = cleanInfo.replace(/\b(Chest|Bust|Length|Inseam)\s*:?\s*\d+(?:\.\d+)?\b/gi, '$1: [REDACTED]');
+            // Strip explicit Material/Fabric fields to prevent hallucination
+            cleanInfo = cleanInfo.replace(/\b(Material|Fabric|Shell|Lining|Content)\s*:?\s*[a-zA-Z0-9\s,\/]+\b/gi, '$1: [REDACTED_MATERIAL]');
         }
 
         const promptText = `
@@ -300,6 +302,10 @@ export async function POST(request: NextRequest) {
         Color (MANDATORY if visible)
 
         Material (tag or text only)
+        Material Restriction (High Risk Attribute)
+        Do NOT extract or infer material from item specifics.
+        Item specifics may be used only to confirm low-risk attributes (gender, category, basic type).
+        If material appears only in item specifics and not in the original title or brand tags, it MUST be omitted.
 
         Team Name
 
