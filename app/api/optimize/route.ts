@@ -338,6 +338,7 @@ export async function POST(request: NextRequest) {
         If a code appears on a shipping bag, sticker, tape, or handwritten label -> REJECT IT.
 
         BRAND SPECIFIC EXCEPTIONS:
+        - LL BEAN: Format as "LL Bean" (No space between Ls). Never "L L Bean".
         - UNIQLO: Valid codes are EXACTLY 6 digits (e.g. 477683). May appear as ###-######. Alphanumerics (HT0018PNK) are INVALID.
         - NIKE / JORDAN: Valid codes are 6 CHARACTERS ONLY (e.g. AR7135).
           - Format: 2 letters + 4 digits (e.g. AR7135, CZ9999).
@@ -454,9 +455,9 @@ export async function POST(request: NextRequest) {
         SEO Keyword
 
         NEGATIVE KEYWORD LIST (BANNED)
-        Do NOT use these words unless part of a specific Product Name (e.g. "Summer Breeze Dress"):
+        Do NOT use these words unless part of a specific Product Name (e.g. "Summer Breeze Dress") OR if the material is Linen/Seersucker (Exception: "Summer" allowed for Linen):
         - Winter
-        - Summer
+        - Summer (Allowed ONLY if material is Linen/Seersucker)
         - Spring
         - Fall
         - Autumn
@@ -634,9 +635,12 @@ export async function POST(request: NextRequest) {
 
         PRIORITY OF FILLER KEYWORDS (STRICT HIERARCHY):
         1. STYLE ENGINE OUTPUT (e.g. "Athleisure", "Gorpcore", "Y2K") - HIGHEST VALUE
-        2. FUNCTIONAL APPAREL DESCRIPTORS (Post-Style Fill)
+        2. CONTEXTUAL FILLERS (Category Logic):
+           - BLAZERS/JACKETS: "Preppy", "Lightweight", "Breathable", "Classic", "Academia".
+           - LINEN ITEMS: "Breathable", "Summer", "Lightweight".
+        3. FUNCTIONAL APPRAREL DESCRIPTORS (Post-Style Fill)
            - Insulated, Packable, Lightweight, Quilted, Puffer, Down
-        3. Item Specifics (LOWEST PRIORITY)
+        4. Item Specifics (LOWEST PRIORITY)
            - Only use if no Style Keywords or Functional terms are available.
 
         SPECIFIC STYLE RULES:
