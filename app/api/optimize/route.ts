@@ -342,6 +342,8 @@ export async function POST(request: NextRequest) {
 
         BRAND SPECIFIC EXCEPTIONS:
         - LULULEMON: Valid codes are 7-8 chars (e.g. LW4AU8S). Starts with LW/LM/W. Circular text. NEVER TRUNCATE.
+          - MEN'S MATCH: Must start with "LM" or "M". REJECT "LW" (Women's) code on Men's item.
+          - WOMEN'S MATCH: Must start with "LW", "W" or "LM".
         - LL BEAN: Format as "LL Bean" (No space between Ls). Never "L L Bean".
         - UNIQLO: Valid codes are EXACTLY 6 digits (e.g. 477683). May appear as ###-######. Alphanumerics (HT0018PNK) are INVALID.
         - NIKE / JORDAN: Valid codes are 6 CHARACTERS ONLY (e.g. AR7135).
@@ -359,6 +361,11 @@ export async function POST(request: NextRequest) {
         - Is not a factory or care tag number
 
         If uncertain → DO NOT INCLUDE IT
+        
+        NO HALLUCINATION RULE (ZERO TOLERANCE)
+        If a style code is not explicitly visible in the provided image text or original title, DO NOT INVENT ONE.
+        Do not infer codes from patterns (e.g. "It looks like a Metal Vent Tech so it must be LM3...").
+        If verified code is missing, leave the [Style Code] slot EMPTY.
 
         ${verifiedStyleCode
                 ? `*** FORCE INCLUSION ***\n        TRUSTED STYLE CODE DETECTED: "${verifiedStyleCode}"\n        You MUST include "${verifiedStyleCode}" at the end of the title.`
