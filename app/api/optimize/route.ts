@@ -321,10 +321,16 @@ export async function POST(request: NextRequest) {
 
         STYLE / MODEL CODE RULES (ZERO TOLERANCE)
 
+        NUMERIC ACCURACY RULE (CRITICAL)
+        When extracting numbers from tags, digits MUST be copied exactly as shown.
+        If any digit is unclear, partially obscured, or ambiguous, the entire number MUST be omitted.
+        Never approximate, guess, or substitute digits.
+        Example: If you see "4?7683", DO NOT write "477683". Write NOTHING.
+
         SKU vs Style Code Differentiation (Critical)
         Numeric-only values are NEVER valid style codes.
         A valid style code must:
-        - Appear on a brand or retail tag (not packaging, bags, or handwritten labels)
+        - Appear on a brand or retail tag
         - Contain at least one letter
         - Be clearly associated with the manufacturer, not the seller
 
@@ -516,8 +522,11 @@ export async function POST(request: NextRequest) {
         Check Input & Item Specifics for: "New with tags", "NWT", "Brand New", "NIB", "Unused".
         IF FOUND: You MUST include the word "New" at the end of the title.
         Example: "... Black Jacket New"
-        This matches eBay's "New" metadata requirement.
         This overrides the "Low Value" rule for descriptions—Condition is CRITICAL.
+        
+        SPACE SAVING PERMISSION:
+        If space is critical to fit "New", you MAJOR drop apostrophes (e.g. "Womens", "Mens") or remove low-impact words (e.g. "Fit", "Button").
+        "New" > Grammar.
 
         Nike/Jordan codes:
 
