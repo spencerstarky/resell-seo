@@ -579,15 +579,27 @@ export async function POST(request: NextRequest) {
         OUTPUT
         Return ONLY the final optimized title string.
 
-        FINAL CHECK: TARGET 75-80 CHARACTERS (AGGRESSIVE)
-        If the title is under 75 characters, you MUST add more High Value Keywords to fill the space.
+        FINAL CHECK: FILL THE SPACE (MANDATORY)
+        Target: 75–80 characters.
+        Current performance is stopping short (e.g. 63 chars). This is UNACCEPTABLE.
 
-        Priority for Fillers:
-        1. Fit (e.g. "Straight", "Relaxed", "Slim", "Loose") - HIGH VALUE
-        2. Material (e.g. "Cotton", "Denim", "Canvas")
-        3. Style Synonyms (e.g. "Work", "Utility", "Outdoor")
+        IF TITLE < 75 CHARACTERS:
+        You MUST add high-value keywords until you hit the limit.
 
-        Rule: Never leave more than 5 characters unused if valid keywords exist.
+        PRIORITY OF FILLER KEYWORDS (STRICT HIERARCHY):
+        1. STYLE ENGINE OUTPUT (e.g. "Athleisure", "Gorpcore", "Y2K") - HIGHEST VALUE
+           - Always prioritize these over specific Item Specifics.
+           - Example: If Style Engine says "Athleisure", USE IT. Do not use generic "Activewear".
+        2. High-Intent Descriptors (Fit, Function)
+           - e.g. "Slim Fit", "Waterproof", "Insulated", "Stretch"
+        3. Item Specifics (LOWEST PRIORITY)
+           - Only use if no Style Keywords or Functional terms are available.
+
+        SPECIFIC STYLE RULES:
+        - "Athleisure" > "Activewear" (Always prefer Athleisure)
+        - "Vintage" > "Retro"
+
+        Rule: Do NOT leave 15 unused characters on the table. Fill it with value.
         Do NOT add "New" or banned seasonal words.
         USE THE SPACE.
         `;
