@@ -324,9 +324,20 @@ export async function POST(request: NextRequest) {
 
         STYLE / MODEL CODE RULES (ZERO TOLERANCE)
 
+        STYLE CODE PRIORITY ORDER:
+        1) Original (unoptimized) title → ALWAYS trusted (HIGHEST PRIORITY)
+        2) Item description → trusted
+        3) Images → only if perfectly clear and unambiguous
+
+        ORIGINAL TITLE TRUST RULE (CRITICAL):
+        - If a style code exists in the original title, you MUST preserve it exactly.
+        - Do not modify, shorten, reformat, or "clean up" a style code from the original title.
+        - Prefer the original title's code over any conflicting visual evidence unless the title code is clearly impossible (e.g. wrong format for brand).
+        - A missing style code is always preferable to an incorrect one.
+
         NUMERIC ACCURACY RULE (CRITICAL)
         When extracting numbers from tags, digits MUST be copied exactly as shown.
-        If any digit is unclear, partially obscured, or ambiguous, the entire number MUST be omitted.
+        If any digit is unclear, partially obscured, or ambiguous, or curved/crinkled beyond readable certainty, the entire number MUST be omitted.
         Never approximate, guess, or substitute digits.
         Example: If you see "4?7683", DO NOT write "477683". Write NOTHING.
 
@@ -342,13 +353,13 @@ export async function POST(request: NextRequest) {
 
         BRAND SPECIFIC EXCEPTIONS:
         - LULULEMON: Valid codes are 7-8 chars (e.g. LW4AU8S). Starts with LW/LM/W. Circular text. NEVER TRUNCATE.
-          - MEN'S MATCH: Must start with "LM" or "M". REJECT "LW" (Women's) code on Men's item.
-          - WOMEN'S MATCH: Must start with "LW", "W" or "LM".
+          - MEN'S MATCH: Must start with "LM" or "M". IF prefix is "LW", OMIT THE CODE entirely.
+          - WOMEN'S MATCH: Must start with "LW", "W" or "LM". IF prefix implies Men's but item is Women's, OMIT.
+          - Size-dot codes printed in circular formats require HIGH confidence to include.
         - LL BEAN: Format as "LL Bean" (No space between Ls). Never "L L Bean".
         - UNIQLO: Valid codes are EXACTLY 6 digits (e.g. 477683). May appear as ###-######. Alphanumerics (HT0018PNK) are INVALID.
         - NIKE / JORDAN: Valid codes are 6 CHARACTERS ONLY (e.g. AR7135).
           - Format: 2 letters + 4 digits (e.g. AR7135, CZ9999).
-          - If the tag says "AR7135-010", you MUST extract ONLY "AR7135".
           - If the tag says "AR7135-010", you MUST extract ONLY "AR7135".
           - Ignore "FA...", "HO...", "SP...", "SU..." codes (these are dates/seasons, not styles).
           - SUFFIX STRIPPING: If a code looks like "AR7135LMS", extract ONLY "AR7135". Ignore trailing letters.
