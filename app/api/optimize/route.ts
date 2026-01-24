@@ -551,13 +551,26 @@ export async function POST(request: NextRequest) {
 
         STRICT DUPLICATE PROHIBITION
         NEVER repeat the same word twice.
-        Example: "Sweater ... Sweater" -> FAIL.
-        If "Sweater" is in the Product Name, DO NOT add it again as an SEO Keyword.
-        Check the final string: does any word appear twice? If yes, remove the second occurrence.
+        
+        ACTIVITY SYNONYM BLOCKER (HARD RULE)
+        The following words are synonyms and must NEVER appear together:
+        - "Active"
+        - "Activewear"
+        - "Athletic"
+        - "Performance"
+        If multiple exist, REMOVE ALL BUT ONE, or use the Replacement Logic below.
 
-        Synonyms are ALLOWED if space permits.
-        Example: "Baggy" AND "Loose" is acceptable if title length < 80.
-        Example: "Wide Leg" AND "Relaxed" is acceptable.
+        INTENT REPLACEMENT LOGIC (HIGH VALUE)
+        Replace generic synonyms with High-Intent keywords:
+        1. "Athleisure" (Casual/Lifestyle) -> Use for hoodies, joggers, tees (Nike, Lululemon, Vuori).
+        2. "Training" (Workout/Gym) -> Use for technical gear.
+        
+        Stacking Rule: You MAY stack "Athleisure" AND "Training" if the item fits both.
+        You MAY NOT stack "Activewear" AND "Athletic".
+        
+        Example: "Nike Hoodie Active Activewear" -> "Nike Hoodie Athleisure Training" (Valid)
+
+        Synonyms are ALLOWED if space permits (e.g. "Baggy" AND "Loose").
         DO NOT aggressively de-duplicate typically searching synonyms unless you exceed 80 characters.
 
         STYLE STACKING (NEW RULE)
