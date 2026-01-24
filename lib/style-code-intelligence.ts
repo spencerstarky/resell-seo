@@ -140,7 +140,7 @@ export class StyleCodeEngine {
             }
 
             return bestMatch;
-        }
+        } // End validateCandidate
 
     /**
      * Checks if the candidate appears near forbidden words (RN, CA, etc.)
