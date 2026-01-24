@@ -342,7 +342,9 @@ export async function POST(request: NextRequest) {
         - NIKE / JORDAN: Valid codes are 6 CHARACTERS ONLY (e.g. AR7135).
           - Format: 2 letters + 4 digits (e.g. AR7135, CZ9999).
           - If the tag says "AR7135-010", you MUST extract ONLY "AR7135".
-          - Ignore "FA...", "HO...", "SP..." codes (these are dates, not styles).
+          - If the tag says "AR7135-010", you MUST extract ONLY "AR7135".
+          - Ignore "FA...", "HO...", "SP...", "SU..." codes (these are dates/seasons, not styles).
+          - SUFFIX STRIPPING: If a code looks like "AR7135LMS", extract ONLY "AR7135". Ignore trailing letters.
 
         A code is valid ONLY if:
         - Appears on a brand or retail tag
