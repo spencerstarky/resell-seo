@@ -562,15 +562,25 @@ export async function POST(request: NextRequest) {
         Fallback to "Mens" or "Womens" only if space is critically low.
         Avoid singular "Men" or "Women" unless part of a specific product name.
 
-        CONDITION MANDATE (CRITICAL):
-        Check Input & Item Specifics for: "New with tags", "NWT", "Brand New", "NIB", "Unused".
-        IF FOUND: You MUST include the word "New" at the end of the title.
-        Example: "... Black Jacket New"
-        This overrides the "Low Value" rule for descriptions—Condition is CRITICAL.
-        
-        SPACE SAVING PERMISSION:
-        If space is critical to fit "New", you MAJOR drop apostrophes (e.g. "Womens", "Mens") or remove low-impact words (e.g. "Fit", "Button").
-        "New" > Grammar.
+        NEW ITEM DETECTION (CRITICAL CONDITION RULE):
+        Add "New" to the optimized title ONLY when there is clear evidence the item is new.
+
+        QUALIFYING SIGNALS (any one is sufficient):
+        - "New", "NWT", "New With Tags", "BNWT" appears in the original (unoptimized) title
+        - Item condition is explicitly marked as "New"
+        - Product images clearly show original retail tags attached
+
+        RULES:
+        - If an item qualifies as new, include the word "New" in the optimized title.
+        - Use "New" (not "NWT") for character efficiency unless space allows both.
+        - Insert "New" near the end of the title, after core descriptors and before low-priority keywords.
+        - Do NOT infer "New" based on condition words like "Excellent", "Like New", or "Unused" unless tags are clearly present.
+        - Do NOT add "New" if evidence is ambiguous or unclear.
+
+        PRIORITY RULE:
+        - "New" has higher priority than trend keywords (athleisure, gorpcore, academia, etc.).
+        - If character limits are reached, remove or shorten trend keywords before removing "New".
+        - "New" > Grammar (drop apostrophes/formatting to fit "New").
         ABBREVIATION RULE: If > 80 chars, Change "Training" -> "Train", "Lightweight" -> "Lt Wt".
 
         SLEEVE LENGTH RULE (T-SHIRTS ONLY)
