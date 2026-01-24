@@ -221,12 +221,22 @@ export async function POST(request: NextRequest) {
         }
         // -------------------------------
 
+        // SANITIZATION: Blind the AI to measurements in Item Specifics
+        // This prevents the "inference" problem where AI reads "Chest: 44" in specifics and adds "22 Pit to Pit" to title.
+        let cleanInfo = additionalInfo || 'None provided';
+        if (cleanInfo !== 'None provided') {
+            // Strip numbers followed by measurement keywords or units
+            cleanInfo = cleanInfo.replace(/\b\d+(?:\.\d+)?\s*(?:"|'|in|cm|mm|ft)?\s*(?:Length|Chest|Pit|Sleeve|Inseam|Waist|Rise|Width)\b/gi, '[REDACTED_MEASUREMENT]');
+            // Strip explicit "Size: 44" type patterns if they look like measurements (simple heuristic)
+            cleanInfo = cleanInfo.replace(/\b(Chest|Bust|Length|Inseam)\s*:?\s*\d+(?:\.\d+)?\b/gi, '$1: [REDACTED]');
+        }
+
         const promptText = `
         Current Date: ${new Date().toISOString()}
 
         INPUT DATA:
         Original Title: "${title}"
-        Item Specifics: "${additionalInfo || 'None provided'}"
+        Item Specifics: "${cleanInfo}"
 
         SYSTEM ROLE
 
