@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
         Original Title: "${title}"
         Item Specifics: "${additionalInfo || 'None provided'}"
 
-        SPEC VERSION: v1.3
+        SPEC VERSION: v1.4
         STATUS: REVISED
 
         CHANGE POLICY:
@@ -488,19 +488,10 @@ export async function POST(request: NextRequest) {
           → ACTION: Choose ONE (Priority: Athleisure > Activewear > Athletic).
           → DELETE the others.
         - PROHIBITED STACK: [Vintage, Retro] -> Choose "Vintage".
+        - PROHIBITED STACK: [Parka, Jacket, Coat] -> Choose ONE (Priority: Parka > Coat > Jacket).
 
         KEYWORD SYNTHESIS
         - If Shirt + Jacket implied → add "Shacket" if space permits
-
-        PARTIAL PHRASE BAN (STRICT)
-        - Never use "Sleeve" alone.
-        - Must be "Short Sleeve" or "Long Sleeve".
-        - If space is tight, drop "Sleeve" entirely > using partial "Sleeve".
-
-        PARTIAL PHRASE BAN (STRICT)
-        - Never use "Sleeve" alone.
-        - Must be "Short Sleeve" or "Long Sleeve".
-        - If space is tight, drop "Sleeve" entirely > using partial "Sleeve".
 
         PARTIAL PHRASE BAN (STRICT)
         - Never use "Sleeve" alone.
@@ -736,7 +727,8 @@ export async function POST(request: NextRequest) {
 
             // 4. CHECK FOR HALLUCINATED SINGLE MEASUREMENTS (e.g. 26", 29")
             // Pattern: Number followed by quote (26", 26')
-            const singleMeasRegex = /\b(\d+(?:\.\d+)?)\s*["'\u201C\u201D\u2033\u2036]\b/g;
+            // fixed regex: Remove trailing boundary \b to match 24" followed by space
+            const singleMeasRegex = /\b(\d+(?:\.\d+)?)\s*["'\u201C\u201D\u2033\u2036]/g;
             optimizedTitle = optimizedTitle.replace(singleMeasRegex, (fullMatch, num) => {
                 // Check if this number exists in the original title
                 // We verify if "26" exists as a whole word in lowerOrig
@@ -765,6 +757,33 @@ export async function POST(request: NextRequest) {
                     optimizedTitle = optimizedTitle.replace(/\b(?<!Short\s)(?<!Long\s)Sleeve\b/gi, '').trim();
                 }
             }
+
+            // 6. MEASUREMENT LABEL CLEANUP (Orphaned descriptors)
+            // If specific words like "Pit to Pit", "P2P", "Length" exist but no numbers are near them (or we just stripped them), REMOVE THEM.
+            // These add no SEO value and clutter the title.
+            // We strip them unless they are part of a product name (unlikely for these terms).
+            const measLabels = [
+                /\bPit\s+To\s+Pit\b/gi,
+                /\bP2P\b/gi,
+                /\b(Shoulder\s+)?To\s+(Shoulder|Hem|Cuff)\b/gi,
+                /\bLength\b/gi,
+                /\bInseam\b/gi,
+                /\bWidth\b/gi
+            ];
+
+            measLabels.forEach(regex => {
+                if (regex.test(optimizedTitle)) {
+                    // Safety: Only remove if NOT in original title. IF original title had "Maxi Length Dress", we keep it.
+                    // But "38 Length" is bad.
+                    // Check if lowerOrig contains the match.
+                    const matches = optimizedTitle.match(regex) || [];
+                    const matchStr = matches[0]; // simplistic
+                    if (matchStr && !lowerOrig.includes(matchStr.toLowerCase())) {
+                        console.log(`[Filter] Removing orphan measurement label: ${matchStr}`);
+                        optimizedTitle = optimizedTitle.replace(regex, '').trim();
+                    }
+                }
+            });
 
             // Clean up double spaces left by removal
             optimizedTitle = optimizedTitle.replace(/\s+/g, ' ').trim();
