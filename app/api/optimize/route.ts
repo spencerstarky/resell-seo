@@ -321,17 +321,22 @@ export async function POST(request: NextRequest) {
 
         STYLE / MODEL CODE RULES (ZERO TOLERANCE)
 
+        SKU vs Style Code Differentiation (Critical)
+        Numeric-only values are NEVER valid style codes.
+        A valid style code must:
+        - Appear on a brand or retail tag (not packaging, bags, or handwritten labels)
+        - Contain at least one letter
+        - Be clearly associated with the manufacturer, not the seller
+
+        Any standalone number (e.g. 8076) visible in images must be treated as a seller SKU and ignored.
+        If a code appears on a shipping bag, sticker, tape, or handwritten label -> REJECT IT.
+
         A code is valid ONLY if:
-
-        Appears on a brand or retail tag
-
-        Contains at least one letter
-
-        Is 8 characters or fewer
-
-        Is not all numbers
-
-        Is not a long factory or care tag number
+        - Appears on a brand or retail tag
+        - Contains at least one letter
+        - Is 8 characters or fewer
+        - Is not all numbers
+        - Is not a factory or care tag number
 
         If uncertain → DO NOT INCLUDE IT
 
@@ -598,6 +603,7 @@ export async function POST(request: NextRequest) {
         SPECIFIC STYLE RULES:
         - "Athleisure" > "Activewear" (Always prefer Athleisure)
         - "Vintage" > "Retro"
+        - "Gorpcore" > "Outdoor" / "Utility" / "Insulated" (If authorized)
 
         Rule: Do NOT leave 15 unused characters on the table. Fill it with value.
         Do NOT add "New" or banned seasonal words.
