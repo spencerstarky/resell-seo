@@ -409,6 +409,7 @@ export async function POST(request: NextRequest) {
 
         [Value Leader]
         [Product Name]
+        [Fit/Cut (Cropped, Boxy, etc)]
         [Type: "Shoes" (MANDATORY IF FOOTWEAR)]
         [Gender]
         [Tag Size]
@@ -538,8 +539,12 @@ export async function POST(request: NextRequest) {
         "New" > Grammar.
 
         Nike/Jordan codes:
-
         Keep first 6 characters only
+
+        FIT/CUT PROTECTION (CRITICAL)
+        If the original title or image contains explicit fit/cut modifiers (Cropped, Boxy, Oversized, Relaxed, Slim, Baggy, Fitted), you MUST preserve them.
+        Treat them as part of the Product Name or place immediately after.
+        Never drop them for generic SEO keywords.
 
         SEO RULES
 
@@ -609,7 +614,8 @@ export async function POST(request: NextRequest) {
         PROTECTED (DO NOT DROP UNLESS ABSOLUTELY REQUIRED)
         1. Value Leader
         2. Product Name
-        3. Material (Core: Linen, Cotton, Wool, Silk, Leather, Denim)
+        3. Explicit Fit/Cut (Cropped, Boxy, Oversized, Slim)
+        4. Material (Core: Linen, Cotton, Wool, Silk, Leather, Denim)
         4. Measurements
         5. Style Code ← NEW PROTECTION
         6. Color
