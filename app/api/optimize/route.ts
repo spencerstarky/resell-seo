@@ -282,11 +282,14 @@ export async function POST(request: NextRequest) {
         Allowed Facts
 
         VISUAL EXTRACTION RULES (CRITICAL)
-        1. Lululemon Size Dots: If you see a small white circle with a number in the middle, READ THE TEXT AROUND THE RIM.
-           - It is curved text.
-           - It usually starts with "LW", "LM", or "W".
-           - Example: "LW5BMUS"
-           - You MUST extract this code if visible.
+        1. Lululemon Size Dots (CRITICAL ACCURACY):
+           - Location: Small white circle (size dot) in pocket or mesh.
+           - Action: READ THE TEXT AROUND THE RIM. It is curved.
+           - READ FULL CODE: Capture ALL alphanumeric characters. DO NOT TRUNCATE.
+           - Format: Usually starts with "LW", "LM", or "W" followed by 5-6 alphanumerics.
+           - Length: 7-8 Characters total (e.g. "LW4AU8S").
+           - Validation: If text is unclear/worn, DO NOT GUESS.
+           - You MUST extract this code exactly as visible.
 
         Brand
         (EXCEPTION: Never include "Unbranded", "Unknown", "No Brand", or "Generic")
@@ -338,6 +341,7 @@ export async function POST(request: NextRequest) {
         If a code appears on a shipping bag, sticker, tape, or handwritten label -> REJECT IT.
 
         BRAND SPECIFIC EXCEPTIONS:
+        - LULULEMON: Valid codes are 7-8 chars (e.g. LW4AU8S). Starts with LW/LM/W. Circular text. NEVER TRUNCATE.
         - LL BEAN: Format as "LL Bean" (No space between Ls). Never "L L Bean".
         - UNIQLO: Valid codes are EXACTLY 6 digits (e.g. 477683). May appear as ###-######. Alphanumerics (HT0018PNK) are INVALID.
         - NIKE / JORDAN: Valid codes are 6 CHARACTERS ONLY (e.g. AR7135).
