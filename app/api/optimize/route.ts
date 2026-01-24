@@ -419,6 +419,7 @@ export async function POST(request: NextRequest) {
         [Tag Size]
         [Tag Size]
         [Measurements (OPTIONAL - SKIP IF NOT IN ORIGINAL TITLE)]
+        [Sleeve Length (T-Shirts Only)]
         [Material (Core Fabrics Only)]
         [Style Code]          <-- NEW: validated only, bare code, no label
         [Color]
@@ -541,6 +542,13 @@ export async function POST(request: NextRequest) {
         SPACE SAVING PERMISSION:
         If space is critical to fit "New", you MAJOR drop apostrophes (e.g. "Womens", "Mens") or remove low-impact words (e.g. "Fit", "Button").
         "New" > Grammar.
+        ABBREVIATION RULE: If > 80 chars, Change "Training" -> "Train", "Lightweight" -> "Lt Wt".
+
+        SLEEVE LENGTH RULE (T-SHIRTS ONLY)
+        Scope: T-Shirts, Athletic Tees, Vent Tech, Crop Tops.
+        Action: Inject "Short Sleeve" or "Long Sleeve" ONLY if explicitly visible (image/title).
+        Exclusion: DO NOT inject for Sweaters, Hoodies, Jackets, Blazers.
+        Priority: High (Protected Attribute).
 
         Nike/Jordan codes:
         Keep first 6 characters only
@@ -620,7 +628,8 @@ export async function POST(request: NextRequest) {
         2. Product Name
         3. Explicit Fit/Cut (Cropped, Boxy, Oversized, Slim)
         4. Material (Core: Linen, Cotton, Wool, Silk, Leather, Denim)
-        4. Measurements
+        5. Sleeve Length
+        6. Measurements
         5. Style Code ← NEW PROTECTION
         6. Color
 
