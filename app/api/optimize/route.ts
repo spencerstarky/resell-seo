@@ -339,6 +339,10 @@ export async function POST(request: NextRequest) {
 
         BRAND SPECIFIC EXCEPTIONS:
         - UNIQLO: Valid codes are EXACTLY 6 digits (e.g. 477683). May appear as ###-######. Alphanumerics (HT0018PNK) are INVALID.
+        - NIKE / JORDAN: Valid codes are 6 CHARACTERS ONLY (e.g. AR7135).
+          - Format: 2 letters + 4 digits (e.g. AR7135, CZ9999).
+          - If the tag says "AR7135-010", you MUST extract ONLY "AR7135".
+          - Ignore "FA...", "HO...", "SP..." codes (these are dates, not styles).
 
         A code is valid ONLY if:
         - Appears on a brand or retail tag
