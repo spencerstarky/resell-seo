@@ -312,7 +312,9 @@ export async function POST(request: NextRequest) {
 
         Measurements (STRICT: Source from ORIGINAL TITLE ONLY. Do NOT extract from Item Specifics or Images. If not in title, do not include. NO INFERENCE.)
 
-        Color (MANDATORY if visible)
+        Color (MANDATORY if visible - SOURCE FROM CURRENT IMAGES ONLY)
+        - Do NOT infer color from past sales data or common brand knowledge.
+        - If the image shows Blue, the item is Blue.
 
         Material (tag or text only)
         Material Restriction (High Risk Attribute)
@@ -328,6 +330,11 @@ export async function POST(request: NextRequest) {
         'Button Down' refers to the COLLAR, not the front closure.
         NEVER use "Button Down Collar" unless you see physical buttons on the collar points.
         For a shirt that buttons up the front, use "Button Front" or "Button Up".
+        
+        CAMP COLLAR (High Value):
+        - Detect "Camp Collar" looks (open, flat, pajama-style, no top button/loop).
+        - If visible, "Camp Collar" is a high-ranking keyword.
+        - Do not infer collar type. If unsure, omit it.
         Do not infer collar type. If unsure, omit it.
 
         Style / Model Code (STRICT RULES BELOW)
