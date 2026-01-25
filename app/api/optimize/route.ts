@@ -659,6 +659,16 @@ export async function POST(request: NextRequest) {
         Treat them as part of the Product Name or place immediately after.
         Never drop them for generic SEO keywords.
 
+        FIT & SILHOUETTE KEYWORD STACKING (ALLOWED):
+        - You MAY stack complementary fit keywords IF they describe the same shape and space permits.
+        - Allowed Stacks:
+          - "Relaxed" + "Baggy"
+          - "Wide Leg" + "Relaxed"
+          - "Oversized" + "Baggy"
+        - Priority: Fit Stacking > Aesthetic/Trend Keywords (e.g. Streetwear, Y2K).
+        - Condition: Must not conflict (never "Slim" + "Baggy").
+        - Example: "Karl Kani Jeans 36x31 Relaxed Wide Leg Baggy" is ACCEPTABLE if valid.
+
         SEO RULES
 
         Think like a buyer
@@ -756,19 +766,23 @@ export async function POST(request: NextRequest) {
         4. Gender
         5. Size
         6. Style Code (Verified Only)
-        7. Down Fill Power (e.g. 850 Fill)
-        8. Performance Fabric (Dri-Fit, Climacool, etc.)
-        9. Color
-        10. Sport Context (Golf, Training)
-        11. Generic Keywords (Athletic, Casual, Nice, etc.)
+        7. Fit & Silhouette (Relaxed, Wide Leg, Baggy)
+        8. Down Fill Power (e.g. 850 Fill)
+        9. Performance Fabric (Dri-Fit, Climacool, etc.)
+        10. Color
+        11. Sport Context (Golf, Training)
+        12. Generic Keywords (Athletic, Casual, Nice, etc.)
 
         DROP ORDER (REMOVE THESE FIRST → LAST):
         1. Generic Keywords (Athletic, Casual)
         2. Sport Context (Golf, Training - unless highly relevant)
         3. Color (only if critical for space)
-        4. Performance Fabric (only if absolutely forced)
-        5. Down Fill Power (PROTECTED - ONLY if absolutely forced)
-        6. Style Code (Last resort before dropping core identifiers)
+        4. Fit & Silhouette (only if forced)
+        5. Performance Fabric (only if absolutely forced)
+        6. Down Fill Power (PROTECTED - ONLY if absolutely forced)
+        7. Style Code (Last resort before dropping core identifiers)
+
+
 
         FINAL CHECK:
         - If characters remain and verified attributes like "Dri-Fit" or "Golf" are available, include them.
