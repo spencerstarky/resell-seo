@@ -317,6 +317,20 @@ export async function POST(request: NextRequest) {
         - If the image shows Blue, the item is Blue.
 
         Material (tag or text only)
+        
+        HIGH-VALUE MATERIAL INJECTION (IMAGE-SAFE ONLY):
+        - Only inject luxury materials (Wool, Cashmere, Linen, Silk, Alpaca, Merino) if:
+          1. Explicitly visible on a fabric tag in the images.
+          2. Present in the verified original title.
+        - DO NOT infer materials from appearance (e.g. "looks like wool") or brand reputation.
+        - If uncertain, OMIT the material.
+
+        KNIT & SWEATER DETECTION (VISUAL STRUCTURAL LOGIC):
+        - IF the item is clearly a Knit/Sweater (visible stitching, ribbing, Fair Isle), AND the category supports it:
+          - Inject "Knit" or "Sweater" if missing.
+          - "Fair Isle" implies "Knit Sweater".
+          - "Knit" > "Casual" (Replace low value with Knit).
+
         Material Restriction (High Risk Attribute)
         Do NOT extract or infer material from item specifics.
         Item specifics may be used only to confirm low-risk attributes (gender, category, basic type).
@@ -530,21 +544,16 @@ export async function POST(request: NextRequest) {
         Never drop them to make space for SEO keywords.
         Other materials appear as SEO Keywords only if space permits.
 
-        NEGATIVE KEYWORD LIST (BANNED)
-        Do NOT use these words unless part of a specific Product Name (e.g. "Summer Breeze Dress") OR if the material is Linen/Seersucker (Exception: "Summer" allowed for Linen):
-        - Winter
-        - Summer (Allowed ONLY if material is Linen/Seersucker)
-        - Spring
-        - Fall
-        - Autumn
-        - Season
-        - Free Shipping
-        - Shipping
-        - Fast Shipping
-        - L@@K
-        - Look
-        - Nice
-        - Cute
+        NEGATIVE KEYWORD LIST (BANNED/LOW INTENT)
+        Do NOT use these words unless part of a specific Product Name or if space is absolutely empty and they are the ONLY accurate descriptor available (last resort):
+        - Casual
+        - Everyday
+        - Basic
+        - Classic (Unless part of Model Name e.g. "Classic Leather Shoes")
+        - Winter/Summer/Spring/Fall/Autumn/Season (Except "Summer" for Linen)
+        - Free Shipping / Shipping / Fast Shipping
+        - L@@K / Look / Wow
+        - Nice / Cute / Cheap / Sale
 
         SOURCE HIERARCHY
         1. Visuals / Photos (Primary Truth)
@@ -763,18 +772,20 @@ export async function POST(request: NextRequest) {
         Follow this strict hierarchy of value to determine what survives.
 
         KEYWORD PRIORITY (HIGHEST VALUE → LOWEST VALUE):
-        1. Brand
+        1. Brand / Collection
         2. Team / Organization
-        3. Product Type
-        4. Gender
-        5. Size
-        6. Style Code (Verified Only)
-        7. Fit & Silhouette (Relaxed, Wide Leg, Baggy)
-        8. Down Fill Power (e.g. 850 Fill)
-        9. Performance Fabric (Dri-Fit, Climacool, etc.)
-        10. Color
-        11. Sport Context (Golf, Training)
-        12. Generic Keywords (Athletic, Casual, Nice, etc.)
+        3. Product Type / Garment Type (Knit, Sweater, Cardigan)
+        4. Pattern (Fair Isle, Plaid, Stripe)
+        5. Gender
+        6. Size
+        7. Style Code (Verified Only)
+        8. Fit & Silhouette (Relaxed, Wide Leg, Baggy)
+        9. Verified Luxury Materials (Wool, Cashmere, Silk - Image Verified)
+        10. Down Fill Power (e.g. 850 Fill)
+        11. Performance Fabric (Dri-Fit, Climacool, etc.)
+        12. Color
+        13. Sport Context (Golf, Training)
+        14. Generic Keywords (Athletic, Casual, Nice, etc.)
 
         DROP ORDER (REMOVE THESE FIRST → LAST):
         1. Generic Keywords (Athletic, Casual)
