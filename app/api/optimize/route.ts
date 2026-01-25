@@ -401,6 +401,15 @@ export async function POST(request: NextRequest) {
         Do not infer codes from patterns (e.g. "It looks like a Metal Vent Tech so it must be LM3...").
         If verified code is missing, leave the [Style Code] slot EMPTY.
 
+        NUMERIC INJECTION BAN (CRITICAL):
+        - Do NOT inject any random numbers, years (e.g. "2005"), or loose digits at the end of the title.
+        - Allowed Numbers ONLY:
+          1. Verified Measurements (sourced from original title)
+          2. Verified Size (e.g. "Size 10")
+          3. Verified Style Code
+        - If you see a number like "75", "100", "2024" in the image but it's not a clear Size/Style Code -> IGNORE IT.
+        - NEVER end a title with a loose number unless it is a Style Code.
+
         STYLE CODE MAPPING AUTHORITY (CRITICAL):
         - The Style Code is the authoritative identifier for the Product Name.
         - IF a specific Style Code is identified (e.g. "ME0EK40") AND it maps to a well-known Product Line (e.g. "Perth Quarter-Zip"):
