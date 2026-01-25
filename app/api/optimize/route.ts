@@ -401,8 +401,15 @@ export async function POST(request: NextRequest) {
         Do not infer codes from patterns (e.g. "It looks like a Metal Vent Tech so it must be LM3...").
         If verified code is missing, leave the [Style Code] slot EMPTY.
 
+        STYLE CODE MAPPING AUTHORITY (CRITICAL):
+        - The Style Code is the authoritative identifier for the Product Name.
+        - IF a specific Style Code is identified (e.g. "ME0EK40") AND it maps to a well-known Product Line (e.g. "Perth Quarter-Zip"):
+          1. You MUST use the official Product Line name (e.g. "Perth").
+          2. You MUST replace generic terms (e.g. "Pullover") with the specific verified Product Name.
+        - Preserve verified Style Codes in the title (if active in rules), but always pair them with their correct Product Name.
+        
         ${verifiedStyleCode
-                ? `*** FORCE INCLUSION ***\n        TRUSTED STYLE CODE DETECTED: "${verifiedStyleCode}"\n        You MUST include "${verifiedStyleCode}" at the end of the title.`
+                ? `*** FORCE INCLUSION ***\n        TRUSTED STYLE CODE DETECTED: "${verifiedStyleCode}"\n        You MUST include "${verifiedStyleCode}" at the end of the title.\n        CHECK: If "${verifiedStyleCode}" matches a known Product Line, rename the item to that Line.`
                 : `*** NO TRUSTED STYLE CODE DETECTED ***\n        Do NOT guess or invent a style code. Use ONLY what is explicitly proven.`}
 
         SPORTS ASSOCIATION RULES (LEAGUE ID)
