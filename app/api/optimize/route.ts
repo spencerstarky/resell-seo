@@ -538,6 +538,13 @@ export async function POST(request: NextRequest) {
         - Fall
         - Autumn
         - Season
+        - Free Shipping
+        - Shipping
+        - Fast Shipping
+        - L@@K
+        - Look
+        - Nice
+        - Cute
 
         SOURCE HIERARCHY
         1. Visuals / Photos (Primary Truth)

@@ -57,7 +57,7 @@ const calculateSeoScore = (title: string | null | undefined): number => {
     if (title !== title.toUpperCase() || len < 10) score += 10;
 
     // Deduct for Filler Words
-    const fillers = ['l@@k', 'look', 'wow', 'must see', 'cheap', 'sale', 'offer', 'nice'];
+    const fillers = ['l@@k', 'look', 'wow', 'must see', 'cheap', 'sale', 'offer', 'nice', 'free shipping', 'free ship', 'fast shipping', 'shipping'];
     const lower = title.toLowerCase();
     const hasFiller = fillers.some(w => lower.includes(w));
     if (!hasFiller) score += 10;
