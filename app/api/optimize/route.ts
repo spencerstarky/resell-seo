@@ -261,11 +261,11 @@ export async function POST(request: NextRequest) {
 
         CHARACTER UTILIZATION REQUIREMENT:
         - Target 75–80 characters whenever possible.
-        - If title < 75 characters after inserting all core facts (Brand, Product Name, Size, Fit, Material, Style Code, Color), you MUST add additional high-value SEO keywords.
-        - Allowed filler keywords (Use contextually):
-           - Style descriptors: Streetwear, Casual, Urban, Retro, Vintage, Y2K, Modern, Classic
-           - Fit descriptors: Relaxed, Loose, Slim, Oversized (Do NOT duplicate existing fit terms)
-           - Performance/usage terms: Gym, Training, Travel, Work, Office, Party, Evening
+        - If title < 75 characters after inserting all core facts (Brand, Product Name, Size, Fit, Verified Performance Fabrics, Material, Style Code, Color), you MUST add additional high-value SEO keywords.
+        - Allowed filler keywords (Use contextually & prevent duplication):
+           - PREFERRED: Athleisure, Streetwear, Casual
+           - STRONG: Breathable, Lightweight, Soft (Only if fabric supports it, e.g. Cotton/Linen)
+           - SPORT: Golf, Training, Tennis, Running, Gym
         - DO NOT add unverified specific attributes (e.g., don't guess "Wool" or "Lined").
         - Final title must remain <= 80 characters.
 
