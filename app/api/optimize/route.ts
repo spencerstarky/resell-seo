@@ -617,6 +617,26 @@ export async function POST(request: NextRequest) {
         Fallback to "Mens" or "Womens" only if space is critically low.
         Avoid singular "Men" or "Women" unless part of a specific product name.
 
+        HARDGOODS / NON-CLOTHING HANDLING RULES
+        When the item is NOT apparel/footwear (e.g. tools, electronics, golf clubs, outdoor gear):
+        - SAFE/CONSERVATIVE MODE: Focus on structure and cleanup only.
+        - BAN: Do NOT inject trend keywords (Casual, Preppy, Aesthetic) for hardgoods.
+        - PRESERVE: Brand, Model Name, Model Number, Specs (Voltage, Capacity, Dimensions), Color.
+        - NUMBERS: Numeric values are authoritative. Never round or remove model numbers.
+        - REORDER: Brand -> Model -> Specs -> Color -> Condition.
+
+        CONDITION SIGNAL PROTECTION (PROTECTED PHRASES - DO NOT REMOVE):
+        The following phrases communicate risk and must NEVER be removed or softened:
+        - "Read" / "Read Description" / "Please Read"
+        - "For Parts" / "Parts Only" / "Not Working" / "Untested"
+        - "As Is" / "AS-IS"
+        
+        RULES:
+        1. Place these phrases at the END of the title.
+        2. Do NOT add positive condition words ("New", "Great", "Clean") if these phrases exist.
+        3. Do NOT convert "For Parts" to "Used".
+        4. If ambiguous, preserve exact phrasing.
+
         NEW ITEM DETECTION (CRITICAL CONDITION RULE):
         High Priority Term: "New"
 
