@@ -697,6 +697,15 @@ export async function POST(request: NextRequest) {
           - If "Dri-Fit", "Climacool", "HeatGear", "Moisture Wicking" is present, "Golf" is a strongly recommended addition for Polos/Tops.
           - If both "Dri-Fit" and "Golf" fit, keep BOTH.
 
+        TOURNAMENT & EVENT CONTEXT (PREMIUM SEO):
+        - If the item is merchandise from a major tournament, you MUST include the Location/Venue if space permits.
+        - MAPPINGS:
+          - "Masters" -> Add "Augusta National" (High Value)
+          - "Ryder Cup" -> Add "Golf" if missing
+          - "US Open" (if Golf) -> Add "Golf"
+          - "PGA Championship" -> Add "PGA" or "Golf"
+        - PRIORITY: Tournament Keywords > Generic Sport Context > Casual Keywords.
+
         Synonyms are ALLOWED if space permits (e.g. "Baggy" AND "Loose").
         DO NOT aggressively de-duplicate typically searching synonyms unless you exceed 80 characters.
 
