@@ -659,15 +659,18 @@ export async function POST(request: NextRequest) {
         Treat them as part of the Product Name or place immediately after.
         Never drop them for generic SEO keywords.
 
-        FIT & SILHOUETTE KEYWORD STACKING (ALLOWED):
-        - You MAY stack complementary fit keywords IF they describe the same shape and space permits.
-        - Allowed Stacks:
-          - "Relaxed" + "Baggy"
-          - "Wide Leg" + "Relaxed"
-          - "Oversized" + "Baggy"
-        - Priority: Fit Stacking > Aesthetic/Trend Keywords (e.g. Streetwear, Y2K).
+        FIT & SILHOUETTE KEYWORD STACKING (ALLOWED & ENCOURAGED):
+        - You MUST stack complementary fit keywords IF they describe the same shape and space permits.
+        - Buyers search for specific synonyms. "Loose" captures different traffic than "Baggy".
+        - Allowed Stacks (Triple Stacking Permitted):
+          - "Relaxed" + "Baggy" + "Loose"
+          - "Wide Leg" + "Relaxed" + "Loose"
+          - "Oversized" + "Baggy" + "Loose"
+        - SPACE FILLING RULE:
+          - If the title is < 75 characters and contains "Baggy", you MUST add "Loose" if currently missing.
+        - Priority: Fit Stacking > Aesthetic/Trend Keywords.
         - Condition: Must not conflict (never "Slim" + "Baggy").
-        - Example: "Karl Kani Jeans 36x31 Relaxed Wide Leg Baggy" is ACCEPTABLE if valid.
+        - Example: "Karl Kani Jeans 36x31 Relaxed Wide Leg Baggy Loose" (Valid & encourages click-through).
 
         SEO RULES
 
