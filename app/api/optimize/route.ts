@@ -702,6 +702,12 @@ export async function POST(request: NextRequest) {
           it is considered HIGH VALUE and should be prioritized over generic terms like "Athletic".
         - Do NOT drop performance fabric terms unless required for higher-priority facts.
 
+        DOWN FILL POWER RULE (PROTECTED ATTRIBUTE):
+        - Down fill power (e.g., 650 Fill, 700 Fill, 800 Fill, 850 Fill) is a CRITICAL performance metric.
+        - If present in the original title or visible on the item, it MUST be preserved.
+        - NEVER drop Down Fill Power for generic keywords like "Casual", "Puffer", or "Lifestyle".
+        - Exception: You may remove "Fill" and keep the number (e.g. "850 Fill" -> "850") IF space is extremely tight, but prefer keeping both.
+
         SPORT-SPECIFIC CONTEXT (HIGH VALUE INJECTION):
         - MANDATORY "GOLF" INJECTION:
           - If Brand is Peter Millar, Nike, Under Armour, Adidas, Puma, Callaway, FootJoy, TravisMathew (or similar golf performance brand)
@@ -750,17 +756,19 @@ export async function POST(request: NextRequest) {
         4. Gender
         5. Size
         6. Style Code (Verified Only)
-        7. Performance Fabric (Dri-Fit, Climacool, etc.)
-        8. Color
-        9. Sport Context (Golf, Training)
-        10. Generic Keywords (Athletic, Casual, Nice, etc.)
+        7. Down Fill Power (e.g. 850 Fill)
+        8. Performance Fabric (Dri-Fit, Climacool, etc.)
+        9. Color
+        10. Sport Context (Golf, Training)
+        11. Generic Keywords (Athletic, Casual, Nice, etc.)
 
         DROP ORDER (REMOVE THESE FIRST → LAST):
         1. Generic Keywords (Athletic, Casual)
         2. Sport Context (Golf, Training - unless highly relevant)
         3. Color (only if critical for space)
         4. Performance Fabric (only if absolutely forced)
-        5. Style Code (Last resort before dropping core identifiers)
+        5. Down Fill Power (PROTECTED - ONLY if absolutely forced)
+        6. Style Code (Last resort before dropping core identifiers)
 
         FINAL CHECK:
         - If characters remain and verified attributes like "Dri-Fit" or "Golf" are available, include them.
