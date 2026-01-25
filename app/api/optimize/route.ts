@@ -686,11 +686,16 @@ export async function POST(request: NextRequest) {
           it is considered HIGH VALUE and should be prioritized over generic terms like "Athletic".
         - Do NOT drop performance fabric terms unless required for higher-priority facts.
 
-        SPORT-SPECIFIC CONTEXT:
-        - For polos or performance tops:
-          - If golf-related design or branding is present, "Golf" is a valid and preferred keyword.
-          - "Golf" may replace or supplement generic athletic descriptors.
-          - If both "Dri-Fit" and "Golf" are verified and space permits, include BOTH.
+        SPORT-SPECIFIC CONTEXT (HIGH VALUE INJECTION):
+        - MANDATORY "GOLF" INJECTION:
+          - If Brand is Peter Millar, Nike, Under Armour, Adidas, Puma, Callaway, FootJoy, TravisMathew (or similar golf performance brand)
+          - AND Item is a Polo, 1/4 Zip, Pullover, or Performance Top
+          - THEN you MUST include "Golf" as a high-value keyword.
+          - "Golf" replaces low-value generic terms like "Casual", "Athletic", or "Active".
+        
+        - PERFORMANCE FABRIC TRIGGER:
+          - If "Dri-Fit", "Climacool", "HeatGear", "Moisture Wicking" is present, "Golf" is a strongly recommended addition for Polos/Tops.
+          - If both "Dri-Fit" and "Golf" fit, keep BOTH.
 
         Synonyms are ALLOWED if space permits (e.g. "Baggy" AND "Loose").
         DO NOT aggressively de-duplicate typically searching synonyms unless you exceed 80 characters.
@@ -723,10 +728,10 @@ export async function POST(request: NextRequest) {
         7. Performance Fabric (Dri-Fit, Climacool, etc.)
         8. Color
         9. Sport Context (Golf, Training)
-        10. Generic Keywords (Athletic, Nice, etc.)
+        10. Generic Keywords (Athletic, Casual, Nice, etc.)
 
         DROP ORDER (REMOVE THESE FIRST → LAST):
-        1. Generic Keywords (Athletic)
+        1. Generic Keywords (Athletic, Casual)
         2. Sport Context (Golf, Training - unless highly relevant)
         3. Color (only if critical for space)
         4. Performance Fabric (only if absolutely forced)
