@@ -259,6 +259,11 @@ export async function POST(request: NextRequest) {
 
         Maximum length: 80 characters
 
+        CHARACTER UTILIZATION REQUIREMENT:
+        - Target 75–80 characters whenever possible.
+        - If under 75 characters, the model MUST attempt to add high-value verified keywords.
+        - Do NOT finalize a title early if additional verified attributes are available.
+
         No punctuation symbols (/ - : ,)
 
         No punctuation symbols (/ - : ,) EXCEPT " for measurements
@@ -323,6 +328,12 @@ export async function POST(request: NextRequest) {
         Style / Model Code (STRICT RULES BELOW)
 
         STYLE / MODEL CODE RULES (ZERO TOLERANCE)
+
+        STYLE CODE PRESERVATION (CRITICAL):
+        - If a style code is CLEARLY visible in any product image, it MUST be included.
+        - Image-visible style codes override omission logic.
+        - Do NOT omit a verified style code when character space remains.
+        - Style codes must be exact character-for-character matches (no truncation, no guessing).
 
         STYLE CODE PRIORITY ORDER:
         1) Original (unoptimized) title → ALWAYS trusted (HIGHEST PRIORITY)
@@ -651,6 +662,17 @@ export async function POST(request: NextRequest) {
         
         Example: "Nike Hoodie Active Activewear" -> "Nike Hoodie Athleisure Training" (Valid)
 
+        PERFORMANCE FABRIC RULE:
+        - If performance branding (e.g. Dri-Fit, Climacool, HeatGear) is visible in images or original title,
+          it is considered HIGH VALUE and should be prioritized over generic terms like "Athletic".
+        - Do NOT drop performance fabric terms unless required for higher-priority facts.
+
+        SPORT-SPECIFIC CONTEXT:
+        - For polos or performance tops:
+          - If golf-related design or branding is present, "Golf" is a valid and preferred keyword.
+          - "Golf" may replace or supplement generic athletic descriptors.
+          - If both "Dri-Fit" and "Golf" are verified and space permits, include BOTH.
+
         Synonyms are ALLOWED if space permits (e.g. "Baggy" AND "Loose").
         DO NOT aggressively de-duplicate typically searching synonyms unless you exceed 80 characters.
 
@@ -668,32 +690,32 @@ export async function POST(request: NextRequest) {
         Example: "Flannel Shirt Jacket" -> "... Flannel Shirt Jacket Shacket"
 
         PHASE 4 — SPACE SAVING / DROP PRIORITY
-        UPDATED DROP LOGIC (Style Code–Aware)
+        
+        If title exceeds 80 characters, you must remove items.
+        Follow this strict hierarchy of value to determine what survives.
 
-        If title exceeds 80 characters, remove items in this exact order:
-
-        DROP PRIORITY (LOW → HIGH VALUE)
-        1. SEO Keywords (Generic adjectives first)
-        2. Type
-        3. Gender
-        4. Tag Size
-
-        PROTECTED (DO NOT DROP UNLESS ABSOLUTELY REQUIRED)
-        1. Value Leader
-        2. Product Name
-        3. Style Code (Verified)
-        4. Explicit Fit/Cut (Cropped, Boxy, Oversized, Slim)
-        5. Material (Core: Linen, Cotton, Wool, Silk, Leather, Denim)
-        6. Sleeve Length
-        7. Measurements
+        KEYWORD PRIORITY (HIGHEST VALUE → LOWEST VALUE):
+        1. Brand
+        2. Team / Organization
+        3. Product Type
+        4. Gender
+        5. Size
+        6. Style Code (Verified Only)
+        7. Performance Fabric (Dri-Fit, Climacool, etc.)
         8. Color
+        9. Sport Context (Golf, Training)
+        10. Generic Keywords (Athletic, Nice, etc.)
 
-        Style code may only be dropped after all non-core attributes are removed
-        and only if keeping it would truncate Product Name or Measurements
+        DROP ORDER (REMOVE THESE FIRST → LAST):
+        1. Generic Keywords (Athletic)
+        2. Sport Context (Golf, Training - unless highly relevant)
+        3. Color (only if critical for space)
+        4. Performance Fabric (only if absolutely forced)
+        5. Style Code (Last resort before dropping core identifiers)
 
-        FINAL AI REMINDER
-        When space is limited, drop descriptive words before dropping identifiers.
-        Never guess, never label style codes, and never move them earlier in the title.
+        FINAL CHECK:
+        - If characters remain and verified attributes like "Dri-Fit" or "Golf" are available, include them.
+        - Do NOT finalize title if < 75 chars and verified attributes remain.
 
         OUTPUT
         Return ONLY the final optimized title string.
