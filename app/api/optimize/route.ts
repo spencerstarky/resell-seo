@@ -563,23 +563,39 @@ export async function POST(request: NextRequest) {
         Avoid singular "Men" or "Women" unless part of a specific product name.
 
         NEW ITEM DETECTION (CRITICAL CONDITION RULE):
-        Add "New" to the optimized title ONLY when there is clear evidence the item is new.
+        High Priority Term: "New"
+
+        RULE:
+        If an item qualifies as New, the word "New" MUST appear in the optimized title.
 
         QUALIFYING SIGNALS (any one is sufficient):
         - "New", "NWT", "New With Tags", "BNWT" appears in the original (unoptimized) title
         - Item condition is explicitly marked as "New"
         - Product images clearly show original retail tags attached
 
-        RULES:
-        - If an item qualifies as new, include the word "New" in the optimized title.
-        - Use "New" (not "NWT") for character efficiency unless space allows both.
-        - Insert "New" near the end of the title, after core descriptors and before low-priority keywords.
-        - Do NOT infer "New" based on condition words like "Excellent", "Like New", or "Unused" unless tags are clearly present.
-        - Do NOT add "New" if evidence is ambiguous or unclear.
+        CHARACTER RESERVATION (CRITICAL):
+        - Reserve at least 4 characters for "New" during title construction if the item is grounded New.
+        - Do NOT finalize a title if "New" is missing and character space remains.
 
-        PRIORITY RULE:
-        - "New" has higher priority than trend keywords (athleisure, gorpcore, academia, etc.).
-        - If character limits are reached, remove or shorten trend keywords before removing "New".
+        BACKTRACKING REQUIREMENT:
+        - If the initial title build excludes "New" but >= 4 characters remain (or could be freed),
+          the model MUST revise the title to include "New".
+        - This may require removing or shortening lower-priority keywords.
+
+        PRIORITY ORDER (highest -> lowest):
+        1. Brand
+        2. Model / Line
+        3. Garment type
+        4. Gender
+        5. Size
+        6. Style code (ONLY if verified)
+        7. Color
+        8. Condition ("New")
+        9. Trend / style keywords (athleisure, gorpcore, preppy, etc.)
+
+        REMOVAL RULE:
+        - Trend/style keywords must be removed before excluding "New".
+        - Color may be removed ONLY if required to preserve "New".
         - "New" > Grammar (drop apostrophes/formatting to fit "New").
         ABBREVIATION RULE: If > 80 chars, Change "Training" -> "Train", "Lightweight" -> "Lt Wt".
 
