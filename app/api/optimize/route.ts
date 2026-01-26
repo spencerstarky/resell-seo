@@ -456,7 +456,7 @@ export async function POST(request: NextRequest) {
         
         ${verifiedStyleCode
                 ? `*** FORCE INCLUSION ***\n        TRUSTED STYLE CODE DETECTED: "${verifiedStyleCode}"\n        You MUST include "${verifiedStyleCode}" at the end of the title.\n        CHECK: If "${verifiedStyleCode}" matches a known Product Line, rename the item to that Line.`
-                : `*** NO TRUSTED STYLE CODE DETECTED ***\n        Do NOT guess or invent a style code. Use ONLY what is explicitly proven.`}
+                : `*** NO TEXT-BASED STYLE CODE DETECTED ***\n        CHECK IMAGES CAREFULLY. If a valid style code is clearly visible on a tag (e.g. Nike tag, Lululemon size dot), YOU ARE AUTHORIZED TO EXTRACT AND INCLUDE IT.`}
 
         SPORTS ASSOCIATION RULES (LEAGUE ID)
         - When a professional or collegiate sports team is present, identify the correct league ONLY if it can be determined with high confidence (Team Name, Logos, Imagery).
