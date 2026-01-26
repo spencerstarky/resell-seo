@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sparkles, Save, Trash2, CloudDownload as CloudPush, CheckCircle, Lock, Ban, Undo2, X, Loader2 } from 'lucide-react';
+import { calculateSeoScore as libCalculateSeoScore } from '@/lib/seo-score';
 
 interface Listing {
     id?: string;
@@ -35,37 +36,7 @@ interface ListingEditorProps {
 // --- SCORING HELPER FUNCTIONS ---
 const calculateSeoScore = (title: string | null | undefined): number => {
     if (!title) return 0;
-    let score = 0;
-    const len = title.length;
-
-    // 1. Length Score (Max 50)
-    // eBay prefers utilizing all 80 chars. Sweet spot 70-80.
-    if (len >= 75) score += 50;
-    else if (len >= 60) score += 40;
-    else if (len >= 40) score += 25;
-    else score += 5;
-
-    // 2. Word Count (Max 30)
-    // More keywords = better visibility
-    const wordCount = title.trim().split(/\s+/).length;
-    if (wordCount >= 10) score += 30;
-    else if (wordCount >= 7) score += 20;
-    else if (wordCount >= 4) score += 10;
-
-    // 3. Quality & Formatting (Max 20)
-    // Deduct for ALL CAPS
-    if (title !== title.toUpperCase() || len < 10) score += 10;
-
-    // Deduct for Filler Words
-    const fillers = ['l@@k', 'look', 'wow', 'must see', 'cheap', 'sale', 'offer', 'nice', 'free shipping', 'free ship', 'fast shipping', 'shipping'];
-    const lower = title.toLowerCase();
-    const hasFiller = fillers.some(w => lower.includes(w));
-    if (!hasFiller) score += 10;
-
-    // Deduct for excessive punctuation
-    if ((title.match(/[!.*?]/g) || []).length > 2) score -= 10;
-
-    return Math.max(0, Math.min(100, score));
+    return libCalculateSeoScore(title).score;
 };
 
 const getScoreColor = (score: number) => {
