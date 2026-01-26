@@ -563,6 +563,28 @@ export async function POST(request: NextRequest) {
         2. "Western" TRUMPS "Boho" for Pearl Snap shirts.
         3. "Y2K" TRUMPS "Vintage" if the item has specific Y2K traits (McBling, Rhinestone).
 
+        STYLE SIGNAL PRESERVATION — HENLEY & CASUAL KNITS (NEW)
+        For the following categories:
+        Henley Shirts, Casual Long Sleeve Shirts, Knit Tops
+
+        If the term "Waffle Knit" appears in the original title, item specifics, or verified attributes:
+        - Treat "Waffle Knit" as a style-defining keyword, not a generic texture
+        - You MUST preserve "Waffle Knit" verbatim in the optimized title when space permits
+        - Do NOT collapse "Waffle Knit" to "Knit" alone
+
+        STYLE SYNONYM MAPPING — WAFFLE ↔ THERMAL (CONTROLLED)
+        If "Waffle Knit" is verified (explicitly present):
+        - You MAY optionally substitute OR append the keyword "Thermal"
+        - "Thermal" is an authorized synonym for Waffle Knit in Henley and casual knit contexts
+        - Do NOT add "Thermal" unless "Waffle Knit" is verified
+        - Maximum ONE of the two may appear unless character space allows both without exceeding 80 characters
+
+        TEXTURE CLEANUP EXCEPTION (NEW)
+        Generic texture cleanup rules do NOT apply to:
+        - Waffle Knit
+        - Thermal
+        when used in Henley or casual knit categories.
+
 
         MATERIAL HANDLING
         Core Fabrics (Linen, Cotton, Wool, Silk, Leather, Denim) are PROTECTED.
