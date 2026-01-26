@@ -481,6 +481,13 @@ export async function POST(request: NextRequest) {
         Example: Forever 21 + 100% Leather
         Title starts with material (e.g., Leather Jacket)
 
+        LUXURY MATERIAL VALUE LEADER PRESERVATION (NEW — CRITICAL)
+        If a verified luxury material appears as “100% [Material]” (e.g. “100% Cashmere”, “100% Wool”) in the original title or fabric tag:
+        - You MUST preserve “100% [Material]” exactly
+        - Treat it as a single atomic Value Leader token
+        - Do NOT downgrade to “[Material]” alone
+        - When Luxury Material is the selected Value Leader, it MUST appear as the first token in the title
+
         Brand (Default)
         Use when brand carries meaningful buyer search value
         NEVER use "Unbranded" as a Value Leader. If brand is "Unbranded", use Product Name or Material instead.
@@ -747,6 +754,12 @@ export async function POST(request: NextRequest) {
         - "Performance"
         If multiple exist, REMOVE ALL BUT ONE, or use the Replacement Logic below.
 
+        ATHLEISURE VETO — LUXURY KNITWEAR (NEW — HARD RULE)
+        For items classified as Sweaters, Knits, or Cardigans with verified luxury materials (Cashmere, Merino, Wool, Alpaca, Silk):
+        - The keyword "Athleisure" is STRICTLY FORBIDDEN
+        - These items are not performance or activewear
+        - This veto overrides filler and style engine logic
+
         INTENT REPLACEMENT LOGIC (HIGH VALUE)
         Replace generic synonyms with High-Intent keywords:
         1. "Athleisure" (Casual/Lifestyle) -> Use for hoodies, joggers, tees (Nike, Lululemon, Vuori).
@@ -862,6 +875,20 @@ export async function POST(request: NextRequest) {
         - Maximum ONE denim-safe filler term per title
 
         This rule overrides the NEGATIVE KEYWORD LIST for denim items ONLY when space remains unused.
+
+        LUXURY KNIT SAFE FILL RULE (NEW)
+        If the item is a Luxury Knit or Cashmere Sweater AND the title is < 75 characters after all verified facts:
+        You MAY inject ONE or TWO of the following buyer-intent keywords if space permits:
+
+        Preppy, Heritage, Refined, Soft, Cozy, Luxury
+
+        Conditions:
+        - Must not imply activity, sport, or performance
+        - Must not conflict with material or garment type
+        - Maximum TWO luxury knit fillers per title
+
+        These keywords are authorized to fill space and do NOT violate the Negative Keyword List in this context
+
 
         NON-TERMINAL STYLE RULE (CRITICAL)
         Style keywords (e.g. "Gorpcore") do NOT end the optimization.
