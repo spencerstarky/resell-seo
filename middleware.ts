@@ -42,6 +42,7 @@ export async function middleware(request: NextRequest) {
         pathname.startsWith('/dashboard') ||
         pathname.startsWith('/admin') || // New Admin Dashboard
         pathname.startsWith('/top-selling-brands') || // Lead Magnet
+        pathname.startsWith('/store-audit') || // Public Store Prospector
         pathname.startsWith('/unsubscribe') || // Unsubscribe Page
         pathname.startsWith('/account') ||
         pathname.startsWith('/blog') || // Already correct

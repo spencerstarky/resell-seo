@@ -45,6 +45,12 @@ ALTER TABLE style_detections ENABLE ROW LEVEL SECURITY;
 -- Public/Service Role needs READ access to Taxonomy and Signals to run logic
 -- Service Role needs INSERT access to Detections
 
+DROP POLICY IF EXISTS "Admin Full Access Trends" ON style_taxonomy;
+DROP POLICY IF EXISTS "Public Read Trends" ON style_taxonomy;
+DROP POLICY IF EXISTS "Admin Full Access Signals" ON style_signals;
+DROP POLICY IF EXISTS "Public Read Signals" ON style_signals;
+DROP POLICY IF EXISTS "System Insert Detections" ON style_detections;
+
 CREATE POLICY "Admin Full Access Trends" ON style_taxonomy
     TO authenticated
     USING (auth.uid() IN (SELECT id FROM auth.users WHERE email = 'resellseo@gmail.com'))

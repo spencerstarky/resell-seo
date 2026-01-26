@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import { getValidAccessToken, getDetailedItemInfo } from '@/lib/ebay-api';
+import { getOptimizerCompatibleItemDetails } from '@/lib/ebay-search';
 import crypto from 'crypto';
 import { StyleCodeEngine } from '@/lib/style-code-intelligence';
 
@@ -9,7 +10,7 @@ import { StyleCodeEngine } from '@/lib/style-code-intelligence';
 
 export async function POST(request: NextRequest) {
     try {
-        const { title, itemId, imageUrl, forceRefresh } = await request.json();
+        const { title, itemId, imageUrl, forceRefresh, auditMode } = await request.json();
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json({ error: 'Gemini API key not configured' }, { status: 500 });
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
-        if (!user) {
+        if (!user && !auditMode) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
         const normalizedInput = (title || '').trim().toLowerCase();
         const inputHash = crypto.createHash('sha256').update(normalizedInput).digest('hex');
 
-        if (!process.env.SKIP_CACHE && !forceRefresh) {
+        if (user && !process.env.SKIP_CACHE && !forceRefresh && !auditMode) {
             const { data: historyMatch } = await supabase
                 .from('optimization_history')
                 .select('optimized_title')
@@ -50,66 +51,68 @@ export async function POST(request: NextRequest) {
         }
         // ----------------------------------
 
-        // --- SAFEGUARD: Tier Limits ---
-        // 1. Get User Profile for Tier
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('plan_tier')
-            .eq('id', user.id)
-            .single();
+        // --- SAFEGUARD: Tier Limits (Skip for Audit Mode/Anonymous) ---
+        if (user && !auditMode) {
+            // 1. Get User Profile for Tier
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('plan_tier')
+                .eq('id', user.id)
+                .single();
 
-        let tier = profile?.plan_tier || 'trial';
+            let tier = profile?.plan_tier || 'trial';
 
-        // Admin Override for resellseo@gmail.com
-        if (user.email === 'resellseo@gmail.com') {
-            tier = 'annual';
-        }
+            // Admin Override for resellseo@gmail.com
+            if (user.email === 'resellseo@gmail.com') {
+                tier = 'annual';
+            }
 
-        // Define Limits
-        let limit = 25; // Free: 25 Lifetime
-        let isMonthly = false;
-        let isYearly = false;
+            // Define Limits
+            let limit = 25; // Free: 25 Lifetime
+            let isMonthly = false;
+            let isYearly = false;
 
-        if (tier === 'trial') {
-            limit = 25; // Trial limit
-            isMonthly = false;
-        } else if (tier === 'annual') {
-            limit = 5000; // Annual Cap
-            isYearly = true;
-        }
+            if (tier === 'trial') {
+                limit = 25; // Trial limit
+                isMonthly = false;
+            } else if (tier === 'annual') {
+                limit = 5000; // Annual Cap
+                isYearly = true;
+            }
 
-        // 2. Count Usage
-        const query = supabase
-            .from('optimization_history')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id);
+            // 2. Count Usage
+            const query = supabase
+                .from('optimization_history')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id);
 
-        if (isMonthly) {
-            // Reset on 1st of month
-            const startOfMonth = new Date();
-            startOfMonth.setDate(1);
-            startOfMonth.setHours(0, 0, 0, 0);
-            query.gte('created_at', startOfMonth.toISOString());
-        } else if (isYearly) {
-            // Reset on Jan 1st
-            const startOfYear = new Date();
-            startOfYear.setMonth(0, 1);
-            startOfYear.setHours(0, 0, 0, 0);
-            query.gte('created_at', startOfYear.toISOString());
-        }
+            if (isMonthly) {
+                // Reset on 1st of month
+                const startOfMonth = new Date();
+                startOfMonth.setDate(1);
+                startOfMonth.setHours(0, 0, 0, 0);
+                query.gte('created_at', startOfMonth.toISOString());
+            } else if (isYearly) {
+                // Reset on Jan 1st
+                const startOfYear = new Date();
+                startOfYear.setMonth(0, 1);
+                startOfYear.setHours(0, 0, 0, 0);
+                query.gte('created_at', startOfYear.toISOString());
+            }
 
-        const { count: usageCount } = await query;
+            const { count: usageCount } = await query;
 
-        if (usageCount !== null && usageCount >= limit) {
-            console.warn(`[Limit Reached] User ${user.id} (${tier}) hit limit: ${usageCount}/${limit}`);
-            let period = 'total';
-            if (isMonthly) period = 'this month';
-            if (isYearly) period = 'this year';
+            if (usageCount !== null && usageCount >= limit) {
+                console.warn(`[Limit Reached] User ${user.id} (${tier}) hit limit: ${usageCount}/${limit}`);
+                let period = 'total';
+                if (isMonthly) period = 'this month';
+                if (isYearly) period = 'this year';
 
-            return NextResponse.json(
-                { error: `You have reached your ${tier} plan limit of ${limit} rewrites ${period}. Please upgrade or contact support.` },
-                { status: 429 }
-            );
+                return NextResponse.json(
+                    { error: `You have reached your ${tier} plan limit of ${limit} rewrites ${period}. Please upgrade or contact support.` },
+                    { status: 429 }
+                );
+            }
         }
         // ------------------------------
 
@@ -119,10 +122,25 @@ export async function POST(request: NextRequest) {
 
         if (itemId) {
             try {
-                const accessToken = await getValidAccessToken(user.id, supabase);
-                const details = await getDetailedItemInfo(itemId, accessToken);
-                additionalInfo = details.specifics; // Extract specifics string
-                galleryImages = details.imageUrls || []; // Extract images array
+                if (auditMode) {
+                    // AUDIT MODE: Use public data (Client Credentials)
+                    console.log(`[Optimize] Audit Mode active for Item ${itemId}`);
+                    const details = await getOptimizerCompatibleItemDetails(itemId);
+                    additionalInfo = details.specifics;
+                    galleryImages = details.imageUrls || [];
+
+                    // If title was missing in request, use the one from eBay
+                    if (!title && details.originalTitle) {
+                        // We can't easily re-assign const title logic here without refactoring above, 
+                        // but normally title is passed in.
+                    }
+                } else if (user) {
+                    // STANDARD MODE: Use User's Token (requires connected account)
+                    const accessToken = await getValidAccessToken(user.id, supabase);
+                    const details = await getDetailedItemInfo(itemId, accessToken);
+                    additionalInfo = details.specifics;
+                    galleryImages = details.imageUrls || [];
+                }
 
                 // If client provided an image but we found none in gallery, keep client's
                 if (galleryImages.length === 0 && imageUrl) {
@@ -832,6 +850,19 @@ export async function POST(request: NextRequest) {
         IF TITLE < 75 CHARACTERS:
         You MUST add high-value keywords until you hit the limit.
 
+        DENIM SAFE FILL RULE (NEW):
+        If the item is Jeans or Denim Pants AND the title is < 75 characters after all verified facts are included, you MAY inject ONE of the following high-intent buyer keywords if space permits:
+
+        Preppy, Heritage, American, Western
+
+        Conditions:
+        - Must not conflict with Brand positioning
+        - Must not violate keyword caps
+        - Must not replace or remove core facts
+        - Maximum ONE denim-safe filler term per title
+
+        This rule overrides the NEGATIVE KEYWORD LIST for denim items ONLY when space remains unused.
+
         NON-TERMINAL STYLE RULE (CRITICAL)
         Style keywords (e.g. "Gorpcore") do NOT end the optimization.
         After adding a style, you MUST continue to evaluate "Functional Descriptors" to fill the remaining space.
@@ -1195,17 +1226,18 @@ export async function POST(request: NextRequest) {
         }
 
         // --- SAVE TO HISTORY ---
-        // Store result so next time it is free
-        await supabase.from('optimization_history').insert({
-            user_id: user.id,
-            original_title: title,
-            original_title_hash: inputHash,
-            optimized_title: optimizedTitle
-        });
+        // Store result so next time it is free (Only for registered users)
+        if (user && !auditMode) {
+            await supabase.from('optimization_history').insert({
+                user_id: user.id,
+                original_title: title,
+                original_title_hash: inputHash,
+                optimized_title: optimizedTitle
+            });
+            // Increment Usage
+            await supabase.rpc('increment_usage', { user_id: user.id });
+        }
         // -----------------------
-
-        // Increment Usage
-        await supabase.rpc('increment_usage', { user_id: user.id });
 
         return NextResponse.json({ optimizedTitle, fromCache: false });
 
