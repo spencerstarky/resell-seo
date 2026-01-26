@@ -266,6 +266,11 @@ export async function POST(request: NextRequest) {
 
         Accuracy > Buyer Clarity > SEO.
 
+        ACCURACY OVER MAXIMIZATION (ZERO TOLERANCE)
+        - Never invent materials, origins, or fits.
+        - Enhancement is allowed only when it improves discoverability without altering factual accuracy.
+        - Do not inject lifestyle or trend terms unless strongly aligned with the item.
+
         CONFLICT RESOLUTION: VISUAL VETO (CRITICAL)
         The Image is the Source of Truth.
         If Item Specifics text claims a feature (e.g., "Pockets", "Long Sleeve", "Hoodie") but the image CLEARLY contradicts it (e.g., visible chest has no pockets, sleeves are short), you must IGNORE the text.
@@ -476,7 +481,12 @@ export async function POST(request: NextRequest) {
         Example: Jerzees, Gildan, Hanes
         Title starts with team/entity name (e.g., Chicago Bulls)
 
-        Luxury Material
+        Era / Vintage (Highest Priority)
+        Use for items with clear vintage signals (Single Stitch, Made in USA, Dated Tags, Y2K)
+        Example: 90s Vintage Nike T-Shirt
+        Title starts with Era (e.g., 90s, Vintage, Y2K)
+
+        Luxury Material (Second Priority)
         Use when brand is low-value AND material is high buyer intent
         Example: Forever 21 + 100% Leather
         Title starts with material (e.g., Leather Jacket)
@@ -582,7 +592,15 @@ export async function POST(request: NextRequest) {
         TEXTURE CLEANUP EXCEPTION (NEW)
         Generic texture cleanup rules do NOT apply to:
         - Waffle Knit
+        High-Intent Style Modifiers
+        - Waffle Knit
         - Thermal
+        - Ribbed
+        - Cable Knit
+        - Fleece
+        - Sherpa
+        - 90s (for Vintage Denim/wear)
+        - Baggy / Relaxed (for Denim)
         when used in Henley or casual knit categories.
 
 
@@ -762,8 +780,10 @@ export async function POST(request: NextRequest) {
 
         Bags Electronics Home: max 1
 
-        REDUNDANCY CHECK (RELAXED)
-        If [Tag Size] is exactly the same as the first number in [Measurements], DROP [Tag Size].
+        REDUNDANCY SUPPRESSION (STRICT)
+        - Avoid repeating sizing information.
+        - If waist x inseam measurements are present (e.g. 28x30), DO NOT include a standalone numeric waist size (e.g. 28) unless it represents a distinct women's size (e.g. Size 6).
+        - If [Tag Size] is exactly the same as the first number in [Measurements], DROP [Tag Size].
 
         STRICT DUPLICATE PROHIBITION
         NEVER repeat the same word twice.
@@ -881,6 +901,16 @@ export async function POST(request: NextRequest) {
         FINAL CHECK: FILL THE SPACE (MANDATORY)
         Target: 75–80 characters.
         Current performance is stopping short (e.g. 66 chars). This is UNACCEPTABLE.
+
+        KEYWORD INJECTION WHEN SPACE REMAINS (TARGET 75-80 CHARS)
+        If the optimized title is under 72 characters:
+        - Inject one safe, non-speculative, category-appropriate keyword.
+        - Do NOT inject lifestyle or trend terms unless strongly aligned with the item.
+
+        SAFE INJECTIONS:
+        - Denim -> "Baggy", "Relaxed", "90s" (If visible/era appropriate)
+        - Knitwear -> "Preppy", "Classic"
+        - Henleys -> "Thermal", "Waffle"
 
         IF TITLE < 75 CHARACTERS:
         You MUST add high-value keywords until you hit the limit.
