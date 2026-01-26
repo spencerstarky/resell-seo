@@ -869,6 +869,21 @@ export async function POST(request: NextRequest) {
         This is a high-value search term.
         Example: "Flannel Shirt Jacket" -> "... Flannel Shirt Jacket Shacket"
 
+        CATEGORY-IMPLIED KEYWORDS — WORKWEAR (HIGH VALUE)
+        When the item includes any of the following:
+        - Chore Coat
+        - Barn Coat
+        - Duck Canvas Jacket
+        - Utility Jacket
+        - Work Jacket
+
+        The keyword "Workwear" is considered a safe, non-speculative, high-intent descriptor and may be injected when space allows.
+
+        Rules:
+        - Prefer "Workwear" over generic terms like "Outdoor" when applicable
+        - Inject only one category keyword
+        - Do not add lifestyle or trend terms beyond this
+
         PHASE 4 — SPACE SAVING / DROP PRIORITY
         
         If title exceeds 80 characters, you must remove items.
