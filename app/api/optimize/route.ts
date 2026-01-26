@@ -780,9 +780,19 @@ export async function POST(request: NextRequest) {
 
         Bags Electronics Home: max 1
 
+        HARD CONSTRAINT — MEASUREMENT OVERRIDES SIZE (CRITICAL)
+        When waist x inseam measurements are present for men’s jeans or pants:
+        - Treat the measurement (e.g. 34x30) as the only size reference.
+        - Do not add a standalone numeric size before or after the measurement.
+        - Do not attempt to infer or restate size from the measurement.
+        - This is a strict exclusion rule, not a preference.
+
+        Valid: "Men’s 34x30 Jeans", "Jeans 34x30"
+        Invalid: "Men’s 34 34x30 Jeans", "Size 34 34x30"
+
+        EXCEPTION: Only include both a size and measurements when the size represents a different system (e.g. women’s sizing "Size 6 28x30").
+
         REDUNDANCY SUPPRESSION (STRICT)
-        - Avoid repeating sizing information.
-        - If waist x inseam measurements are present (e.g. 28x30), DO NOT include a standalone numeric waist size (e.g. 28) unless it represents a distinct women's size (e.g. Size 6).
         - If [Tag Size] is exactly the same as the first number in [Measurements], DROP [Tag Size].
 
         STRICT DUPLICATE PROHIBITION
