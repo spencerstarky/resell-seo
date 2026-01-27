@@ -363,6 +363,20 @@ export async function POST(request: NextRequest) {
 
         Condition
 
+        IMAGE-BASED GARMENT STRUCTURE IDENTIFICATION
+        Images may be used to identify clear, high-confidence garment structures when visually obvious.
+        Allowed structural inferences include:
+        - Button Down Shirt (visible buttons on collar points)
+        - Pullover vs Full Button Front
+        - Hooded vs Non-Hooded
+        - Zip-Up vs Pullover
+        
+        Rules:
+        - Only apply when the structure is clearly visible in images.
+        - If uncertainty exists, fall back to the more generic term.
+        - Prefer specific structural terms over generic ones when confident.
+        - "Button Down" is permitted when collar buttons are clearly visible.
+
         COLLAR RULE (STRICT)
         'Button Down' refers to the COLLAR, not the front closure.
         NEVER use "Button Down Collar" unless you see physical buttons on the collar points.
@@ -372,7 +386,21 @@ export async function POST(request: NextRequest) {
         - Detect "Camp Collar" looks (open, flat, pajama-style, no top button/loop).
         - If visible, "Camp Collar" is a high-ranking keyword.
         - Do not infer collar type. If unsure, omit it.
-        Do not infer collar type. If unsure, omit it.
+
+        BRAND-SPECIFIC LOGO VARIANTS (LIMITED SCOPE)
+        Certain brands have widely recognized logo variants that are valid buyer-facing keywords.
+        
+        For Polo Ralph Lauren ONLY:
+        - "Flesh Pony": Permitted if Pony logo is neutral/tan/brown and blends with fabric color.
+        - "Big Pony": Permitted if logo is significantly larger than standard Polo chest embroidery.
+
+        Rules:
+        - Only apply when clearly visible in images.
+        - Do not guess or infer logo variants.
+        - Do not apply logo descriptors to other brands.
+        - Use at most one logo variant per title.
+        - Logo variants are optional and should not replace higher-priority keywords.
+        - If visual confirmation is unclear, omit the descriptor entirely.
 
         Style / Model Code (STRICT RULES BELOW)
 
