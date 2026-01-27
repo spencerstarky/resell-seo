@@ -651,11 +651,30 @@ export async function POST(request: NextRequest) {
         - Prefer factual descriptors (material, construction, silhouette)
         - It is acceptable to output a title under 75 characters if accuracy demands it.
 
+        STYLE KEYWORD TIERS
+        Tier 1 — Safe Descriptive Styles (Allowed with moderate confidence)
+        - Examples: Romantic, Preppy, Minimalist, Classic, Casual
+        - May be injected based on fabric, construction, or silhouette alone.
+
+        Tier 2 — Search-Intent Trend Styles (SEARCH ENRICHMENT)
+        - Examples: Y2K, Whimsygoth, Coquette, Gorpcore, Americana, Grunge
+        - Allowed when space exists, even without explicit proof, IF item is category-compatible.
+        - Rules:
+          * Item must not contradict the style.
+          * Inject at most 1–2 Tier 2 styles.
+          * Only inject AFTER Tier 1 styles are placed.
+          * Never inject when confidence is extremely low (blurry/ambiguous).
+
         FEMININE APPAREL STYLE SAFETY
         For feminine tops (lace, blouses, camisoles, crop tops):
-        - Allowed styles: Vintage, Y2K, Whimsygoth, Coquette, Romantic
+        - Style Expansion Allowed: Y2K, Coquette, Whimsygoth are eligible Tier 2 styles.
+        - Prefer styles that align with delicate or decorative elements.
         - Disallowed styles: Athleisure, Performance, Training, Activewear
-        - Rule: Only inject styles if explicitly supported by visuals or original title.
+
+        CHARACTER UTILIZATION OVERRIDE (< 70 CHARACTERS)
+        If the title is under 70 characters:
+        - Tier 2 style injection IS PERMITTED if it improves search discovery.
+        - Accuracy must be maintained, but absolute certainty is not required for Tier 2 trends.
 
         STYLE SIGNAL PRESERVATION — HENLEY & CASUAL KNITS (NEW)
         For the following categories:
