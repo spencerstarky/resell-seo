@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Shirt, Tag, ChevronRight, BarChart3, Database } from 'lucide-react';
+import { Shirt, Tag, ChevronRight, BarChart3, Database, Search } from 'lucide-react';
 
 export default function AdminDashboard() {
     return (
@@ -60,6 +60,30 @@ export default function AdminDashboard() {
                         </div>
                         <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', color: '#4caf50', fontSize: '0.9rem', fontWeight: 600 }}>
                             Configure Trends <ChevronRight size={16} />
+                        </div>
+                    </div>
+                </Link>
+
+                {/* 3. Public Listing Auditor (NEW) */}
+                <Link href="/admin/auditor" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                        background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '2rem',
+                        transition: 'all 0.2s ease', cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column', gap: '1rem'
+                    }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = '#29b6f6'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                    >
+                        <div style={{ width: 50, height: 50, borderRadius: '12px', background: 'rgba(41, 182, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#29b6f6' }}>
+                            <Search size={24} />
+                        </div>
+                        <div>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#fff', marginBottom: '0.5rem' }}>Public Auditor</h2>
+                            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                                Test the AI on ANY live eBay listing via URL or ID. Audit listings without importing.
+                            </p>
+                        </div>
+                        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', color: '#29b6f6', fontSize: '0.9rem', fontWeight: 600 }}>
+                            Launch Auditor <ChevronRight size={16} />
                         </div>
                     </div>
                 </Link>

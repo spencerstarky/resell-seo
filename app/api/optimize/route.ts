@@ -120,6 +120,9 @@ export async function POST(request: NextRequest) {
         let additionalInfo = '';
         let galleryImages: string[] = [];
 
+        // Initialize processing title (mutable)
+        let processingTitle = title;
+
         if (itemId) {
             try {
                 if (auditMode) {
@@ -130,9 +133,8 @@ export async function POST(request: NextRequest) {
                     galleryImages = details.imageUrls || [];
 
                     // If title was missing in request, use the one from eBay
-                    if (!title && details.originalTitle) {
-                        // We can't easily re-assign const title logic here without refactoring above, 
-                        // but normally title is passed in.
+                    if (!processingTitle && details.originalTitle) {
+                        processingTitle = details.originalTitle;
                     }
                 } else if (user) {
                     // STANDARD MODE: Use User's Token (requires connected account)
@@ -208,7 +210,8 @@ export async function POST(request: NextRequest) {
             const styleEngine = new StyleCodeEngine(supabase);
 
             // Gather all text sources
-            const combinedText = `${title} ${additionalInfo}`;
+            // Gather all text sources
+            const combinedText = `${processingTitle} ${additionalInfo}`;
             const candidates = styleEngine.extractCandidatesFromText(combinedText);
 
             console.log(`[StyleEngine] Found ${candidates.length} candidates:`, candidates);
@@ -255,7 +258,8 @@ export async function POST(request: NextRequest) {
         Current Date: ${new Date().toISOString()}
 
         INPUT DATA:
-        Original Title: "${title}"
+        INPUT DATA:
+        Original Title: "${processingTitle}"
         Item Specifics: "${cleanInfo}"
 
         SYSTEM ROLE
@@ -1405,7 +1409,14 @@ export async function POST(request: NextRequest) {
         }
         // -----------------------
 
-        return NextResponse.json({ optimizedTitle, fromCache: false });
+        return NextResponse.json({
+            optimizedTitle,
+            fromCache: false,
+            // Debug Data for Auditor
+            analyzedImages: galleryImages, // Return full list so UI can show what was available
+            itemSpecifics: cleanInfo,
+            originalTitle: processingTitle
+        });
 
     } catch (error: any) {
         console.error('Gemini Optimization Error:', error);
