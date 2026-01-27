@@ -884,6 +884,21 @@ export async function POST(request: NextRequest) {
         - Inject only one category keyword
         - Do not add lifestyle or trend terms beyond this
 
+        TREND, ERA & AESTHETIC KEYWORD HANDLING (HIGH PRIORITY)
+        Trend, era, and aesthetic descriptors are high-intent SEO keywords.
+        Includes: Y2K, Whimsygoth, Gothic, Goth, Grunge, Coquette, Fairycore, Vintage, Vtg, Lace (if visible).
+
+        Rules:
+        1. Do not remove trend/era keywords from the original title unless they clearly contradict the item.
+        2. Trend keywords OUTRANK generic descriptors (Casual, Classic, Everyday).
+        3. Do not replace trend keywords with numeric style codes unless character limits force a hard tradeoff.
+        4. When space is limited, PREFER Trend/Era keywords over internal Style Codes.
+        5. Trend keywords are confirmed if in Original Title OR visually supported.
+
+        NO GENERIC NORMALIZATION RULE:
+        - When trend or era keywords are present (e.g. Whimsygoth, Y2K), do NOT normalize the title to a generic category label like "Casual".
+        - Example: Keep "Whimsygoth Tops", do NOT change to "Casual Tops".
+
         PHASE 4 — SPACE SAVING / DROP PRIORITY
         
         If title exceeds 80 characters, you must remove items.
@@ -896,23 +911,25 @@ export async function POST(request: NextRequest) {
         4. Pattern (Fair Isle, Plaid, Stripe)
         5. Gender
         6. Size
-        7. Style Code (Verified Only)
-        8. Fit & Silhouette (Relaxed, Wide Leg, Baggy)
+        7. Trend / Era / Aesthetic (Y2K, Whimsygoth, Vintage)
+        8. Style Code (Verified Only)
         9. Verified Luxury Materials (Wool, Cashmere, Silk - Image Verified)
-        10. Down Fill Power (e.g. 850 Fill)
-        11. Performance Fabric (Dri-Fit, Climacool, etc.)
-        12. Color
-        13. Sport Context (Golf, Training)
-        14. Generic Keywords (Athletic, Casual, Nice, etc.)
+        10. Fit & Silhouette (Relaxed, Wide Leg, Baggy)
+        11. Down Fill Power (e.g. 850 Fill)
+        12. Performance Fabric (Dri-Fit, Climacool, etc.)
+        13. Color
+        14. Sport Context (Golf, Training)
+        15. Generic Keywords (Athletic, Casual, Nice, etc.)
 
         DROP ORDER (REMOVE THESE FIRST → LAST):
         1. Generic Keywords (Athletic, Casual)
         2. Sport Context (Golf, Training - unless highly relevant)
         3. Color (only if critical for space)
-        4. Fit & Silhouette (only if forced)
-        5. Performance Fabric (only if absolutely forced)
+        4. Performance Fabric (only if absolutely forced)
+        5. Fit & Silhouette (only if forced)
         6. Down Fill Power (PROTECTED - ONLY if absolutely forced)
-        7. Style Code (Last resort before dropping core identifiers)
+        7. Style Code (Drop BEFORE Trend keywords)
+        8. Trend / Era / Aesthetic Keywords (PROTECTED - Do not drop)
 
 
 
