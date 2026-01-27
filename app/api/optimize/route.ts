@@ -412,10 +412,10 @@ export async function POST(request: NextRequest) {
         If a code appears on a shipping bag, sticker, tape, or handwritten label -> REJECT IT.
 
         BRAND SPECIFIC EXCEPTIONS:
-        - LULULEMON: Valid codes are 7-8 chars (e.g. LW4AU8S). Starts with LW/LM/W. Circular text. NEVER TRUNCATE.
-          - MEN'S MATCH: Must start with "LM" or "M". IF prefix is "LW", OMIT THE CODE entirely.
-          - WOMEN'S MATCH: Must start with "LW", "W" or "LM". IF prefix implies Men's but item is Women's, OMIT.
-          - Size-dot codes printed in circular formats require HIGH confidence to include.
+        - LULULEMON: Valid codes are 7-8 chars (e.g. LW4AU8S). Starts with LW/LM/W. NEVER TRUNCATE.
+          - MEN'S MATCH: Must start with "LM". If item is Men's and code starts with "LW", OMIT the code.
+          - WOMEN'S MATCH: Must start with "LW" or "W". If item is Women's and code starts with "LM", OMIT the code.
+          - Size-dot codes printed in circular or curved formats require HIGH confidence to include.
         - LL BEAN: Format as "LL Bean" (No space between Ls). Never "L L Bean".
         - UNIQLO: Valid codes are EXACTLY 6 digits (e.g. 477683). May appear as ###-######. Alphanumerics (HT0018PNK) are INVALID.
         - NIKE / JORDAN: Valid codes are 6 CHARACTERS ONLY (e.g. AR7135).
