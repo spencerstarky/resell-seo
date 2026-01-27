@@ -605,6 +605,30 @@ export async function POST(request: NextRequest) {
         2. "Western" TRUMPS "Boho" for Pearl Snap shirts.
         3. "Y2K" TRUMPS "Vintage" if the item has specific Y2K traits (McBling, Rhinestone).
 
+        GORPCORE AUTHORIZATION — HERITAGE OUTERWEAR
+        Authorize the style keyword “Gorpcore” for outerwear when ALL of the following are true:
+        - Brand is a recognized outdoor heritage brand (e.g. Columbia, Patagonia, The North Face, LL Bean, Arc’teryx, Mountain Hardwear)
+        - Item is a jacket, shell, fleece, or outerwear
+        - At least ONE of the following visual or textual signals is present:
+          * Colorblock
+          * Vintage
+          * Oversized / Boxy / 90s silhouette
+          * Bright or contrasting outdoor colorways
+        
+        In these cases, Gorpcore does NOT require technical fabric verification.
+
+        ATHLEISURE SUPPRESSION — GORPCORE CONTEXT
+        When Gorpcore is authorized or injected:
+        - Do NOT include Athleisure
+        - Do NOT include Casual
+        - Do NOT include Lifestyle
+        Gorpcore replaces these generic style terms.
+
+        STYLE FALLBACK BLOCKER — OUTERWEAR
+        For outerwear:
+        - If no style keyword is confidently authorized, omit style keywords entirely.
+        - Do not inject Athleisure as a fallback for jackets or coats.
+
         STYLE SIGNAL PRESERVATION — HENLEY & CASUAL KNITS (NEW)
         For the following categories:
         Henley Shirts, Casual Long Sleeve Shirts, Knit Tops
