@@ -629,6 +629,34 @@ export async function POST(request: NextRequest) {
         - If no style keyword is confidently authorized, omit style keywords entirely.
         - Do not inject Athleisure as a fallback for jackets or coats.
 
+        ATHLEISURE GLOBAL RESTRICTION (CRITICAL)
+        The keyword “Athleisure” may ONLY be applied when ALL of the following are true:
+        - Item is explicitly activewear, lounge, or performance apparel (e.g. leggings, joggers, hoodies, sweatshirts, training tops)
+        - Brand is commonly associated with athletic or performance wear (e.g. Nike, Adidas, Lululemon, Vuori, Alo, Under Armour)
+        
+        Do NOT apply Athleisure to:
+        - Lace items
+        - Blouses
+        - Crop tops (unless clear athletic brand)
+        - Dresses / Skirts
+        - Intimate or delicate fabrics
+        - Vintage fashion
+        - Outerwear
+        If Athleisure is not clearly applicable, OMIT it entirely.
+
+        STYLE FALLBACK BAN — LOW CONTEXT ITEMS
+        When images and title provide minimal context:
+        - Do NOT inject speculative lifestyle or trend keywords
+        - Do NOT force character fill using generic styles
+        - Prefer factual descriptors (material, construction, silhouette)
+        - It is acceptable to output a title under 75 characters if accuracy demands it.
+
+        FEMININE APPAREL STYLE SAFETY
+        For feminine tops (lace, blouses, camisoles, crop tops):
+        - Allowed styles: Vintage, Y2K, Whimsygoth, Coquette, Romantic
+        - Disallowed styles: Athleisure, Performance, Training, Activewear
+        - Rule: Only inject styles if explicitly supported by visuals or original title.
+
         STYLE SIGNAL PRESERVATION — HENLEY & CASUAL KNITS (NEW)
         For the following categories:
         Henley Shirts, Casual Long Sleeve Shirts, Knit Tops
