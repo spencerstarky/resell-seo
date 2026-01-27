@@ -85,8 +85,9 @@ export async function POST(request: NextRequest) {
             // --- SYNC THIS PAGE TO DB IMMEDIATELY ---
             if (pageItems.length > 0) {
                 const batchIds = pageItems.map(item => item.ebay_item_id);
+                const batchTitles = pageItems.map(item => item.title);
 
-                // 1. Fetch existing
+                // 1. Fetch existing Inventory (to preserve status)
                 const { data: existingItems } = await supabase
                     .from('ebay_inventory')
                     .select('ebay_item_id, status, original_title, optimized_title')
@@ -98,9 +99,37 @@ export async function POST(request: NextRequest) {
                     dbMap.set(dbItem.ebay_item_id, dbItem);
                 });
 
-                // 2. Prepare Updates
+                // 2. Fetch History Matches (The "Mirror Check")
+                // We check if any of these current titles match a title we ALREADY optimized in the past.
+                const { data: historyMatches } = await supabase
+                    .from('optimization_history')
+                    .select('optimized_title')
+                    .eq('user_id', user.id)
+                    .in('optimized_title', batchTitles);
+
+                const knownOptimizedSet = new Set(historyMatches?.map(h => h.optimized_title) || []);
+
+                // 3. Prepare Updates
                 const upsertPayload = pageItems.map(item => {
                     const existing = dbMap.get(item.ebay_item_id);
+                    const isKnownOptimized = knownOptimizedSet.has(item.title);
+
+                    // Status Logic:
+                    // 1. Trust existing non-NEW status
+                    // 2. If title matches history -> OPTIMIZED (Auto-detect)
+                    // 3. Default -> NEW
+                    let status = 'NEW';
+                    if (existing && ['OPTIMIZED', 'LIVE', 'IGNORED'].includes(existing.status)) {
+                        status = existing.status;
+                    } else if (isKnownOptimized) {
+                        status = 'OPTIMIZED';
+                    } else if (existing?.status) {
+                        status = existing.status;
+                    }
+
+                    // If auto-detected as optimized, ensure optimized_title is populated
+                    const optimizedTitle = existing?.optimized_title || (status === 'OPTIMIZED' ? item.title : null);
+
                     return {
                         user_id: user.id,
                         ebay_item_id: item.ebay_item_id,
@@ -109,8 +138,8 @@ export async function POST(request: NextRequest) {
                         last_synced_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
                         original_title: existing?.original_title || item.title,
-                        status: ['NEW', 'OPTIMIZED', 'LIVE', 'IGNORED'].includes(existing?.status) ? existing.status : 'NEW',
-                        optimized_title: existing?.optimized_title || null
+                        status: status,
+                        optimized_title: optimizedTitle
                     };
                 });
 
