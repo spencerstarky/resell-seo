@@ -666,6 +666,23 @@ export async function POST(request: NextRequest) {
 
         Use only sizes explicitly shown
 
+        SIZE & MEASUREMENT INVENTION (STRICT)
+        - Do not invent, infer, or complete sizing information.
+        - Only include measurements (e.g. waist x inseam) if they are explicitly provided in the original title.
+        - Do not derive measurements from size labels (S, M, L, Medium, etc.).
+        - If an item includes a letter-based size (e.g. Men’s Medium), treat it as the complete size reference.
+        - Never create a size or measurement slot that does not exist in the source data.
+        
+        ATHLEISURE BOTTOMS EXCEPTION:
+        For sweatpants, joggers, lounge pants, and athletic bottoms, prefer letter-based sizing (S, M, L) and do NOT attempt to add waist x inseam unless explicitly provided.
+
+        MASKING & PLACEHOLDERS (TITLE BAN)
+        Masking tokens such as [REDACTED], [UNKNOWN], N/A, XXXX are NEVER allowed in listing titles.
+        If a value is missing or unknown:
+        - Omit the attribute entirely.
+        - Do not substitute placeholders.
+        - Titles must contain only buyer-facing, readable text.
+
         FORMATTING OPERATIONS
 
         Remove labels (Size Sz W L Waist)
