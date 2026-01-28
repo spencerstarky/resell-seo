@@ -722,6 +722,19 @@ export async function POST(request: NextRequest) {
         
         Fiber breakdowns belong in item specifics or descriptions, not optimized titles.
 
+        MATERIAL LANGUAGE NORMALIZATION (TITLE-SPECIFIC)
+        Normalize informal material phrases to standard buyer language.
+        Convert:
+        - "All Cotton" → "Cotton"
+        - "Pure Cotton" → "Cotton"
+        - "Full Cotton" → "Cotton"
+
+        Use "100% Cotton" ONLY when:
+        - Explicitly shown on a fabric tag, OR
+        - Explicitly written as "100% Cotton" in the original title.
+        
+        Never place the word "All" before a material in the final title.
+
         NEGATIVE KEYWORD LIST (BANNED/LOW INTENT)
         Do NOT use these words unless part of a specific Product Name or if space is absolutely empty and they are the ONLY accurate descriptor available (last resort):
         - Casual
