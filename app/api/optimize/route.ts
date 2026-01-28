@@ -1354,10 +1354,18 @@ export async function POST(request: NextRequest) {
         - If character space remains and condition is verified, condition keywords must be injected even if not present in the original title.
         - Condition injection overrides conservative output rules, but only for verified condition data.
 
-        14) MINIMUM ENRICHMENT REQUIREMENT (ANTI-EARLY EXIT)
-        If optimized titles use fewer than 70 characters and verified attributes remain unused, continue enrichment until no safe attributes remain.
-        - This prevents early exits entirely.
-        - You MUST fill available space with high-value factual or authorized trend keywords.
+        14) CONTROLLED ENRICHMENT STOP CONDITION
+        Do not force enrichment to meet a character target.
+        Enrichment should stop when:
+        - All high-confidence attributes are exhausted, OR
+        - Remaining attributes would require speculation.
+        Accuracy and category correctness always outweigh character utilization.
+
+        15) BASE LAYER / THERMAL CLASSIFICATION (ATHLEISURE BAN)
+        Items categorized as Thermal Underwear, Long Johns, Base Layers, or Sleepwear:
+        - Prioritize: Thermal, Base Layer, Insulating, Cold Weather.
+        - NEVER apply "Athleisure" to these base layers (unless explicit performance marketing).
+        - Do not associate underwear or sleep layers with street-style Athleisure.
 
         END OVERRIDE
         `;
