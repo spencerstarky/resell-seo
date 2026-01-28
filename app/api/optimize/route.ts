@@ -1283,6 +1283,48 @@ export async function POST(request: NextRequest) {
         Preferred: Patagonia Jacket Men's Medium Polyester Yellow Gorpcore Waterproof
         Avoid: Patagonia Jacket Men's Size M Polyester Yellow Gorpcore Waterproof
 
+        ---
+        
+        11) SYSTEM OVERRIDE — TRUE VINTAGE & HIGH-INTENT PATTERNS (CRITICAL)
+
+        1) TRUE VINTAGE NORMALIZATION
+        If the original title explicitly references an era that is 50+ years old
+        (e.g. 1940s, 1950s, 60s workwear, WWII era):
+        - Normalize the era to the keyword "True Vintage"
+        - "True Vintage" replaces specific decades
+        - Treat "True Vintage" as a HIGH-INTENT buyer keyword
+        - "True Vintage" outranks generic "Vintage"
+
+        Examples:
+        - "40s 50s vintage flannel" → "True Vintage Flannel"
+        - "1950s work jacket" → "True Vintage Work Jacket"
+
+        Never downgrade a verified 50+ year item to generic "Vintage".
+
+        2) FLANNEL & PLAID PATTERN PRESERVATION (CRITICAL)
+        For flannel shirts and jackets:
+        - "Buffalo Plaid" is a CORE IDENTITY keyword
+        - If "Buffalo Plaid" appears in the original title, it MUST be preserved
+        - Do NOT replace or omit it in favor of generic color descriptors
+
+        Priority: Buffalo Plaid > Plaid > Color adjectives (Red, Black, etc.)
+
+        3) ERA + PATTERN COEXISTENCE
+        When applicable, era and pattern MUST coexist.
+        Correct: True Vintage Buffalo Plaid Flannel Jacket
+        Incorrect: Vintage Red Flannel Jacket
+
+        4) VINTAGE CONFIDENCE RULE
+        When an item is identified as True Vintage:
+        - Prefer era and construction descriptors over lifestyle styles
+        - Do NOT inject modern styles (Athleisure, Streetwear, Casual)
+        - Americana, Workwear, Heritage are preferred if space allows
+
+        5) BRAND NAME PRESERVATION — VINTAGE
+        For uncommon or legacy vintage brand names:
+        - Preserve spelling from the original title exactly
+        - Do NOT autocorrect unless the error is obvious and modern
+
         END OVERRIDE
         `;
 
