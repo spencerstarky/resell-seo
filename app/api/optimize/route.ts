@@ -1348,6 +1348,17 @@ export async function POST(request: NextRequest) {
         - Do NOT inject "New" if the item is used, pre-owned, or vintage (unless "NOS" or "Deadstock" is verified).
         - If verified New, "New" is a required keyword, not optional.
 
+        13) CONDITION OVERRIDE PRIORITY
+        Condition keywords (New, NWT) are considered verified facts when provided in item specifics.
+        - Adding verified condition keywords does not count as adding speculative information.
+        - If character space remains and condition is verified, condition keywords must be injected even if not present in the original title.
+        - Condition injection overrides conservative output rules, but only for verified condition data.
+
+        14) MINIMUM ENRICHMENT REQUIREMENT (ANTI-EARLY EXIT)
+        If optimized titles use fewer than 70 characters and verified attributes remain unused, continue enrichment until no safe attributes remain.
+        - This prevents early exits entirely.
+        - You MUST fill available space with high-value factual or authorized trend keywords.
+
         END OVERRIDE
         `;
 
