@@ -1332,6 +1332,22 @@ export async function POST(request: NextRequest) {
         - Preserve spelling from the original title exactly
         - Do NOT autocorrect unless the error is obvious and modern
 
+        ---
+
+        12) CONDITION-BASED KEYWORD INJECTION (STRICT VERIFICATION)
+
+        RULE:
+        If item specifics explicitly state the condition as "New" or "New With Tags", the model MUST inject "New" or "NWT" into the optimized title.
+
+        PRIORITY:
+        - Condition keywords ("New", "NWT") > Vague Descriptors (e.g. "Nice", "Clean")
+        - If character space remains, prioritize "New" over generic style words.
+
+        RESTRICTIONS:
+        - Condition keywords must be verified by item specifics/title. NEVER INFERRED.
+        - Do NOT inject "New" if the item is used, pre-owned, or vintage (unless "NOS" or "Deadstock" is verified).
+        - If verified New, "New" is a required keyword, not optional.
+
         END OVERRIDE
         `;
 
