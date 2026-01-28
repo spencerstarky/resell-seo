@@ -1130,6 +1130,88 @@ export async function POST(request: NextRequest) {
         Rule: Do NOT leave 15 unused characters on the table. Fill it with value.
         Do NOT add "New" or banned seasonal words.
         USE THE SPACE.
+
+        🔧 GEMINI OVERRIDE PATCH — SEO STYLE & CHARACTER UTILIZATION
+        SYSTEM OVERRIDE — SEO ENRICHMENT CLARIFICATIONS (HIGH PRIORITY)
+
+        1) STYLE INJECTION CLARIFICATION
+        Trend and lifestyle keywords are NOT factual claims.
+        Tier 2 style keywords (Y2K, Coquette, Whimsygoth, Gorpcore, Americana, Grunge) are SEARCH ENRICHMENT and may be injected when:
+        - The item category allows the style
+        - The style does not contradict the item
+        - Character space exists
+
+        Do NOT require strong visual proof for Tier 2 styles.
+        Avoid false positives, but do not suppress search-intent styles due to uncertainty alone.
+
+        ---
+
+        2) MULTI-STYLE INJECTION RULE
+        When character space allows, prefer injecting MULTIPLE compatible style keywords rather than stopping at one.
+
+        Rules:
+        - Up to 2 Tier 2 styles may be injected
+        - Tier 1 styles (Romantic, Preppy, Classic, Minimalist) may coexist with Tier 2
+        - If title length < 75 characters, style expansion SHOULD occur unless explicitly disallowed
+
+        Example:
+        Cream Lace Crop Top Women's XS Ivory Blouse Y2K Coquette Romantic
+
+        ---
+
+        3) CHARACTER UTILIZATION ENFORCEMENT
+        If the final title is under 75 characters:
+        - You MUST attempt additional SEO enrichment
+        - Style keywords take priority over generic fillers
+        - It is NOT acceptable to stop early if safe styles remain available
+
+        ---
+
+        4) ATHLEISURE RECLASSIFICATION
+        Athleisure is NOT a filler keyword.
+        Athleisure may ONLY be used when ALL conditions are met:
+        - Item is performance or activewear
+        - Brand is athletic or performance-focused
+        - Item construction supports movement or training
+
+        If Athleisure is not explicitly supported, OMIT IT ENTIRELY.
+        Never use Athleisure as a fallback for low context.
+
+        ---
+
+        5) STYLE SIGNAL PHASE PRIORITY
+        Style Signal Intelligence must be evaluated whenever:
+        - The title is under 75 characters
+        - The item category is eligible for stylistic search behavior
+
+        This phase is REQUIRED when space exists.
+
+        ---
+
+        6) MEASUREMENT REPLACEMENT RULE (CRITICAL)
+        If waist x inseam measurements are present (e.g. 34x30):
+        - Do NOT include a standalone numeric size for the same dimension
+        - Measurements replace numeric size indicators
+
+        ---
+
+        7) STYLE CODE PRIORITY OVERRIDE
+        Verified style codes take priority over SEO filler.
+        If a verified style code exists and character space remains:
+        - The style code MUST be included
+        - SEO keywords may be reduced to preserve it
+
+        ---
+
+        8) IMAGE CONFIDENCE REMINDER
+        Images ARE allowed to inform:
+        - Garment structure (button down collar, pullover, etc.)
+        - Logo variants (brand-authorized only)
+        - Obvious construction details
+
+        Do not suppress image-derived keywords due to minor uncertainty if no contradiction exists.
+
+        END OVERRIDE
         `;
 
         // DEBUG: Log the full prompt for user inspection
