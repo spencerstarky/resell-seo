@@ -1223,10 +1223,9 @@ export async function POST(request: NextRequest) {
         // List of models to try in order of preference
         // We prioritize Flash (multimodal) then fallback to Pro (text-only)
         const candidateModels = [
-            'gemini-2.0-flash-exp', // Latest
-            'gemini-1.5-pro',       // Stable High-Intel
-            'gemini-1.5-flash',     // Stable Fast
-            'gemini-1.5-flash-001'
+            'gemini-2.0-flash',     // New Stable Multimodal
+            'gemini-1.5-flash',     // Previous Stable
+            'gemini-1.5-pro'        // High Intel Fallback
         ];
 
         // Prepare Image Data (Multi-Image Level 3)
