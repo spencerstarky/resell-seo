@@ -712,6 +712,16 @@ export async function POST(request: NextRequest) {
         Never drop them to make space for SEO keywords.
         Other materials appear as SEO Keywords only if space permits.
 
+        MATERIAL BLEND NORMALIZATION
+        When an item contains multiple fibers, prefer the phrasing:
+        [Primary Material] Blend (e.g. Merino Wool Blend).
+
+        Do not list fiber percentages in titles unless:
+        - The item is technical performance wear, OR
+        - Percentages are a key selling point explicitly stated in the original title.
+        
+        Fiber breakdowns belong in item specifics or descriptions, not optimized titles.
+
         NEGATIVE KEYWORD LIST (BANNED/LOW INTENT)
         Do NOT use these words unless part of a specific Product Name or if space is absolutely empty and they are the ONLY accurate descriptor available (last resort):
         - Casual
