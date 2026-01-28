@@ -1237,6 +1237,52 @@ export async function POST(request: NextRequest) {
         - If material is known (e.g. Wool), prioritize it over lifestyle terms.
         - If context is limited, stop after core facts.
 
+        ---
+
+        10) SYSTEM OVERRIDE — SIZING NORMALIZATION & CHARACTER OPTIMIZATION (HIGH PRIORITY)
+
+        1) SIZE LABEL REMOVAL (GLOBAL)
+        Do NOT use the word "Size" in titles.
+        Size descriptors must be written as the full word when applicable.
+        Examples:
+        - "Men's Medium" (NOT "Men's Size M")
+        - "Women's Large" (NOT "Women's Size L")
+        - "Men XL" is acceptable only when character space is extremely limited
+
+        Apply this rule to ALL future listings.
+
+        2) LETTER SIZE EXPANSION RULE
+        When a letter size is present (S, M, L, XL, XXL):
+        - Prefer the FULL WORD form if character space allows
+        
+        Mapping:
+        S → Small
+        M → Medium
+        L → Large
+        XL → XL or Extra Large (choose shorter if space-constrained)
+        XXL → XXL
+
+        This rule applies especially when the title is under 75 characters.
+
+        3) OUTERWEAR SIZE PRIORITY
+        For jackets, coats, shells, and outerwear:
+        - Size clarity is HIGH PRIORITY
+        - Prefer "Men's Medium" over compact forms
+        - Size wording may be expanded to improve buyer clarity and SEO
+
+        4) CHARACTER UTILIZATION RECHECK
+        After inserting:
+        - Value Leader
+        - Core attributes
+        - Authorized style keywords
+        
+        You MUST re-evaluate size wording.
+        If expanding the size increases clarity and character utilization without exceeding 80 characters, it SHOULD be done.
+
+        5) EXAMPLE CORRECTION
+        Preferred: Patagonia Jacket Men's Medium Polyester Yellow Gorpcore Waterproof
+        Avoid: Patagonia Jacket Men's Size M Polyester Yellow Gorpcore Waterproof
+
         END OVERRIDE
         `;
 
