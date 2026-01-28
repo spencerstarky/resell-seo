@@ -1211,6 +1211,32 @@ export async function POST(request: NextRequest) {
 
         Do not suppress image-derived keywords due to minor uncertainty if no contradiction exists.
 
+        ---
+
+        9) SYSTEM OVERRIDE — ACCESSORY STYLE SAFETY (CRITICAL)
+
+        ACCESSORY CATEGORY DEFINITION:
+        Accessories include hats, caps, berets, beanies, scarves, belts, gloves, bags, and small fashion add-ons.
+
+        RULES FOR ACCESSORIES:
+        - Do NOT inject Athleisure, Training, Performance, or Sport styles.
+        - Do NOT force lifestyle or trend keywords when context is minimal.
+        - It is acceptable for accessory titles to remain under 75 characters.
+
+        STYLE ALLOWANCE FOR ACCESSORIES:
+        - Allowed descriptive styles: Classic, Vintage, French, Minimalist.
+        - Allowed trend styles ONLY if explicitly supported by title or visuals (e.g. Y2K beanie, Gorpcore cap).
+
+        CHARACTER UTILIZATION EXCEPTION:
+        The 75-character target does NOT apply to accessories.
+        Accuracy and category relevance override character fill requirements.
+
+        BERET-SPECIFIC GUIDANCE:
+        - Berets are fashion accessories, not athletic wear.
+        - Never associate berets with Athleisure.
+        - If material is known (e.g. Wool), prioritize it over lifestyle terms.
+        - If context is limited, stop after core facts.
+
         END OVERRIDE
         `;
 
