@@ -1289,15 +1289,22 @@ export async function POST(request: NextRequest) {
 
         1) TRUE VINTAGE NORMALIZATION
         If the original title explicitly references an era that is 50+ years old
-        (e.g. 1940s, 1950s, 60s workwear, WWII era):
+        (e.g. 1940s, 1950s, 60s, 1970s):
         - Normalize the era to the keyword "True Vintage"
         - "True Vintage" replaces specific decades
         - Treat "True Vintage" as a HIGH-INTENT buyer keyword
         - "True Vintage" outranks generic "Vintage"
 
+        PRESERVED VINTAGE DESCRIPTORS (DO NOT REMOVE):
+        - Buffalo Plaid
+        - Loop Collar
+        - Workwear
+        - Heritage
+        - Chore Coat
+
         Examples:
         - "40s 50s vintage flannel" → "True Vintage Flannel"
-        - "1950s work jacket" → "True Vintage Work Jacket"
+        - "1970s loop collar shirt" → "True Vintage Loop Collar Shirt"
 
         Never downgrade a verified 50+ year item to generic "Vintage".
 
