@@ -663,7 +663,31 @@ export async function POST(request: NextRequest) {
           * Item must not contradict the style.
           * Inject at most 1–2 Tier 2 styles.
           * Only inject AFTER Tier 1 styles are placed.
-          * Never inject when confidence is extremely low (blurry/ambiguous).
+        HERITAGE BRAND STYLE OVERRIDE (CRITICAL)
+        For heritage and legacy brands, default modern lifestyle styles are restricted.
+        HERITAGE BRANDS INCLUDE (NON-EXHAUSTIVE):
+        - LL Bean, Pendleton, Ralph Lauren (non-sport lines), Brooks Brothers, Filson, Orvis, Barbour, Woolrich, Eddie Bauer (vintage)
+
+        RULES:
+        - Do NOT inject “Streetwear” for heritage brands unless:
+          * The item has explicit modern streetwear signals (oversized, graphic, logo-heavy, cropped, contemporary cut).
+        
+        Prefer the following styles when applicable:
+        - Heritage
+        - Workwear
+        - Americana
+        - Classic
+        - Preppy
+
+        If no heritage-aligned style is confidently supported, omit style keywords entirely.
+        Never use Streetwear as a fallback style for heritage brands.
+
+        STYLE KEYWORD BRAND COMPATIBILITY CHECK
+        Before injecting any Tier 1 or Tier 2 style keyword:
+        - Validate that the style aligns with the brand’s historical market positioning.
+        - If misaligned (e.g., Streetwear + LL Bean, Gorpcore + Silk Blouse):
+          * Block the keyword.
+          * Select the nearest heritage-appropriate alternative or omit style keywords.
 
         FEMININE APPAREL STYLE SAFETY
         For feminine tops (lace, blouses, camisoles, crop tops):
