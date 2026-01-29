@@ -805,33 +805,23 @@ export async function POST(request: NextRequest) {
            - Do NOT pull filler words (like "Winter", "Cute", "Nice") from description.
            - Only use description to verify facts like material or country of origin.
 
-        SIZE FORMATTING RULES (MANDATORY)
+        SIZE ABBREVIATION — XS & XL+ ONLY (MANDATORY)
 
-        Use:
+        Normalize ONLY extended sizes to abbreviated format in the final title.
 
-        Small
+        Apply the following conversions:
+        - Extra Extra Small → XXS
+        - Extra Small → XS
+        - Extra Large → XL
+        - Double Extra Large → XXL
+        - Triple Extra Large → XXXL
 
-        Medium
-
-        Large
-
-        XL
-
-        NEVER abbreviate:
-
-        Small
-
-        Medium
-
-        Large
-
-        ALWAYS abbreviate:
-
-        XL
-
-        XXL
-
-        Big & Tall sizes (XLT 3XLT 4XB)
+        Rules:
+        - Do NOT abbreviate Small, Medium, or Large.
+        - Preserve original wording for S, M, and L if spelled out.
+        - Numeric sizes (e.g. 6, 10, 32x30) are unchanged.
+        - For the sizes listed above (XS/XL+), ALWAYS output the abbreviated form.
+        - If both spelled-out and abbreviated forms appear, prefer the abbreviated form.
 
 
         SPECIAL NUMERICAL SIZING (CRITICAL PRESERVATION)
