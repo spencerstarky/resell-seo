@@ -1549,8 +1549,15 @@ export async function POST(request: NextRequest) {
                 // If success, parse and break
                 const data = await response.json();
                 optimizedTitle = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                console.log(`[Success] Generated with ${modelName}`);
-                break; // Stop loop
+
+                if (optimizedTitle) {
+                    console.log(`[Success] Generated with ${modelName}`);
+                    break; // Stop loop
+                } else {
+                    console.warn(`[Fail] Model ${modelName} returned empty. Reason: ${data.candidates?.[0]?.finishReason}`);
+                    lastError = `Safety Block (${data.candidates?.[0]?.finishReason})`;
+                    // Continue to next model
+                }
 
             } catch (err: any) {
                 console.warn(`[Fail] Model ${modelName} failed: ${err.message}`);
