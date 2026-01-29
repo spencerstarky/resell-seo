@@ -443,6 +443,33 @@ export async function POST(request: NextRequest) {
         Any standalone number (e.g. 8076) visible in images must be treated as a seller SKU and ignored.
         If a code appears on a shipping bag, sticker, tape, or handwritten label -> REJECT IT.
 
+        REGULATORY NUMBER EXCLUSION (CRITICAL)
+        Regulatory identification numbers are NEVER style codes.
+        This includes (but is not limited to):
+        - RN numbers (e.g. RN 123722)
+        - CA numbers
+        - FCC IDs
+        - Factory registration numbers
+        - Care tag compliance numbers
+
+        RULES:
+        - Any number preceded by or associated with "RN", "RN#", "Reg No", "Registration", or similar regulatory language MUST be ignored.
+        - RN numbers may appear:
+          * On care tags
+          * Near fabric composition
+          * Near washing instructions
+        - RN numbers are NOT product identifiers and must NEVER be injected into the title.
+
+        If a numeric or alphanumeric code:
+        - Appears on a care tag
+        - Appears next to fabric percentages
+        - Appears immediately after "RN"
+        → REJECT IT COMPLETELY.
+
+        When in doubt between RN vs Style Code:
+        - OMIT the code.
+        - Accuracy always overrides enrichment.
+
         BRAND SPECIFIC EXCEPTIONS:
         - LULULEMON: Valid codes are 7-8 chars (e.g. LW4AU8S). Starts with LW/LM/W. NEVER TRUNCATE.
           - MEN'S MATCH: Must start with "LM". If item is Men's and code starts with "LW", OMIT the code.
