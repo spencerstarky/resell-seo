@@ -482,6 +482,14 @@ export async function POST(request: NextRequest) {
           - If the tag says "AR7135-010", you MUST extract ONLY "AR7135".
           - Ignore "FA...", "HO...", "SP...", "SU..." codes (these are dates/seasons, not styles).
           - SUFFIX STRIPPING: If a code looks like "AR7135LMS", extract ONLY "AR7135". Ignore trailing letters.
+        - PATAGONIA: TRUE style code is the 5-digit numeric core.
+          - REMOVE prefixes (STY, STYLE, ITEM).
+          - REMOVE seasonal suffixes (SP25, FA20, FW19, SS18).
+          - REMOVE color codes or hyphenated variants.
+          - Example: "STY84212SP25" -> "84212"
+          - Example: "84212-PLGY" -> "84212"
+          - If multiple numbers appear, use the first valid 5-digit sequence associated with Patagonia branding.
+          - If 5-digit core cannot be isolated, OMIT the code.
 
         A code is valid ONLY if:
         - Appears on a brand or retail tag
