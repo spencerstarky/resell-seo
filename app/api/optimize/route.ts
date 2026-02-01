@@ -1231,11 +1231,7 @@ export async function POST(request: NextRequest) {
 
         ---
 
-        3) CHARACTER UTILIZATION ENFORCEMENT
-        If the final title is under 75 characters:
-        - You MUST attempt additional SEO enrichment
-        - Style keywords take priority over generic fillers
-        - It is NOT acceptable to stop early if safe styles remain available
+
 
         ---
 
@@ -1438,6 +1434,58 @@ export async function POST(request: NextRequest) {
         - Prioritize: Thermal, Base Layer, Insulating, Cold Weather.
         - NEVER apply "Athleisure" to these base layers (unless explicit performance marketing).
         - Do not associate underwear or sleep layers with street-style Athleisure.
+
+        FINAL SYSTEM OVERRIDES & REGRESSION FIXES
+
+        1) CONDITION INJECTION — NEW (MANDATORY)
+        If item condition = New OR original title includes NWT/New With Tags/BNWT OR images show retail tags:
+        - You MUST inject the word "New" into the final title.
+        - Reserve at least 4 characters for "New".
+        - If space is tight, REMOVE trend or style keywords before removing "New".
+        - Backtrack and revise if "New" is missing and space remains.
+
+        2) STYLE KEYWORD REGRESSIONS — STRICT BLOCKERS
+        - Do NOT inject Athleisure unless ALL are true:
+          * Item is activewear or performance apparel
+          * Brand is athletic (Nike, Lululemon, Alo, Vuori, etc.)
+          * Construction supports movement
+        - NEVER use Athleisure as filler or fallback.
+        - Do NOT inject Streetwear for heritage brands (LL Bean, Patagonia, Brooks Brothers, Pendleton, Filson, Orvis, etc.).
+        
+        Preferred heritage styles:
+        - Heritage, Workwear, Americana, Classic, Preppy
+        - If no confident style applies → OMIT style keywords entirely.
+
+        3) CHARACTER FILL RULE ADJUSTMENT
+        - Accuracy overrides character targets.
+        - It is acceptable to finish under 75 characters if remaining options are speculative or misaligned.
+
+        4) MATERIAL BLEND & LANGUAGE
+        - Use "[Primary Material] Blend" (e.g. Merino Wool Blend). Do not break into percentages unless technical.
+        - Normalize: "All Cotton" → Cotton, "Pure Cotton" → Cotton. Never "All [Material]".
+
+        5) SIZE ABBREVIATION — LIMITED SCOPE
+        ONLY abbreviate:
+        - Extra Extra Small → XXS
+        - Extra Small → XS
+        - Extra Large → XL
+        - Double Extra Large → XXL
+        - Triple Extra Large → XXXL
+        - Do NOT abbreviate Small, Medium, or Large.
+
+        6) STYLE CODE — PATAGONIA (ZERO TOLERANCE)
+        - 5-digit numeric core ONLY.
+        - Remove prefixes (STY, STYLE, ITEM) and seasonal suffixes (SP25, FA20).
+        - Example: STY84212SP25 → 84212.
+
+        7) STYLE CODE — REGULATORY NUMBER BAN
+        - RN numbers are NEVER valid style codes.
+        - Any code on care tags or preceded by RN/Reg No must be REJECTED.
+
+        8) VALUE PRIORITY & PRINCIPLE
+        - Priority: Brand > Product Name > Garment Type > Gender > Size > Verified Style Code > Color > Condition (New) > Trend/Style.
+        - Accuracy > Buyer Clarity > SEO.
+        - Never trade factual correctness for character fill.
 
         END OVERRIDE
         `;
