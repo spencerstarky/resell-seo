@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.3",
+            Unified: "V1.4",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -429,6 +429,12 @@ SIZE AUTHORITY RULE:
 BRAND INTEGRITY RULE:
 - Preserve the full, commonly searched brand name when present (e.g. "Polo Ralph Lauren").
 - Do not shorten or simplify brand names unless the shortened form is more commonly searched.
+
+STYLE CODE CONFIDENCE RULE:
+- Include a style code only if it is either:
+  a) Verified by image/tag, OR
+  b) Provided as pattern-matched with high confidence.
+- Do NOT include low-confidence or inferred style codes.
 
 Step 2 — DESCRIPTORS & KEYWORDS:
 - Enrich the title with additional descriptors or keywords from the item info that are accurate and buyer-relevant.
