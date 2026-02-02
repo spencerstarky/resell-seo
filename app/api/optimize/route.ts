@@ -301,6 +301,7 @@ export async function POST(request: NextRequest) {
                 'gemini-2.0-flash',     // Multimodal & Fast
                 'gemini-2.0-flash-001', // Explicit version
                 'gemini-1.5-flash',
+                'gemini-1.5-flash-latest',
                 'gemini-1.5-pro'        // Fallback
             ];
 
@@ -377,7 +378,7 @@ export async function POST(request: NextRequest) {
 
 
         // 3. EXECUTE LAYERS
-        let pipelineTitle = title || ''; // Start with original
+        let pipelineTitle = processingTitle || ''; // Start with original (fetched or provided)
         let optimizedTitle = '';
 
         // --- UNIFIED PROMPT (V1.0) ---
