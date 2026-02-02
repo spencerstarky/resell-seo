@@ -413,6 +413,7 @@ Rules:
 - Do not invent or force attributes
 - Skip any fields that are unknown or not applicable
 - Prefer commonly searched wording over technical phrasing
+- Do NOT label your output (e.g., do not say "Title: ..."). Return ONLY the text of the title.
 
 Return one clean, well-structured title only.
         `;
@@ -449,6 +450,7 @@ Rules:
 - Do not add new item details
 - Do not keyword stuff
 - Keep the title under eBay’s character limit
+- Do NOT label your output (e.g. "Optimized Title:"). Return ONLY the text of the title.
 
 Return one optimized title only.
         `;
@@ -490,7 +492,8 @@ Rules:
 - Do not invent or force trends
 - Prefer broad, buyer-recognized terms over niche jargon
 - Do not reduce clarity or accuracy of the title
-- If no enhancements are necessary, simply return the Current Title.
+- If no enhancements are necessary, simply return the Current Title text exactly as is.
+- Do NOT label your output (e.g. "Enhanced Title:", "Current Title:"). Return ONLY the text of the title.
 
 You may reference the style code and style signal engine data provided above.
 
@@ -500,7 +503,14 @@ Return one enhanced title only.
         console.log(`--- EXECUTE L3 (${PROMPT_VERSIONS.L3}) ---`);
         try {
             pipelineTitle = await callGeminiLayer('L3', l3Prompt, true); // Needs images for style
-            pipelineTitle = pipelineTitle.replace(/^(Title|Output):/i, '').trim().replace(/^"|"$/g, '');
+            // Aggressive Cleanup for L3 which tends to be verbose
+            pipelineTitle = pipelineTitle
+                .replace(/Current Title:.*?(?=Enhanced Title:|$)/i, '') // Remove "Current Title: ..." block if present before Enhanced
+                .replace(/Enhanced Title:\s*/i, '') // Remove label
+                .replace(/^(Title|Output):/i, '')
+                .trim()
+                .replace(/^"|"$/g, '');
+
             console.log(`> L3 Result: ${pipelineTitle}`);
         } catch (e) {
             console.error('L3 Failed', e);
