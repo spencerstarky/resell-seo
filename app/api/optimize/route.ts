@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.0",
+            Unified: "V1.1",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -385,7 +385,7 @@ export async function POST(request: NextRequest) {
         const unifiedPrompt = `
 You are an experienced eBay clothing reseller and SEO specialist.
 
-Rewrite the provided listing title to maximize visibility and click-through on eBay.
+Your task is to rewrite the provided listing title to maximize visibility and click-through on eBay, following a strict three-layer workflow.
 
 CONTEXT:
 Item Info:
@@ -397,37 +397,40 @@ ${processingTitle}
 ${styleContext ? `Style Signal Engine Data (Trends/Styles):\n${styleContext}` : ''}
 ${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
 
-STRUCTURE (use only what is applicable, in this order):
-Value Leader (Brand, luxury material, or sports team if brand is weak)
-+ Product Name
-+ Item Type (refine with category terms if applicable)
-+ Gender
-+ Size
-+ Color
-+ Style Code (if applicable)
-+ Descriptors
-+ Keywords
+WORKFLOW:
 
-RULES:
-- Preserve functional attributes from the original title (e.g. zip up, hooded, packable, insulated) unless clearly contradicted.
-- When both a general item type (e.g. Jacket) and a specific category (e.g. Overcoat) apply, combine them into a single refined item type rather than duplicating.
-- Functional modifiers must directly follow the item type they modify.
-- Do not invent details. Use only information supported by images, item specifics, or strong context.
-- Prefer commonly searched buyer language over technical or niche terms unless clearly relevant.
-- Do not use dashes or separators unless they are part of the item name itself.
-- Keep the title natural, readable, and within eBay’s character limit.
-- Do NOT label your output (e.g. "Title:"). Return ONLY the text of the title.
+Step 1 — STRUCTURE & CLEAN TITLE:
+- Rewrite the title according to this order, using only applicable attributes:
+  Value Leader (Brand, luxury material, or sports team if brand is weak)
+  + Product Name
+  + Item Type (refine with category terms if applicable)
+  + Gender
+  + Size
+  + Color
+  + Style Code (if applicable)
+  + Descriptors
+  + Keywords
+- Spell out Small, Medium, and Large. Use abbreviations for XXS, XS, XL, XXL, etc.
+- Preserve functional attributes (e.g., zip up, hooded, packable, insulated) unless clearly contradicted.
+- If both a general item type (e.g., Jacket) and specific category (e.g., Overcoat) exist, combine into one refined item type.
+- Functional modifiers must directly follow the item type.
+- Do NOT use dashes or separators unless they are part of the item name.
+- Keep it readable, buyer-friendly, and within eBay’s character limit.
+- Do NOT invent details; rely only on images, item specifics, or strong context.
 
-SIZE FORMATTING:
-- Spell out Small, Medium, and Large.
-- Use abbreviations for all other sizes (XXS, XS, XL, XXL, etc.).
+Step 2 — DESCRIPTORS & KEYWORDS:
+- Enrich the title with additional descriptors or keywords from the item info that are accurate and buyer-relevant.
+- Prioritize high-value, commonly searched terms.
+- Avoid redundancy with Step 1.
 
-STYLE & TREND INJECTION:
-- You may inject style codes or trend keywords from the Style Signal Engine Data provided above only if they are contextually accurate and buyer-relevant.
-- Do not force trends if confidence is low.
+Step 3 — STYLE SIGNAL INJECTION:
+- Optionally inject style codes or trend keywords from the Style Signal Engine if contextually accurate and buyer-relevant.
+- Do NOT force trends if confidence is low.
 
 OUTPUT:
-Return one optimized title only.
+- Return ONLY ONE optimized title.
+- Do NOT label the output (e.g., "Title:").
+- Follow Steps 1-3 exactly in order.
         `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
