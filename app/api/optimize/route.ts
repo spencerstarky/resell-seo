@@ -122,6 +122,7 @@ export async function POST(request: NextRequest) {
 
         // Initialize processing title (mutable)
         let processingTitle = title;
+        let debugLastError = '';
 
         if (itemId) {
             try {
@@ -459,8 +460,9 @@ OUTPUT:
                 .replace(/^"|"$/g, '');
 
             console.log(`> Unified Result: ${pipelineTitle}`);
-        } catch (e) {
+        } catch (e: any) {
             console.error('Unified Prompt Failed', e);
+            debugLastError = e.message;
         }
 
 
@@ -704,7 +706,8 @@ OUTPUT:
             // Debug Data for Auditor
             analyzedImages: galleryImages, // Return full list so UI can show what was available
             itemSpecifics: cleanInfo,
-            originalTitle: processingTitle
+            originalTitle: processingTitle,
+            debugError: debugLastError || null // Expose error if one occurred
         });
 
     } catch (error: any) {
