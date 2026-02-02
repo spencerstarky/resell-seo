@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
             L1: "V1.2",
-            L2: "V1.2",
+            L2: "V1.3",
             L3: "V0.8"
         };
         const apiKey = process.env.GEMINI_API_KEY;
@@ -453,7 +453,13 @@ Goals:
 2. Preserve important functional descriptors already supported by the listing
 3. Add commonly searched functional or use-case terms when clearly applicable
 
-Rules:
+Formatting rules:
+- Preserve the existing title structure
+- Use single spaces only to separate words and attributes
+- Do not introduce dashes, hyphens, pipes, slashes, commas, or colons as separators
+- Hyphens are allowed only when part of a proper term or product name (e.g., T-Shirt)
+
+Content rules:
 - Do not add new item details or assumptions
 - Do not remove supported functional attributes (e.g., packable, lightweight, waterproof)
 - Do not keyword stuff
