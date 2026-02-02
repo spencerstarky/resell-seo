@@ -299,6 +299,7 @@ export async function POST(request: NextRequest) {
         const callGeminiLayer = async (layerName: string, promptText: string, useImages: boolean): Promise<string> => {
             const candidateModels = [
                 'gemini-2.0-flash',     // Multimodal & Fast
+                'gemini-2.0-flash-001', // Explicit version
                 'gemini-1.5-flash',
                 'gemini-1.5-pro'        // Fallback
             ];
