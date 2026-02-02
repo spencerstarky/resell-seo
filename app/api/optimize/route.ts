@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
             L1: "V1.2",
-            L2: "V1.3",
+            L2: "V1.4",
             L3: "V0.8"
         };
         const apiKey = process.env.GEMINI_API_KEY;
@@ -462,6 +462,8 @@ Formatting rules:
 Content rules:
 - Do not add new item details or assumptions
 - Do not remove supported functional attributes (e.g., packable, lightweight, waterproof)
+- If the original title contains a functional attribute (e.g. zip up, hooded, packable, insulated), that attribute must be preserved unless contradicted by item specifics.
+- If an item specific provides a category (e.g. Overcoat), use it to refine the item type, not duplicate or override it.
 - Do not keyword stuff
 - Do not force trends or style language
 - Keep the title under eBay’s character limit
