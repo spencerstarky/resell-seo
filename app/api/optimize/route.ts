@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
             L1: "V1.2",
-            L2: "V1.1",
+            L2: "V1.2",
             L3: "V1.0"
         };
         const apiKey = process.env.GEMINI_API_KEY;
@@ -450,11 +450,12 @@ ${pipelineTitle}
 
 Goals:
 1. Front-load high-value, buyer-facing keywords
-2. Add commonly searched functional or use-case terms when clearly applicable
-3. Maintain accuracy, clarity, and natural phrasing
+2. Preserve important functional descriptors already supported by the listing
+3. Add commonly searched functional or use-case terms when clearly applicable
 
 Rules:
 - Do not add new item details or assumptions
+- Do not remove supported functional attributes (e.g., packable, lightweight, waterproof)
 - Do not keyword stuff
 - Do not force trends or style language
 - Keep the title under eBay’s character limit
