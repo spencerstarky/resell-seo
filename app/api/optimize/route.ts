@@ -260,6 +260,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
+            Unified: "V1.0",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -378,161 +379,73 @@ export async function POST(request: NextRequest) {
         let pipelineTitle = title || ''; // Start with original
         let optimizedTitle = '';
 
-        // --- LAYER 1: BASE ENGINE ---
-        // Goal: Accuracy, Structure, Ordering
-        const l1Prompt = `
-Layer 1 Prompt (Base Engine) [${PROMPT_VERSIONS.L1}]
-You are an experienced eBay clothing reseller.
+        // --- UNIFIED PROMPT (V1.0) ---
+        // Consolidates L1 (Structure), L2 (SEO/Functional), and L3 (Style) into one pass.
 
-Rewrite the product title so it is clear, accurate, and structured for eBay search.
+        const unifiedPrompt = `
+You are an experienced eBay clothing reseller and SEO specialist.
 
+Rewrite the provided listing title to maximize visibility and click-through on eBay.
+
+CONTEXT:
 Item Info:
 ${cleanInfo}
 
 Current Title:
 ${processingTitle}
 
-Use the following ordering preference when applicable:
-1. Value leader (brand, luxury material, or sports team if brand is weak or irrelevant)
-2. Product name or model
-3. Item type
-4. Gender
-5. Size
-6. Color
-7. Style code (only if explicitly known)
-8. Descriptors
-9. Relevant keywords
+${styleContext ? `Style Signal Engine Data (Trends/Styles):\n${styleContext}` : ''}
+${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
 
-Normalization rules:
-- Spell out Small, Medium, and Large (do not use S, M, L)
-- Abbreviations are acceptable for all other sizes (XXS, XS, XL, XXL, XXXL)
-- Use single spaces only to separate words and attributes
-- Do not use dashes, hyphens, pipes, slashes, commas, or colons as separators
-- Hyphens are allowed only when they are part of a proper term or product name (e.g., T-Shirt)
+STRUCTURE (use only what is applicable, in this order):
+Value Leader (Brand, luxury material, or sports team if brand is weak)
++ Product Name
++ Item Type (refine with category terms if applicable)
++ Gender
++ Size
++ Color
++ Style Code (if applicable)
++ Descriptors
++ Keywords
 
-Primary goals:
-1. Accuracy of item attributes
-2. Logical, buyer-friendly ordering
-3. Natural, readable phrasing under eBay’s character limit
+RULES:
+- Preserve functional attributes from the original title (e.g. zip up, hooded, packable, insulated) unless clearly contradicted.
+- When both a general item type (e.g. Jacket) and a specific category (e.g. Overcoat) apply, combine them into a single refined item type rather than duplicating.
+- Functional modifiers must directly follow the item type they modify.
+- Do not invent details. Use only information supported by images, item specifics, or strong context.
+- Prefer commonly searched buyer language over technical or niche terms unless clearly relevant.
+- Do not use dashes or separators unless they are part of the item name itself.
+- Keep the title natural, readable, and within eBay’s character limit.
+- Do NOT label your output (e.g. "Title:"). Return ONLY the text of the title.
 
-Rules:
-- Use only information that is accurate or strongly implied
-- Do not invent or force attributes
-- Skip any fields that are unknown or not applicable
-- Prefer commonly searched wording over technical phrasing
-- Do NOT label your output (e.g., do not say "Title: ..."). Return ONLY the text of the title.
+SIZE FORMATTING:
+- Spell out Small, Medium, and Large.
+- Use abbreviations for all other sizes (XXS, XS, XL, XXL, etc.).
 
-Return one clean, well-structured title only.
-        `;
+STYLE & TREND INJECTION:
+- You may inject style codes or trend keywords from the Style Signal Engine Data provided above only if they are contextually accurate and buyer-relevant.
+- Do not force trends if confidence is low.
 
-        console.log(`--- EXECUTE L1 (${PROMPT_VERSIONS.L1}) ---`);
-        try {
-            pipelineTitle = await callGeminiLayer('L1', l1Prompt, true); // Pass images for accuracy
-            // Cleanup quotes or labels just in case
-            pipelineTitle = pipelineTitle.replace(/^(Title|Output):/i, '').trim().replace(/^"|"$/g, '');
-            console.log(`> L1 Result: ${pipelineTitle}`);
-        } catch (e) {
-            console.error('L1 Failed, falling back to original logic/title', e);
-            // If L1 fails, we might just use the original title for L2?
-        }
-
-
-        // --- LAYER 2: SEO OPTIMIZER ---
-        // Goal: Keywords, Phrasing, Click-through
-        const l2Prompt = `
-Layer 2 Prompt (SEO Optimizer) [${PROMPT_VERSIONS.L2}]
-You are an experienced eBay clothing reseller and SEO specialist.
-
-Improve the following title to increase visibility and click-through on eBay.
-
-Current Title:
-${pipelineTitle}
-
-Goals:
-1. Front-load high-value, buyer-facing keywords
-2. Preserve important functional descriptors already supported by the listing
-3. Add commonly searched functional or use-case terms when clearly applicable
-
-Formatting rules:
-- Preserve the existing title structure
-- Use single spaces only to separate words and attributes
-- Do not introduce dashes, hyphens, pipes, slashes, commas, or colons as separators
-- Hyphens are allowed only when part of a proper term or product name (e.g., T-Shirt)
-
-Content rules:
-- Do not add new item details or assumptions
-- Do not remove supported functional attributes (e.g., packable, lightweight, waterproof)
-- If the original title contains a functional attribute (e.g. zip up, hooded, packable, insulated), that attribute must be preserved unless contradicted by item specifics.
-- If an item specific provides a category (e.g. Overcoat), use it to refine the item type, not duplicate or override it.
-- Do not keyword stuff
-- Do not force trends or style language
-- Keep the title under eBay’s character limit
-- Do NOT label your output (e.g. "Optimized Title:"). Return ONLY the text of the title.
-
+OUTPUT:
 Return one optimized title only.
         `;
 
-        console.log(`--- EXECUTE L2 (${PROMPT_VERSIONS.L2}) ---`);
+        console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
         try {
-            // SEO uses text primarily usually, but since the callHelper supports it and we have images cached, 
-            // we can pass TRUE to allow it to see valid visual keywords if needed, or FALSE to focus purely on text optimization.
-            // "Improve the following title" is usually a text task. Let's pass FALSE to save context/latency unless necessary.
-            pipelineTitle = await callGeminiLayer('L2', l2Prompt, false);
-            pipelineTitle = pipelineTitle.replace(/^(Title|Output):/i, '').trim().replace(/^"|"$/g, '');
-            console.log(`> L2 Result: ${pipelineTitle}`);
-        } catch (e) {
-            console.error('L2 Failed', e);
-        }
+            pipelineTitle = await callGeminiLayer('Unified', unifiedPrompt, true); // Pass images
 
-
-        // --- LAYER 3: STYLE & TREND ENGINE ---
-        // Goal: Style codes, Aesthetics
-        const l3Prompt = `
-Layer 3 Prompt (Style & Trend Engine) [${PROMPT_VERSIONS.L3}]
-You are an experienced clothing reseller with deep knowledge of fashion trends and buyer aesthetics.
-
-Enhance the following title by optionally adding relevant style codes or trend keywords.
-
-Current Title:
-${pipelineTitle}
-
-Context:
-${styleContext ? `Active Style Signals:\n${styleContext}` : ''}
-${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
-
-Process internally:
-1. Review the item context to determine if any style codes or trends are clearly supported
-2. Inject only buyer-facing, commonly searched style or trend terms when appropriate
-3. Only inject a style code or trend keyword if it is likely to improve discoverability or click-through for this specific item.
-4. Skip this step entirely if no strong style alignment exists
-
-Rules:
-- Do not invent or force trends
-- Prefer broad, buyer-recognized terms over niche jargon
-- Do not reduce clarity or accuracy of the title
-- If no enhancements are necessary, simply return the Current Title text exactly as is.
-- Do NOT label your output (e.g. "Enhanced Title:", "Current Title:"). Return ONLY the text of the title.
-
-You may reference the style code and style signal engine data provided above.
-
-Return one enhanced title only.
-        `;
-
-        console.log(`--- EXECUTE L3 (${PROMPT_VERSIONS.L3}) ---`);
-        try {
-            pipelineTitle = await callGeminiLayer('L3', l3Prompt, true); // Needs images for style
-            // Aggressive Cleanup for L3 which tends to be verbose
+            // Aggressive Cleanup
             pipelineTitle = pipelineTitle
-                .replace(/Current Title:.*?(?=Enhanced Title:|$)/i, '') // Remove "Current Title: ..." block if present before Enhanced
-                .replace(/Enhanced Title:\s*/i, '') // Remove label
-                .replace(/^(Title|Output):/i, '')
+                .replace(/^(Title|Output|Optimized Title):/i, '')
                 .trim()
                 .replace(/^"|"$/g, '');
 
-            console.log(`> L3 Result: ${pipelineTitle}`);
+            console.log(`> Unified Result: ${pipelineTitle}`);
         } catch (e) {
-            console.error('L3 Failed', e);
+            console.error('Unified Prompt Failed', e);
         }
+
+
 
         optimizedTitle = pipelineTitle;
 
