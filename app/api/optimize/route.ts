@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.2",
+            Unified: "V1.3",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -423,10 +423,18 @@ SIZE AUTHORITY RULE:
 - Do NOT convert sizes based on fit notes (e.g. “fits small”, “runs large”).
 - Fit notes may be referenced only as descriptors if space allows.
 
+BRAND INTEGRITY RULE:
+- Preserve the full, commonly searched brand name when present (e.g. "Polo Ralph Lauren").
+- Do not shorten or simplify brand names unless the shortened form is more commonly searched.
+
 Step 2 — DESCRIPTORS & KEYWORDS:
 - Enrich the title with additional descriptors or keywords from the item info that are accurate and buyer-relevant.
 - Prioritize high-value, commonly searched terms.
 - Avoid redundancy with Step 1.
+
+DESCRIPTOR PRIORITY RULE:
+- Prefer style, aesthetic, or identity-based descriptors over care or utility features.
+- De-prioritize or omit low-intent item specifics (e.g. pockets, easy care, wrinkle resistant) unless they are a known buyer search driver for that category.
 
 Step 3 — STYLE SIGNAL INJECTION:
 - Optionally inject style codes or trend keywords from the Style Signal Engine if contextually accurate and buyer-relevant.
