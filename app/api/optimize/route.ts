@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            L1: "V1.1",
+            L1: "V1.2",
             L2: "V1.0",
             L3: "V1.0"
         };
@@ -406,8 +406,9 @@ Use the following ordering preference when applicable:
 Normalization rules:
 - Spell out Small, Medium, and Large (do not use S, M, L)
 - Abbreviations are acceptable for all other sizes (XXS, XS, XL, XXL, XXXL)
-- Do not use dashes or hyphens as separators
-- Only use hyphens if they are part of a proper term or product name (e.g., V-neck, button-down)
+- Use single spaces only to separate words and attributes
+- Do not use dashes, hyphens, pipes, slashes, commas, or colons as separators
+- Hyphens are allowed only when they are part of a proper term or product name (e.g., T-Shirt)
 
 Primary goals:
 1. Accuracy of item attributes
