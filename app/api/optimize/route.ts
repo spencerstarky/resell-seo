@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.1",
+            Unified: "V1.2",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -417,6 +417,11 @@ Step 1 — STRUCTURE & CLEAN TITLE:
 - Do NOT use dashes or separators unless they are part of the item name.
 - Keep it readable, buyer-friendly, and within eBay’s character limit.
 - Do NOT invent details; rely only on images, item specifics, or strong context.
+
+SIZE AUTHORITY RULE:
+- Size in the title must reflect the tagged or explicitly specified size only.
+- Do NOT convert sizes based on fit notes (e.g. “fits small”, “runs large”).
+- Fit notes may be referenced only as descriptors if space allows.
 
 Step 2 — DESCRIPTORS & KEYWORDS:
 - Enrich the title with additional descriptors or keywords from the item info that are accurate and buyer-relevant.
