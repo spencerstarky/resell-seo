@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
         const PROMPT_VERSIONS = {
             L1: "V1.2",
             L2: "V1.2",
-            L3: "V1.0"
+            L3: "V0.8"
         };
         const apiKey = process.env.GEMINI_API_KEY;
 
@@ -495,7 +495,8 @@ ${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
 Process internally:
 1. Review the item context to determine if any style codes or trends are clearly supported
 2. Inject only buyer-facing, commonly searched style or trend terms when appropriate
-3. Skip this step entirely if no strong style alignment exists
+3. Only inject a style code or trend keyword if it is likely to improve discoverability or click-through for this specific item.
+4. Skip this step entirely if no strong style alignment exists
 
 Rules:
 - Do not invent or force trends
