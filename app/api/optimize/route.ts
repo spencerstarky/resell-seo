@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.4",
+            Unified: "V1.5",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -448,6 +448,13 @@ DESCRIPTOR PRIORITY RULE:
 Step 3 — STYLE SIGNAL INJECTION:
 - Optionally inject style codes or trend keywords from the Style Signal Engine if contextually accurate and buyer-relevant.
 - Do NOT force trends if confidence is low.
+
+STYLE COMPATIBILITY RULE:
+- Ensure injected style trends are compatible with the item type.
+- Examples:
+  - Dress Pants → formal, tailored, classic, business
+  - Joggers → athleisure, training, casual
+  - Windbreakers → outdoor, technical, gorpcore (if supported)
 
 OUTPUT:
 - Return ONLY ONE optimized title.
