@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.6",
+            Unified: "V1.7",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -400,22 +400,19 @@ ${processingTitle}
 ${styleContext ? `Style Signal Engine Data (Trends/Styles):\n${styleContext}` : ''}
 ${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
 
-SIZE PRESERVATION (CRITICAL — NON-NEGOTIABLE)
-If a size appears in any input source (original title, item specifics, description, or visible tag text), it MUST be included in the optimized title.
+SIZE PRESERVATION (ABSOLUTE REQUIREMENT)
+If any size appears in the input (title, item specifics, description, or visible tag text), it MUST appear verbatim in the optimized title.
 
-Size information may not be removed, generalized, abbreviated incorrectly, or replaced with placeholders (e.g. “Men Size”).
+Titles missing size information when size is present in the input are invalid.
 
-For pants, preserve numeric sizing exactly as provided (e.g. 36x32, 34x30, Size 42).
-
-For tops, preserve the detected alpha or numeric size using the SIZE FORMATTING rules below.
-
-If multiple size signals exist (e.g. tag says XS but description says “fits small”), prioritize the tagged size, not fit commentary.
-
-If size is present in the input, the output is invalid without it.
+For pants and jeans:
+Preserve numeric sizing exactly (e.g. 36x32, 34x30, Size 42)
+Do not convert, round, omit, or generalize numeric sizes.
+Do not output a title containing “Men”, “Women”, or “Unisex” without also including a size, if size exists in the input.
 
 Before returning a title, verify:
-“Does the optimized title include the detected size verbatim?”
-If not, revise the title until it does.
+“Does the title include the detected size exactly as provided?”
+If not, regenerate the title until it does.
 
 WORKFLOW:
 
