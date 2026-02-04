@@ -243,17 +243,9 @@ export async function POST(request: NextRequest) {
         }
         // -------------------------------
 
-        // SANITIZATION: Blind the AI to measurements in Item Specifics
-        // This prevents the "inference" problem where AI reads "Chest: 44" in specifics and adds "22 Pit to Pit" to title.
+        // SANITIZATION: Minimal cleanup
         let cleanInfo = additionalInfo || 'None provided';
-        if (cleanInfo !== 'None provided') {
-            // Strip numbers followed by measurement keywords or units
-            cleanInfo = cleanInfo.replace(/\b\d+(?:\.\d+)?\s*(?:"|'|in|cm|mm|ft)?\s*(?:Length|Chest|Pit|Sleeve|Inseam|Waist|Rise|Width)\b/gi, '[REDACTED_MEASUREMENT]');
-            // Strip explicit "Size: 44" type patterns if they look like measurements (simple heuristic)
-            cleanInfo = cleanInfo.replace(/\b(Chest|Bust|Length|Inseam)\s*:?\s*\d+(?:\.\d+)?\b/gi, '$1: [REDACTED]');
-            // Strip explicit Material/Fabric fields to prevent hallucination
-            cleanInfo = cleanInfo.replace(/\b(Material|Fabric|Shell|Lining|Content)\s*:?\s*[a-zA-Z0-9\s,\/]+\b/gi, '$1: [REDACTED_MATERIAL]');
-        }
+        // (Redaction logic removed to prevent AI from including "[REDACTED]" in titles)
 
         // ---------------------------------------------------------
         // TRANSFORM: 3-Layer Prompt Architecture
