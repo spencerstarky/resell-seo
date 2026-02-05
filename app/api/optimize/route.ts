@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.11",
+            Unified: "V1.12",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -481,12 +481,20 @@ Tier 4 — STYLE SIGNALS / TRENDS
 - preppy, gorpcore, office core, minimalist, Y2K
 - These are ALWAYS lowest priority and must be dropped before removing Tier 1–2 attributes.
 
-MEASUREMENT LOCK (UPGRADE)
-- If measurements appear in the original title:
-  - They are Tier 1 attributes.
-  - They must appear in the optimized title even if descriptors, style signals, or keywords must be removed.
-  - Only allowed change: spacing normalization (28 x 27.5" → 28x27.5").
-  - Never remove: inseam, waist, decimals, inch notation.
+MEASUREMENT NORMALIZATION RULE (FINAL)
+- Measurements must ONLY be preserved if they appear in the ORIGINAL TITLE.
+- When measurements are preserved:
+  - Preserve numeric values exactly
+  - Normalize formatting for space: 30 x 30 → 30x30, 28 x 27.5 → 28x27.5
+  - Do NOT include inch symbols (")
+  - Do NOT include unit labels (inches, in, cm)
+- STRICT PROHIBITIONS:
+  - Never output a standalone quote character (")
+  - Never include a unit without both numeric dimensions present
+  - Never leave partial measurement artifacts
+- If measurements are removed (because they were not in the original title):
+  - remove ALL related symbols, units, and spacing.
+- PRE-FINAL CHECK question: “If measurements were present originally, do both numeric dimensions still appear cleanly?”
 
 UTILITY DESCRIPTOR PROTECTION
 - If the original title includes performance descriptors such as breathable, lightweight, packable, insulated, waterproof:
