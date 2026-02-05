@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.13",
+            Unified: "V1.14",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -536,6 +536,21 @@ STYLE COMPATIBILITY RULE:
   - Dress Pants → formal, tailored, classic, business
   - Joggers → athleisure, training, casual
   - Windbreakers → outdoor, technical, gorpcore (if supported)
+
+CHARACTER UTILIZATION DIRECTIVE:
+- The optimized title should aim to use as much of eBay’s character limit as possible while remaining accurate and readable.
+- If more character space remains after Step 1:
+  - Step 2 MUST continue enriching using materials, garment subtype, functional attributes, aesthetic descriptors, and style compatibility signals.
+  - Only stop when no accurate attributes remain OR adding more would introduce speculation.
+- Do NOT leave significant unused character space when valid attributes are available.
+
+SAFE ENRICHMENT RULE:
+- When additional space exists, prefer adding in this order:
+  1. Garment subtype (blazer, windbreaker, cardigan, bomber, pullover)
+  2. Materials (linen, cotton, wool, fleece)
+  3. Functional attributes (lightweight, insulated, breathable)
+  4. Aesthetic/style descriptors (preppy, resort, coastal, minimalist)
+- These are safer and higher priority than fit terms or speculative trend injections.
 
 CONDITION APPEND RULE (SIMPLE + DETERMINISTIC):
 - If the item is identified as new from ANY source (original title, item specifics, description text) via indicators like "New", "NWT", "New With Tags", "Brand New":
