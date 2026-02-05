@@ -4,6 +4,7 @@ import { getValidAccessToken, getDetailedItemInfo } from '@/lib/ebay-api';
 import { getOptimizerCompatibleItemDetails } from '@/lib/ebay-search';
 import crypto from 'crypto';
 import { StyleCodeEngine } from '@/lib/style-code-intelligence';
+import { StyleCompatibilityEngine } from '@/lib/style-compatibility-matrix';
 
 // NOTE: Bypassing Google Generative AI SDK temporarily to debug connectivity/Key issues directly.
 // We use native 'fetch' to control the exact request and see the raw response.
@@ -243,6 +244,11 @@ export async function POST(request: NextRequest) {
         }
         // -------------------------------
 
+        // --- STYLE COMPATIBILITY MATRIX ---
+        const matrixEngine = new StyleCompatibilityEngine();
+        const matrixContext = matrixEngine.generatePromptContext(processingTitle, additionalInfo);
+        console.log('[Matrix] Context:', matrixContext.trim());
+
         // SANITIZATION: Minimal cleanup
         let cleanInfo = additionalInfo || 'None provided';
         // (Redaction logic removed to prevent AI from including "[REDACTED]" in titles)
@@ -459,6 +465,7 @@ Current Title:
 ${processingTitle}
 
 ${styleContext ? `Style Signal Engine Data (Trends/Styles):\n${styleContext}` : ''}
+${matrixContext}
 ${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
 
 SIZE PRESERVATION (ABSOLUTE REQUIREMENT)
