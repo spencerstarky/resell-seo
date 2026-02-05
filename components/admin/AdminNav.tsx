@@ -11,6 +11,7 @@ export function AdminNav() {
         { name: 'Style Codes (Brands)', href: '/admin/brands' },
         { name: 'Style Signal Engine', href: '/admin/styles' },
         { name: 'Style Compatibility Matrix', href: '/admin/style-matrix' },
+        { name: '← Back to App', href: '/' },
     ];
 
     return (

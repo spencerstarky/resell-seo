@@ -64,6 +64,31 @@ export default function AdminDashboard() {
                     </div>
                 </Link>
 
+                {/* 3. Style Compatibility Matrix (NEW) */}
+                <Link href="/admin/style-matrix" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                        background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '2rem',
+                        transition: 'all 0.2s ease', cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column', gap: '1rem'
+                    }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = '#fb8c00'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                    >
+                        <div style={{ width: 50, height: 50, borderRadius: '12px', background: 'rgba(251, 140, 0, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fb8c00' }}>
+                            <Database size={24} />
+                        </div>
+                        <div>
+                            {/* lucide-react 'Layers' icon is likely needed, but Database is used here as placeholder/existing import */}
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#fff', marginBottom: '0.5rem' }}>Style Compatibility Matrix</h2>
+                            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                                Map style archetypes to SEO-friendly attributes. Control exactly what keywords are injected for "Gorpcore" vs "Preppy".
+                            </p>
+                        </div>
+                        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', color: '#fb8c00', fontSize: '0.9rem', fontWeight: 600 }}>
+                            Manage Matrix <ChevronRight size={16} />
+                        </div>
+                    </div>
+                </Link>
+
                 {/* 3. Public Listing Auditor (NEW) */}
                 <Link href="/admin/auditor" style={{ textDecoration: 'none' }}>
                     <div style={{
