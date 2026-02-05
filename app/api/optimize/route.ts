@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.12",
+            Unified: "V1.13",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -536,6 +536,18 @@ STYLE COMPATIBILITY RULE:
   - Dress Pants → formal, tailored, classic, business
   - Joggers → athleisure, training, casual
   - Windbreakers → outdoor, technical, gorpcore (if supported)
+
+CONDITION APPEND RULE (SIMPLE + DETERMINISTIC):
+- If the item is identified as new from ANY source (original title, item specifics, description text) via indicators like "New", "NWT", "New With Tags", "Brand New":
+  - Append the word "New" to the END of the optimized title.
+- Rules:
+  - Do NOT expand to “New With Tags”.
+  - Do NOT add condition descriptors elsewhere in the title.
+  - Do NOT prioritize or rank condition.
+  - Do NOT remove keywords to make room. This is a simple append only.
+- If "New" already exists in the optimized title: do not duplicate it.
+- If the item is not new: do nothing.
+- Placement: Always last word in the title.
 
 OUTPUT:
 - Return ONLY ONE optimized title.
