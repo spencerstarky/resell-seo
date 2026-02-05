@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.10",
+            Unified: "V1.11",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -456,36 +456,48 @@ Step 1 — STRUCTURE & CLEAN TITLE:
 - Keep it readable, buyer-friendly, and within eBay’s character limit.
 - Do NOT invent details; rely only on images, item specifics, or strong context.
 
-SIZE AUTHORITY RULE:
-- Size in the title must reflect the tagged or explicitly specified size only.
-- Do NOT convert sizes based on fit notes (e.g. “fits small”, “runs large”).
-- Fit notes may be referenced only as descriptors if space allows.
+ATTRIBUTE PRIORITY HIERARCHY (HARD ORDER)
+When constructing and trimming the title, attributes MUST be prioritized in this exact order.
 
-MEASUREMENT ENFORCEMENT OVERRIDE:
-- If measurements exist in the CURRENT TITLE, they are HIGHER PRIORITY than descriptors and keywords.
-- They must be retained before adding aesthetic descriptors, style signals, or trend keywords.
-- Before finalizing:
-  - Did the original title contain measurements?
-  - Are those exact numeric values still present?
-  - If not, regenerate and insert them immediately after Size.
-- Formatting optimization is allowed (e.g. 34 x 30 → 34x30).
-- Measurements must never be removed to make room for style keywords.
+Tier 1 — NEVER REMOVE
+These define the listing identity.
+- Brand
+- Product name
+- Item type
+- Gender
+- Numeric size
+- Measurements (if present in original title)
+- Model name (e.g., Wexford, Ridgeway, 501)
 
-NUMERIC SIZE FORMATTING RULE:
-- Do NOT prepend the word “Size” before numeric sizing.
-- Correct: Men 42, Women 8, Jeans 34x30.
-- Incorrect: Size 42, Size 8, Size 34x30.
-- Exception: Use “Size” ONLY if spelling it out is critical for clarity (rare).
+Tier 2 — HIGH SEARCH INTENT (REMOVE LAST)
+- Luxury / natural materials (linen, wool, cashmere, silk, leather, flax blends)
+- Functional performance descriptors: breathable, lightweight, packable, insulated, waterproof, thermal
 
-MATERIAL PRESERVATION RULE:
-- If a material or fabric blend appears in the original title, preserve it unless clearly incorrect or contradicted by images.
-- Do NOT simplify high-intent materials.
-- Examples: 
-  - Cotton Flax Blend → keep
-  - Wool Cashmere → keep
-  - Linen Silk → keep
-- Allowed simplification ONLY when: material is generic (e.g. Polyester) AND space is required.
-- Priority Order: Luxury/Natural/Blends > Functional attributes > Style descriptors > Trend keywords.
+Tier 3 — CATEGORY DESCRIPTORS
+- Fit terms (relaxed, wide leg, slim)
+- Garment subtypes (utility, chino, overcoat)
+
+Tier 4 — STYLE SIGNALS / TRENDS
+- preppy, gorpcore, office core, minimalist, Y2K
+- These are ALWAYS lowest priority and must be dropped before removing Tier 1–2 attributes.
+
+MEASUREMENT LOCK (UPGRADE)
+- If measurements appear in the original title:
+  - They are Tier 1 attributes.
+  - They must appear in the optimized title even if descriptors, style signals, or keywords must be removed.
+  - Only allowed change: spacing normalization (28 x 27.5" → 28x27.5").
+  - Never remove: inseam, waist, decimals, inch notation.
+
+UTILITY DESCRIPTOR PROTECTION
+- If the original title includes performance descriptors such as breathable, lightweight, packable, insulated, waterproof:
+  - Treat them as Tier 2 search terms.
+  - They must be preserved unless contradicted by item context OR character limit is exceeded AFTER Tier 3 & 4 removal.
+  - They are higher priority than: fit descriptors, style descriptors, trend terms.
+
+SIZE FORMATTING CORRECTION
+- Do NOT add the word “Size” before numeric sizing.
+- Correct: Women 6, Men 42.
+- Incorrect: Women Size 6.
 
 BRAND INTEGRITY RULE:
 - Preserve the full, commonly searched brand name when present (e.g. "Polo Ralph Lauren").
