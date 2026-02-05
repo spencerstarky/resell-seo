@@ -245,8 +245,9 @@ export async function POST(request: NextRequest) {
         // -------------------------------
 
         // --- STYLE COMPATIBILITY MATRIX ---
-        const matrixEngine = new StyleCompatibilityEngine();
-        const matrixContext = matrixEngine.generatePromptContext(processingTitle, additionalInfo);
+        // --- STYLE COMPATIBILITY MATRIX ---
+        const matrixEngine = new StyleCompatibilityEngine(supabase);
+        const matrixContext = await matrixEngine.generatePromptContext(processingTitle, additionalInfo);
         console.log('[Matrix] Context:', matrixContext.trim());
 
         // SANITIZATION: Minimal cleanup

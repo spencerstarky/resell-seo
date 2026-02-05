@@ -10,6 +10,7 @@ export function AdminNav() {
         { name: 'Dashboard', href: '/admin', exact: true },
         { name: 'Style Codes (Brands)', href: '/admin/brands' },
         { name: 'Style Signal Engine', href: '/admin/styles' },
+        { name: 'Style Compatibility Matrix', href: '/admin/style-matrix' },
     ];
 
     return (
