@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.8",
+            Unified: "V1.9",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -460,6 +460,27 @@ SIZE AUTHORITY RULE:
 - Size in the title must reflect the tagged or explicitly specified size only.
 - Do NOT convert sizes based on fit notes (e.g. “fits small”, “runs large”).
 - Fit notes may be referenced only as descriptors if space allows.
+
+MEASUREMENT SOURCE AUTHORITY RULE:
+- Measurements must ONLY be preserved if they appear in the CURRENT TITLE.
+- Do NOT introduce measurements from item specifics, description, images, or inferred standards.
+- If measurements appear in the original title:
+  - Preserve the numeric values exactly.
+  - Formatting may be optimized (e.g. 34 x 30 → 34x30).
+- NOT allowed: changing numbers, rounding, guessing missing values that aren't in the title.
+- PRE-FINAL CHECK question: “Did the original title include measurements?” If no, do not add them.
+
+NUMERIC SIZE FORMATTING RULE:
+- Do NOT prepend the word “Size” before numeric sizing.
+- Correct: Men 42, Women 8, Jeans 34x30.
+- Incorrect: Size 42, Size 8, Size 34x30.
+- Exception: Use “Size” ONLY if spelling it out is critical for clarity (rare).
+
+MATERIAL PRESERVATION PRIORITY RULE:
+- Preserve material and fabric blends when they are high-intent search drivers.
+- High-priority: Linen, Flax, Wool, Cashmere, Silk, Alpaca, Mohair, Leather, Suede, Gore-Tex, Merino.
+- Named blends (e.g. "Cotton Flax Blend") must be preserved. Do NOT simplify to just "Cotton".
+- REMOVAL LOGIC: If trimming is needed, remove low-intent descriptors first. Material may be removed ONLY if it is generic (e.g. "cotton", "polyester").
 
 BRAND INTEGRITY RULE:
 - Preserve the full, commonly searched brand name when present (e.g. "Polo Ralph Lauren").
