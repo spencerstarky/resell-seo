@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.7",
+            Unified: "V1.8",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -382,6 +382,35 @@ You are an experienced eBay clothing reseller and SEO specialist.
 
 Your task is to rewrite the provided listing title to maximize visibility and click-through on eBay, following a strict three-layer workflow.
 
+SYSTEM PRIORITY RULES (OVERRIDE ALL OTHER INSTRUCTIONS):
+
+These rules are mandatory and take precedence over all workflow steps.
+
+1) SIZE IS NON-NEGOTIABLE
+- If size exists in any input, the output title is INVALID without it.
+- Size must appear exactly as detected.
+- Do not output gender without size when size exists.
+
+2) BRAND IS NON-NEGOTIABLE
+- If a brand is present, it must be preserved exactly.
+- “Style of” or “inspired by” brands must NOT be converted into real brands.
+
+3) ITEM TYPE IS REQUIRED
+- The garment category must always be present (Jeans, Jacket, Shirt, etc).
+
+4) NO HALLUCINATIONS
+- Do NOT invent materials, era, country of origin, or construction details.
+- Brand association is NOT evidence.
+
+5) WHEN UNSURE → OMIT
+- If confidence is low, omit the attribute rather than guessing.
+
+Before returning a title, confirm:
+- Brand present (if known)
+- Item type present
+- Size present (if provided)
+If any fail → regenerate.
+
 CONTEXT:
 Item Info:
 ${cleanInfo}
@@ -466,6 +495,17 @@ OUTPUT:
 - Return ONLY ONE optimized title.
 - Do NOT label the output (e.g., "Title:").
 - Follow Steps 1-3 exactly in order.
+
+FINAL SELF-CHECK (MANDATORY):
+
+Before output:
+- Verify size preserved
+- Verify brand integrity
+- Verify no hallucinated materials or construction
+- Verify no unfinished phrases (e.g. “Made in”)
+
+If any issue exists:
+Regenerate once with stricter adherence.
         `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
