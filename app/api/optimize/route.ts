@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.14",
+            Unified: "V1.15",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -411,6 +411,46 @@ Before returning a title, confirm:
 - Size present (if provided)
 If any fail → regenerate.
 
+ENRICHMENT EXPECTATION (OVERRIDES CONSERVATIVE BEHAVIOR)
+- A structurally correct title is NOT considered complete.
+- The model must continue enriching the title with additional accurate, buyer-relevant attributes until character space is meaningfully utilized OR no additional supported attributes exist.
+- Stopping early after basic structure (brand + item type + size + color) is considered a failure.
+- If enrichment opportunities exist, they must be used.
+
+SAFE EXPANSION GUIDELINE
+- Avoid fabrication, but do NOT default to omission when moderate confidence attributes exist.
+- When confidence is moderate: prefer broad, buyer-recognized category language instead of omitting entirely.
+- Examples:
+  - Unknown subtype → use broader subtype ("Jacket", "Pants", "Shirt")
+  - Unverified material → omit
+  - Unverified style trend → omit
+  - Verified function (lightweight, breathable, insulated) → include
+- Omission is only correct when no safe attribute language exists.
+
+NO FABRICATION (REFINED)
+- Do NOT invent: materials, era, country of origin, technical construction details.
+- However: Descriptive category language, aesthetic language, and functional garment terms are allowed when supported by context.
+
+ATTRIBUTE PRIORITY ALIGNMENT (FIXED ORDER)
+- When enriching or trimming, attributes must follow this order:
+  Tier 1 — Identity (never remove): Brand, Product name/model, Item type, Gender, Numeric size, Measurements from original title.
+  Tier 2 — High search intent: Garment subtype, Luxury/natural materials, Functional performance descriptors.
+  Tier 3 — Category refinement: Fit terms, Secondary descriptors.
+  Tier 4 — Style signals / trends (lowest priority): preppy, gorpcore, office core, minimalist, Y2K.
+
+CHARACTER UTILIZATION REQUIREMENT (UPGRADED)
+- The optimized title is considered incomplete if meaningful attribute space remains unused.
+- Continue enrichment until: title approaches character limit OR no accurate attributes remain.
+- Do NOT stop at structural completion.
+
+FINAL SELF-CHECK ADJUSTMENT
+- If regeneration is required: prioritize structural accuracy first, THEN maximize enrichment using safe attributes.
+- Do NOT shorten the title during regeneration unless required for accuracy.
+
+BRAND CONTEXT CLARIFICATION
+- Brand presence alone is NOT evidence for: material, era, origin.
+- However: Brand may inform garment category, aesthetic language, typical product naming structure.
+
 CONTEXT:
 Item Info:
 ${cleanInfo}
@@ -455,31 +495,6 @@ Step 1 — STRUCTURE & CLEAN TITLE:
 - Do NOT use dashes or separators unless they are part of the item name.
 - Keep it readable, buyer-friendly, and within eBay’s character limit.
 - Do NOT invent details; rely only on images, item specifics, or strong context.
-
-ATTRIBUTE PRIORITY HIERARCHY (HARD ORDER)
-When constructing and trimming the title, attributes MUST be prioritized in this exact order.
-
-Tier 1 — NEVER REMOVE
-These define the listing identity.
-- Brand
-- Product name
-- Item type
-- Gender
-- Numeric size
-- Measurements (if present in original title)
-- Model name (e.g., Wexford, Ridgeway, 501)
-
-Tier 2 — HIGH SEARCH INTENT (REMOVE LAST)
-- Luxury / natural materials (linen, wool, cashmere, silk, leather, flax blends)
-- Functional performance descriptors: breathable, lightweight, packable, insulated, waterproof, thermal
-
-Tier 3 — CATEGORY DESCRIPTORS
-- Fit terms (relaxed, wide leg, slim)
-- Garment subtypes (utility, chino, overcoat)
-
-Tier 4 — STYLE SIGNALS / TRENDS
-- preppy, gorpcore, office core, minimalist, Y2K
-- These are ALWAYS lowest priority and must be dropped before removing Tier 1–2 attributes.
 
 MEASUREMENT NORMALIZATION RULE (FINAL)
 - Measurements must ONLY be preserved if they appear in the ORIGINAL TITLE.
@@ -536,21 +551,6 @@ STYLE COMPATIBILITY RULE:
   - Dress Pants → formal, tailored, classic, business
   - Joggers → athleisure, training, casual
   - Windbreakers → outdoor, technical, gorpcore (if supported)
-
-CHARACTER UTILIZATION DIRECTIVE:
-- The optimized title should aim to use as much of eBay’s character limit as possible while remaining accurate and readable.
-- If more character space remains after Step 1:
-  - Step 2 MUST continue enriching using materials, garment subtype, functional attributes, aesthetic descriptors, and style compatibility signals.
-  - Only stop when no accurate attributes remain OR adding more would introduce speculation.
-- Do NOT leave significant unused character space when valid attributes are available.
-
-SAFE ENRICHMENT RULE:
-- When additional space exists, prefer adding in this order:
-  1. Garment subtype (blazer, windbreaker, cardigan, bomber, pullover)
-  2. Materials (linen, cotton, wool, fleece)
-  3. Functional attributes (lightweight, insulated, breathable)
-  4. Aesthetic/style descriptors (preppy, resort, coastal, minimalist)
-- These are safer and higher priority than fit terms or speculative trend injections.
 
 CONDITION APPEND RULE (SIMPLE + DETERMINISTIC):
 - If the item is identified as new from ANY source (original title, item specifics, description text) via indicators like "New", "NWT", "New With Tags", "Brand New":
