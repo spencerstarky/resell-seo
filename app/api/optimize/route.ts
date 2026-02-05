@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V1.9",
+            Unified: "V1.10",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -461,14 +461,15 @@ SIZE AUTHORITY RULE:
 - Do NOT convert sizes based on fit notes (e.g. “fits small”, “runs large”).
 - Fit notes may be referenced only as descriptors if space allows.
 
-MEASUREMENT SOURCE AUTHORITY RULE:
-- Measurements must ONLY be preserved if they appear in the CURRENT TITLE.
-- Do NOT introduce measurements from item specifics, description, images, or inferred standards.
-- If measurements appear in the original title:
-  - Preserve the numeric values exactly.
-  - Formatting may be optimized (e.g. 34 x 30 → 34x30).
-- NOT allowed: changing numbers, rounding, guessing missing values that aren't in the title.
-- PRE-FINAL CHECK question: “Did the original title include measurements?” If no, do not add them.
+MEASUREMENT ENFORCEMENT OVERRIDE:
+- If measurements exist in the CURRENT TITLE, they are HIGHER PRIORITY than descriptors and keywords.
+- They must be retained before adding aesthetic descriptors, style signals, or trend keywords.
+- Before finalizing:
+  - Did the original title contain measurements?
+  - Are those exact numeric values still present?
+  - If not, regenerate and insert them immediately after Size.
+- Formatting optimization is allowed (e.g. 34 x 30 → 34x30).
+- Measurements must never be removed to make room for style keywords.
 
 NUMERIC SIZE FORMATTING RULE:
 - Do NOT prepend the word “Size” before numeric sizing.
@@ -476,11 +477,15 @@ NUMERIC SIZE FORMATTING RULE:
 - Incorrect: Size 42, Size 8, Size 34x30.
 - Exception: Use “Size” ONLY if spelling it out is critical for clarity (rare).
 
-MATERIAL PRESERVATION PRIORITY RULE:
-- Preserve material and fabric blends when they are high-intent search drivers.
-- High-priority: Linen, Flax, Wool, Cashmere, Silk, Alpaca, Mohair, Leather, Suede, Gore-Tex, Merino.
-- Named blends (e.g. "Cotton Flax Blend") must be preserved. Do NOT simplify to just "Cotton".
-- REMOVAL LOGIC: If trimming is needed, remove low-intent descriptors first. Material may be removed ONLY if it is generic (e.g. "cotton", "polyester").
+MATERIAL PRESERVATION RULE:
+- If a material or fabric blend appears in the original title, preserve it unless clearly incorrect or contradicted by images.
+- Do NOT simplify high-intent materials.
+- Examples: 
+  - Cotton Flax Blend → keep
+  - Wool Cashmere → keep
+  - Linen Silk → keep
+- Allowed simplification ONLY when: material is generic (e.g. Polyester) AND space is required.
+- Priority Order: Luxury/Natural/Blends > Functional attributes > Style descriptors > Trend keywords.
 
 BRAND INTEGRITY RULE:
 - Preserve the full, commonly searched brand name when present (e.g. "Polo Ralph Lauren").
