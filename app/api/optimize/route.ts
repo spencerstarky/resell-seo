@@ -164,38 +164,10 @@ export async function POST(request: NextRequest) {
 
         // 2. Prepare Prompt
 
-        // --- STYLE SIGNAL INTELLIGENCE (NEW: Moved Up to allow logging) ---
-        // Fetch active styles and their signals to feed the AI
-        let styleContext = "NO ACTIVE STYLES FOUND.";
-        try {
-            const { data: activeStyles } = await supabase
-                .from('style_taxonomy')
-                .select(`
-                    style_name,
-                    display_name,
-                    category_whitelist,
-                    confidence_floor,
-                    style_signals (
-                        signal_type,
-                        signal_value,
-                        weight
-                    )
-                `);
+        // 2. Prepare Prompt
 
-            if (activeStyles && activeStyles.length > 0) {
-                styleContext = activeStyles.map((style: any) => {
-                    const signals = style.style_signals.map((s: any) => `${s.signal_value} (${s.signal_type}: ${s.weight})`).join(', ');
-                    return `
-                    STYLE: ${style.display_name} (Threshold: ${style.confidence_floor})
-                    Allowed Categories: ${JSON.stringify(style.category_whitelist)}
-                    SIGNALS: ${signals}
-                    `;
-                }).join('\n');
-            }
-            console.log('[StyleSignalEngine] Context Prepared:', styleContext.substring(0, 500) + '...');
-        } catch (err) {
-            console.error('Failed to fetch style signals:', err);
-        }
+        // --- STYLE CODE INTELLIGENCE ---
+        // (Old signal dump removed in favor of Style Compatibility Matrix)
 
         // --- STYLE CODE INTELLIGENCE ---
         let verifiedStyleCode: string | null = null;
@@ -465,7 +437,6 @@ ${cleanInfo}
 Current Title:
 ${processingTitle}
 
-${styleContext ? `Style Signal Engine Data (Trends/Styles):\n${styleContext}` : ''}
 ${matrixContext}
 ${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
 
