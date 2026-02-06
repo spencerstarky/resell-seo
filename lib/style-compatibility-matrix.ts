@@ -93,6 +93,12 @@ export class StyleCompatibilityEngine {
             }
         }
 
+        if (bestMatch) {
+            console.log(`[StyleMatrix] DETECTED: ${bestMatch.name.toUpperCase()} (Score: ${maxScore})`);
+        } else {
+            console.log(`[StyleMatrix] NO STYLE DETECTED. Max Score: ${maxScore}. Scanned ${styles.length} styles.`);
+        }
+
         return bestMatch;
     }
 
