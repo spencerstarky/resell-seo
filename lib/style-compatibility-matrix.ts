@@ -4,10 +4,13 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 export type AttributeType = 'aesthetic' | 'use_case' | 'material' | 'detail' | 'garment_type';
 
+export type PriorityRole = 'lead_descriptor' | 'ordering_bias' | 'protect_from_trimming' | 'include_if_space' | 'fallback_descriptor' | 'avoid_signal';
+
 export interface CompatibleAttribute {
     value: string;
     type: AttributeType;
     weight: number;
+    priorityRole: PriorityRole;
 }
 
 export interface StyleNode {
@@ -116,22 +119,36 @@ export class StyleCompatibilityEngine {
             return "";
         }
 
-        // Format attributes
-        const aesthetics = attributes.filter((a: any) => a.attribute_type === 'aesthetic').map((a: any) => a.attribute_value).join(', ');
-        const useCases = attributes.filter((a: any) => a.attribute_type === 'use_case').map((a: any) => a.attribute_value).join(', ');
-        const materials = attributes.filter((a: any) => ['material', 'detail', 'garment_type'].includes(a.attribute_type)).map((a: any) => a.attribute_value).join(', ');
+        // Process Attributes by Role
+        const leadDescriptors = attributes.filter((a: any) => a.priority_role === 'lead_descriptor').map((a: any) => a.attribute_value);
+        const protectedAttrs = attributes.filter((a: any) => a.priority_role === 'protect_from_trimming').map((a: any) => a.attribute_value);
+        const includeIfSpace = attributes.filter((a: any) => a.priority_role === 'include_if_space' || a.priority_role === 'ordering_bias').map((a: any) => a.attribute_value);
+        const avoidList = attributes.filter((a: any) => a.priority_role === 'avoid_signal').map((a: any) => a.attribute_value);
 
         const displayName = style.display_name || style.name;
 
-        // Build the Prompt Block
+        // Build the Prompt Block - Priority Driven
         return `
-STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${displayName.toUpperCase()})
-- This item matches the "${displayName}" style archetype.
-- When enriching the title, PRIOIRITIZE these compatible attributes (if true):
-  - Aesthetics: ${aesthetics}
-  - Use Cases: ${useCases}
-  - Materials/Details: ${materials}
-- Rule: Do not force these if clearly contradicted by images, but prefer them over generic synonyms.
+STYLE CONSTRUCTION DIRECTIVE (DETECTED ARCHETYPE: ${displayName.toUpperCase()})
+Detected Archetype: ${displayName}
+
+Behavior Rules:
+- Protect functional attributes from trimming
+- Prefer use-case descriptors before aesthetics
+- Allocate character space toward durability and function
+- Trim aesthetic/trend descriptors first
+
+Lead Descriptors (Prioritize Early):
+- ${leadDescriptors.length > 0 ? leadDescriptors.join(', ') : '(None defined)'}
+
+Protected Attributes (Do NOT Trim):
+- ${protectedAttrs.length > 0 ? protectedAttrs.join(', ') : '(None defined)'}
+
+Include If Space (Fillers):
+- ${includeIfSpace.length > 0 ? includeIfSpace.join(', ') : '(None defined)'}
+
+Avoid (Incompatible):
+- ${avoidList.length > 0 ? avoidList.join(', ') : '(None defined)'}
 `;
     }
 }

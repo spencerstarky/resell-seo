@@ -19,9 +19,17 @@ type MatrixAttribute = {
     attribute_value: string;
     attribute_type: 'aesthetic' | 'use_case' | 'material' | 'detail' | 'garment_type';
     weight: number;
+    priority_role: string; // 'lead_descriptor' | 'ordering_bias' | 'protect_from_trimming' | 'include_if_space' | 'avoid_signal'
 };
 
 const ATTRIBUTE_TYPES = ['aesthetic', 'use_case', 'material', 'detail', 'garment_type'];
+const PRIORITY_ROLES = [
+    { value: 'include_if_space', label: 'Filler (Include if Space)' },
+    { value: 'lead_descriptor', label: 'Lead (High Priority)' },
+    { value: 'protect_from_trimming', label: 'Protected (Do Not Trim)' },
+    { value: 'ordering_bias', label: 'Ordering Bias' },
+    { value: 'avoid_signal', label: 'AVOID (Negative)' },
+];
 
 export default function StyleMatrixManager() {
     const [styles, setStyles] = useState<Style[]>([]);
@@ -33,10 +41,12 @@ export default function StyleMatrixManager() {
     const [newAttrValue, setNewAttrValue] = useState('');
     const [newAttrType, setNewAttrType] = useState<string>('aesthetic');
     const [newAttrWeight, setNewAttrWeight] = useState(0.8);
+    const [newAttrRole, setNewAttrRole] = useState<string>('include_if_space');
 
     // Editing State
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editWeight, setEditWeight] = useState(0.0);
+    const [editRole, setEditRole] = useState('');
 
     // Preview
     const [previewContext, setPreviewContext] = useState('');
@@ -48,7 +58,6 @@ export default function StyleMatrixManager() {
     useEffect(() => {
         if (selectedStyle) {
             fetchAttributes(selectedStyle.id);
-            generatePreview(selectedStyle);
         } else {
             setAttributes([]);
             setPreviewContext('');
@@ -79,7 +88,8 @@ export default function StyleMatrixManager() {
             style_id: selectedStyle.id,
             attribute_value: newAttrValue,
             attribute_type: newAttrType,
-            weight: newAttrWeight
+            weight: newAttrWeight,
+            priority_role: newAttrRole
         }).select().single();
 
         if (error) {
@@ -87,7 +97,9 @@ export default function StyleMatrixManager() {
         } else {
             setAttributes([...attributes, data as MatrixAttribute].sort((a, b) => b.weight - a.weight));
             setNewAttrValue('');
-            // generatePreview(selectedStyle); // Update preview?
+            // Reset to defaults
+            setNewAttrWeight(0.8);
+            setNewAttrRole('include_if_space');
         }
     };
 
@@ -100,10 +112,14 @@ export default function StyleMatrixManager() {
         }
     };
 
-    const saveWeight = async (id: string) => {
-        const { error } = await supabase.from('style_compatibility_attributes').update({ weight: editWeight }).eq('id', id);
+    const saveChanges = async (id: string) => {
+        const { error } = await supabase.from('style_compatibility_attributes').update({
+            weight: editWeight,
+            priority_role: editRole
+        }).eq('id', id);
+
         if (!error) {
-            setAttributes(attributes.map(a => a.id === id ? { ...a, weight: editWeight } : a).sort((a, b) => b.weight - a.weight));
+            setAttributes(attributes.map(a => a.id === id ? { ...a, weight: editWeight, priority_role: editRole } : a).sort((a, b) => b.weight - a.weight));
             setEditingId(null);
         }
     };
@@ -111,32 +127,39 @@ export default function StyleMatrixManager() {
     const startEditing = (attr: MatrixAttribute) => {
         setEditingId(attr.id);
         setEditWeight(attr.weight);
+        setEditRole(attr.priority_role || 'include_if_space');
     };
 
-    const generatePreview = (style: Style) => {
-        // Mock generation
-        // In reality, we'd trigger the server function, but here we simulate the logic
-        // We know the logic: Group by type, filter top weights.
-
-        // Use current state 'attributes' might be stale if just added, but good enough.
-    };
-
-    // Live update preview based on attributes state
+    // Live update preview based on attributes state - PRIORITY DRIVEN
     useEffect(() => {
         if (!selectedStyle) return;
 
-        const aesthetics = attributes.filter(a => a.attribute_type === 'aesthetic').map(a => a.attribute_value).join(', ');
-        const useCases = attributes.filter(a => a.attribute_type === 'use_case').map(a => a.attribute_value).join(', ');
-        const materials = attributes.filter(a => ['material', 'detail', 'garment_type'].includes(a.attribute_type)).map(a => a.attribute_value).join(', ');
+        const leadDescriptors = attributes.filter(a => a.priority_role === 'lead_descriptor').map(a => a.attribute_value).join(', ');
+        const protectedAttrs = attributes.filter(a => a.priority_role === 'protect_from_trimming').map(a => a.attribute_value).join(', ');
+        const includeIfSpace = attributes.filter(a => !['lead_descriptor', 'protect_from_trimming', 'avoid_signal'].includes(a.priority_role)).map(a => a.attribute_value).join(', ');
+        const avoidList = attributes.filter(a => a.priority_role === 'avoid_signal').map(a => a.attribute_value).join(', ');
 
         const text = `
-STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toUpperCase()})
-- This item matches the "${selectedStyle.display_name}" style archetype.
-- When enriching the title, PRIOIRITIZE these compatible attributes (if true):
-  - Aesthetics: ${aesthetics || '(None)'}
-  - Use Cases: ${useCases || '(None)'}
-  - Materials/Details: ${materials || '(None)'}
-- Rule: Do not force these if clearly contradicted by images.
+STYLE CONSTRUCTION DIRECTIVE (DETECTED ARCHETYPE: ${selectedStyle.display_name.toUpperCase()})
+Detected Archetype: ${selectedStyle.display_name}
+
+Behavior Rules:
+- Protect functional attributes from trimming
+- Prefer use-case descriptors before aesthetics
+- Allocate character space toward durability and function
+- Trim aesthetic/trend descriptors first
+
+Lead Descriptors (Prioritize Early):
+- ${leadDescriptors || '(None defined)'}
+
+Protected Attributes (Do NOT Trim):
+- ${protectedAttrs || '(None defined)'}
+
+Include If Space (Fillers):
+- ${includeIfSpace || '(None defined)'}
+
+Avoid (Incompatible):
+- ${avoidList || '(None defined)'}
         `;
         setPreviewContext(text.trim());
     }, [attributes, selectedStyle]);
@@ -153,6 +176,16 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
         }
     };
 
+    const getRoleBadge = (role: string) => {
+        switch (role) {
+            case 'lead_descriptor': return { text: 'LEAD', color: 'bg-yellow-600 text-white' };
+            case 'protect_from_trimming': return { text: 'PROTECT', color: 'bg-green-600 text-white' };
+            case 'avoid_signal': return { text: 'AVOID', color: 'bg-red-900 text-red-100' };
+            case 'ordering_bias': return { text: 'ORDER', color: 'bg-blue-900 text-blue-100' };
+            default: return { text: 'FILLER', color: 'bg-gray-700 text-gray-300' };
+        }
+    };
+
     return (
         <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', color: '#fff' }}>
             <AdminNav />
@@ -164,7 +197,7 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
                         Style Compatibility Matrix
                     </h1>
                     <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-                        Manage relationships between Styles and Attributes. This data powers the Title Enrichment engine.
+                        Define behavioral priorities: control what the AI protects, trims, or prioritizes for each style.
                     </p>
                 </div>
             </div>
@@ -201,10 +234,6 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
                             </div>
                         ))}
                     </div>
-
-                    <div style={{ marginTop: '1rem', borderTop: '1px solid #333', paddingTop: '1rem', fontSize: '0.8rem', color: 'gray' }}>
-                        Note: Manage Nodes in the "Detection Engine" tab. This tab manages their output attributes.
-                    </div>
                 </div>
 
                 {/* RIGHT: Detail View */}
@@ -222,36 +251,44 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
                             {/* Add Attribute Form */}
                             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
                                 <h4 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>Add Compatible Attribute</h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '150px 2fr 100px 100px', gap: '1rem', alignItems: 'center' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'min-content 1fr min-content min-content min-content', gap: '1rem', alignItems: 'center' }}>
 
                                     <select
                                         value={newAttrType}
                                         onChange={(e) => setNewAttrType(e.target.value)}
-                                        style={{ padding: '0.6rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', color: 'white' }}
+                                        style={{ padding: '0.6rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', color: 'white', maxWidth: '120px' }}
                                     >
                                         {ATTRIBUTE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
 
                                     <input
-                                        placeholder="Attribute Value (e.g. 'Safari', 'Linen')"
+                                        placeholder="Value (e.g. 'Safari')"
                                         value={newAttrValue}
                                         onChange={e => setNewAttrValue(e.target.value)}
                                         style={{ padding: '0.6rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', color: 'white' }}
                                     />
+
+                                    <select
+                                        value={newAttrRole}
+                                        onChange={(e) => setNewAttrRole(e.target.value)}
+                                        style={{ padding: '0.6rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', color: 'white', maxWidth: '160px' }}
+                                    >
+                                        {PRIORITY_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                    </select>
 
                                     <input
                                         type="number" step="0.05" min="0" max="1"
                                         value={newAttrWeight}
                                         onChange={e => setNewAttrWeight(parseFloat(e.target.value))}
                                         title="Weight (0-1)"
-                                        style={{ padding: '0.6rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', color: 'white' }}
+                                        style={{ width: '80px', padding: '0.6rem', borderRadius: '6px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', color: 'white' }}
                                     />
 
                                     <button
                                         onClick={addAttribute}
                                         disabled={!newAttrValue}
                                         className="btn btn-primary"
-                                        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                                        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0.6rem' }}
                                     >
                                         <Plus size={18} />
                                     </button>
@@ -260,19 +297,35 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
 
                             {/* Attribute List */}
                             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '1.5rem' }}>
-                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Attribute Rules ({attributes.length})</h3>
+                                <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Rules & Priorities ({attributes.length})</h3>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                     {[...attributes].sort((a, b) => b.weight - a.weight).map(attr => (
                                         <div key={attr.id} style={{
-                                            display: 'grid', gridTemplateColumns: '120px 1fr 100px 80px', gap: '1rem', alignItems: 'center',
+                                            display: 'grid', gridTemplateColumns: '120px 1fr 140px 100px 80px', gap: '1rem', alignItems: 'center',
                                             padding: '0.8rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid #333'
                                         }}>
-                                            <div className={`${getTypeColor(attr.attribute_type)} text-sm uppercase font-bold`}>
+                                            <div className={`${getTypeColor(attr.attribute_type)} text-xs uppercase font-bold`}>
                                                 {attr.attribute_type.replace('_', ' ')}
                                             </div>
 
                                             <div style={{ fontWeight: 500, fontSize: '1.05rem' }}>{attr.attribute_value}</div>
+
+                                            {/* Priority Role Badge/Edit */}
+                                            {editingId === attr.id ? (
+                                                <select
+                                                    value={editRole}
+                                                    onChange={(e) => setEditRole(e.target.value)}
+                                                    style={{ padding: '0.2rem', borderRadius: '4px', background: 'black', border: '1px solid #444', color: 'white', fontSize: '0.8rem' }}
+                                                    autoFocus
+                                                >
+                                                    {PRIORITY_ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                                </select>
+                                            ) : (
+                                                <span className={`text-xs px-2 py-1 rounded font-bold text-center ${getRoleBadge(attr.priority_role || 'include_if_space').color}`}>
+                                                    {getRoleBadge(attr.priority_role || 'include_if_space').text}
+                                                </span>
+                                            )}
 
                                             {/* Weight */}
                                             {editingId === attr.id ? (
@@ -281,14 +334,13 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
                                                         type="number" step="0.05" min="0" max="1"
                                                         value={editWeight}
                                                         onChange={e => setEditWeight(parseFloat(e.target.value))}
-                                                        style={{ width: '60px', padding: '4px', borderRadius: '4px', background: 'black', border: '1px solid #444', color: 'white' }}
-                                                        autoFocus
+                                                        style={{ width: '50px', padding: '4px', borderRadius: '4px', background: 'black', border: '1px solid #444', color: 'white' }}
                                                     />
-                                                    <button onClick={() => saveWeight(attr.id)} className="text-green-400"><Save size={16} /></button>
+                                                    <button onClick={() => saveChanges(attr.id)} className="text-green-400"><Save size={16} /></button>
                                                     <button onClick={() => setEditingId(null)} className="text-gray-400"><X size={16} /></button>
                                                 </div>
                                             ) : (
-                                                <div style={{ opacity: 0.7 }}>{attr.weight.toFixed(2)}</div>
+                                                <div style={{ opacity: 0.7, textAlign: 'right' }}>{attr.weight.toFixed(2)}</div>
                                             )}
 
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -310,7 +362,7 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
                             {/* Preview Window */}
                             <div style={{ marginTop: '2rem', background: '#111', border: '1px solid #444', borderRadius: '12px', padding: '1.5rem' }}>
                                 <h4 style={{ margin: '0 0 1rem 0', color: '#888', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>
-                                    GENERATED AI PROMPT CONTEXT
+                                    GENERATED BEHAVIORAL DIRECTIVE
                                 </h4>
                                 <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', color: '#0f0', fontSize: '0.9rem' }}>
                                     {previewContext}
@@ -321,7 +373,7 @@ STYLE COMPATIBILITY MATRIX (DETECTED ARCHETYPE: ${selectedStyle.display_name.toU
                     ) : (
                         <div style={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#555' }}>
                             <Layers size={64} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                            <div>Select a Style Node to configure its matrix</div>
+                            <div>Select a Style Node to configure priority rules</div>
                         </div>
                     )}
                 </div>
