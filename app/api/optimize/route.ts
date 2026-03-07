@@ -357,16 +357,11 @@ export async function POST(request: NextRequest) {
         // Consolidates L1 (Structure), L2 (SEO/Functional), and L3 (Style) into one pass.
 
         const unifiedPrompt = `
-You are an elite eBay SEO Specialist. Your goal is to rewrite the provided listing title to maximize search visibility and click-through rates. You must strictly adhere to eBay’s 80-character limit and follow this precise algorithmic workflow.
+You are an elite eBay SEO Specialist. 
 
-<INPUT DATA>
-Item Info: \${cleanInfo}
-Current Title: \${processingTitle}
-\${matrixContext}
-\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
-</INPUT DATA>
+**TASK:** Based on the RULES below, rewrite the CURRENT TITLE using the ITEM INFO to create a highly optimized, 80-character maximum eBay listing title. YOU MUST ONLY OUTPUT THE NEW TITLE.
 
-<SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
+### RULES: SYSTEM FAIL-SAFES (ZERO TOLERANCE)
 1. **THE SIZE FIREWALL:**
    - You MUST extract the size ONLY from the \`cleanInfo\` (Item Specifics) or the Original Title.
    - If the size is "S", "M", or "L", you MUST expand it and spell it out completely: "Small", "Medium", "Large".
@@ -375,13 +370,12 @@ Current Title: \${processingTitle}
 2. **Never Invent:** Do not guess brand, materials, era, origin, or gender. If it is not explicitly in the input, omit it.
 
 3. **Product Model Protection:** Preserve specific model names (e.g., "Basic Tee", "Synchilla") exactly as written in the original title.
-</SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
 
-<ASSEMBLY ALGORITHM>
+### RULES: ASSEMBLY ALGORITHM
 Construct the title using this exact priority hierarchy. You **MUST** maximize the 80-character limit safely. 
 
 **[Tier 1: Mandatory SYNTAX LOCK]**
-You must combine Gender, Size, and Item Type into a single fluent phrase (Never use the word "Size").
+Combine Gender, Size, and Item Type into a single fluent phrase.
 FORMAT: [Brand] + [Product Model (if exists)] + [Gender] + [Exact Size (Spelled Out)] + [Item Type]
 *(Example: "Patagonia Womens Small Pullover Jacket" NOT "Patagonia Womens Jacket Size S")*
 
@@ -394,21 +388,27 @@ FORMAT: [Brand] + [Product Model (if exists)] + [Gender] + [Exact Size (Spelled 
 If you have unused characters (especially if under 75), you MUST inject the following until you hit 80 characters:
 1. **Style Signals:** Prioritize injecting style trends from \`matrixContext\` (e.g., "Gorpcore", "Y2K").
 2. **End-Use/Synonyms:** Add universally accurate, high-intent synonyms (e.g., "Workout", "Gym", "Activewear", "Running").
-</ASSEMBLY ALGORITHM>
 
-<CONDITION OVERRIDE>
+### RULES: CONDITION OVERRIDE
 If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append exactly "New" as the final word of the title. Do not duplicate if already present. Do not use "New With Tags".
-</CONDITION OVERRIDE>
 
-<OUTPUT RULES>
+### RULES: OUTPUT FORMAT
 - Return ONLY the optimized title text.
 - Maximum 80 characters.
 - If a keyword pushes the title to 81+ characters, drop it entirely to stay under 80.
 - ABSOLUTELY NO use of the word "Size" or "Sz".
 - NO single-letter abbreviations for S/M/L. Spell them out (Small, Medium, Large).
-- DO NOT return JSON. DO NOT return the input variables. Return ONLY a single plain text string representing the final title over a single line.
-</OUTPUT RULES>
-        `;
+- DO NOT return JSON. DO NOT echo instructions.
+
+==== INPUTS ====
+Current Title: \${processingTitle}
+Current Title: ${processingTitle}
+Item Info: ${cleanInfo}
+${matrixContext}
+${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
+
+Provide your optimized title below this line:
+[FINAL TITLE]:`;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
         try {
@@ -416,7 +416,7 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
 
             // Aggressive Cleanup
             pipelineTitle = pipelineTitle
-                .replace(/^(Title|Output|Optimized Title):/i, '')
+                .replace(/^(Title|Output|Optimized Title|FINAL TITLE|\\[FINAL TITLE\\]):/i, '')
                 .trim()
                 .replace(/^"|"$/g, '');
 
@@ -434,7 +434,7 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
         if (optimizedTitle) {
             // 0. CLEANUP MARKDOWN & LABELS
             // Remove markdown code blocks (```text, ```)
-            optimizedTitle = optimizedTitle.replace(/```[a-z]*\s*/gi, '').replace(/```/g, '').trim();
+            optimizedTitle = optimizedTitle.replace(/```[a - z] *\s * /gi, '').replace(/```/g, '').trim();
 
             // Remove explicit labels if the model added them
             optimizedTitle = optimizedTitle.replace(/^(OUTPUT|Final Title|Title|Optimized Title):\s*/i, '');
@@ -488,14 +488,14 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
             // We must loop manually because replace with global regex behaves partly on iteration
             optimizedTitle = optimizedTitle.replace(measRegex, (fullMatch, n1, n2) => {
                 // Check if this n1 x n2 combo exists in original
-                const simpleLook = `${n1}x${n2}`;
+                const simpleLook = `${n1}x${n2} `;
                 if (cleanOrig.includes(simpleLook)) return fullMatch;
 
                 // Strict Check:
-                const hasSpaced = new RegExp(`${n1}\\s*[xX]\\s*${n2}`).test(lowerOrig);
+                const hasSpaced = new RegExp(`${n1} \\s * [xX]\\s * ${n2} `).test(lowerOrig);
                 if (hasSpaced) return fullMatch;
 
-                console.log(`[Filter] Removing hallucinated measurement: ${fullMatch}`);
+                console.log(`[Filter] Removing hallucinated measurement: ${fullMatch} `);
                 return ''; // Remove it
             });
 
@@ -509,7 +509,7 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
                 const val = num.trim();
                 // Simple check: does the original title contain this number? 
                 // We use a boundary check regex for the number
-                if (new RegExp(`\\b${val}\\b`).test(lowerOrig)) {
+                if (new RegExp(`\\b${val} \\b`).test(lowerOrig)) {
                     return fullMatch;
                 }
 
@@ -518,7 +518,7 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
                     return fullMatch;
                 }
 
-                console.log(`[Filter] Removing hallucinated single measurement: ${fullMatch}`);
+                console.log(`[Filter] Removing hallucinated single measurement: ${fullMatch} `);
                 return '';
             });
 
@@ -540,7 +540,7 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
                 // Regex to find "NumberKW" or "KWNumber"
                 // Match: (Number) (Possible Unit) (Keyword) OR (Keyword) (Number)
                 const patterns = [
-                    new RegExp(`\\b(\\d+(?:\\.\\d+)?)\\s*(?:["']|in|cm)?\\s*${kw}\\b`, 'gi'), // "38 Length"
+                    new RegExp(`\\b(\\d + (?: \\.\\d +) ?) \\s * (?: ["']|in|cm)?\\s*${kw}\\b`, 'gi'), // "38 Length"
                     new RegExp(`\\b${kw}\\s*:?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:["']|in|cm)?\\b`, 'gi') // "Length: 38"
                 ];
 
