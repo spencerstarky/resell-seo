@@ -367,16 +367,21 @@ Current Title: \${processingTitle}
 </INPUT DATA>
 
 <SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
-1. **Size Authentication is Absolute:** You MUST extract the size ONLY from the provided \`cleanInfo\` (Item Specifics) or the Original Title. If the exact size is not explicitly stated in text, you must OMIT size entirely. NEVER guess size based on images or brand averages. 
-2. **Never Invent:** Do not guess brand, materials, era, origin, or gender. If it is not explicitly in the input, omit it.
-3. **Product Model Protection:** If the original title contains a specific product line or model name (e.g., "Basic Tee", "501", "Synchilla"), it MUST be preserved exactly as written.
+1. **THE SIZE FIREWALL (CRITICAL):**
+   - You MUST extract the size ONLY from the \`cleanInfo\` (Item Specifics).
+   - The brand name "Lululemon" is NOT a size indication. Do not extract "L" or "Large" from the brand name.
+   - If \`cleanInfo\` says "Medium" or "M", you MUST output "Medium" or "M".
+   - If \`cleanInfo\` contains NO size information, you MUST OMIT size entirely. 
+   - NEVER guess size or use image analysis to determine size.
+2. **Never Invent:** Do not guess brand, materials, era, origin, or gender. 
+3. **Product Model Protection:** Look closely at the \`processingTitle\`. If it contains a specific name like "Basic Tee", "Align", or "501", this is a Product Model. You MUST preserve it exactly. Do not overwrite it with a generic term like "T-Shirt".
 </SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
 
 <ASSEMBLY ALGORITHM>
 Construct the title using this exact priority hierarchy. Stop adding elements the moment you reach 80 characters. 
 
 **[Tier 1: Mandatory Core]**
-[Brand (Full name)] + [Gender] + [Product Model/Line (e.g., "Basic Tee" - PRESERVE EXACTLY)] + [Item Type] + [Verified Size from Text Input ONLY]
+[Brand (Full name)] + [Gender] + [PRESERVE Product Model/Line from Original Title (e.g., "Basic Tee")] + [Verified Size from \`cleanInfo\` ONLY]
 
 **(If space remains, append Tier 2)**
 **[Tier 2: High Search Intent]**
@@ -394,8 +399,9 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
 <OUTPUT RULES>
 - Return ONLY the optimized title text.
 - Maximum 80 characters.
-- If adding a keyword group pushes the title over 80 characters, omit the ENTIRE keyword group.
-- No conversational filler, no prefixes.
+- NO explicit labels like "Size L" or "Size M". Output the raw value (e.g., "Medium").
+- Do not output partial keyword groups if you hit the 80 character limit.
+- No conversational filler.
 - DO NOT return JSON. DO NOT return the input variables. Return ONLY a single plain text string representing the final title over a single line.
 </OUTPUT RULES>
         `;
