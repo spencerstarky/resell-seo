@@ -378,18 +378,20 @@ Current Title: \${processingTitle}
 </SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
 
 <ASSEMBLY ALGORITHM>
-Construct the title using this exact priority hierarchy. Stop adding elements the moment you reach 80 characters. 
+Construct the title using this exact priority hierarchy. You **MUST** maximize the 80-character limit. If the title is under 75 characters after Tier 2, you are REQUIRED to aggressively inject Tier 3 keywords until the limit is reached. 
 
 **[Tier 1: Mandatory Core]**
 [Brand (Full name)] + [Gender] + [PRESERVE Product Model/Line from Original Title (e.g., "Basic Tee")] + [Verified Size from \`cleanInfo\` ONLY]
 
-**(If space remains, append Tier 2)**
-**[Tier 2: High Search Intent]**
+**(If under 80 chars, append Tier 2)**
+**[Tier 2: Structural & Visual Facts]**
 [Color] + [Anatomy (e.g., Short Sleeve, Crewneck)] + [Verified Subtype/Material] + [Functional Descriptors (e.g., Waterproof)]
 
-**(If space remains, append Tier 3)**
-**[Tier 3: Refinements & Aesthetics]**
-Add a MAXIMUM of 2 universally accurate end-use keywords (e.g., "Athletic", "Workout") OR 1 compatible style signal. Do not keyword stuff.
+**(If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT REQUIRED)**
+**[Tier 3: Style Signals & High-Intent Synonyms]**
+If you have unused characters, you MUST inject the following until you hit 80 characters (or as close as possible without exceeding):
+1. **Style Signals:** Prioritize injecting style trends from the provided \`matrixContext\` (e.g., "Gorpcore", "Y2K", "Minimalist") if they are compatible with the item.
+2. **End-Use/Synonyms:** Add universally accurate, high-intent category synonyms (e.g., "Workout", "Gym", "Activewear", "Running", "Office", "Vintage").
 </ASSEMBLY ALGORITHM>
 
 <CONDITION OVERRIDE>
@@ -398,10 +400,10 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
 
 <OUTPUT RULES>
 - Return ONLY the optimized title text.
-- Maximum 80 characters.
+- Maximum 80 characters. **DO NOT EXCEED.**
+- If adding a keyword/style signal pushes the title to 81+ characters, drop that specific keyword and try a shorter one, or omit it entirely to stay under 80.
 - NO explicit labels like "Size L" or "Size M". Output the raw value (e.g., "Medium").
-- Do not output partial keyword groups if you hit the 80 character limit.
-- No conversational filler.
+- No conversational filler, quotes, or prefixes.
 - DO NOT return JSON. DO NOT return the input variables. Return ONLY a single plain text string representing the final title over a single line.
 </OUTPUT RULES>
         `;
