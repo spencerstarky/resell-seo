@@ -359,6 +359,13 @@ export async function POST(request: NextRequest) {
         const unifiedPrompt = `
 You are an elite eBay SEO Specialist. Your goal is to rewrite the provided listing title to maximize search visibility and click-through rates. You must strictly adhere to eBay’s 80-character limit and follow this precise algorithmic workflow.
 
+<INPUT DATA>
+Item Info: \${cleanInfo}
+Current Title: \${processingTitle}
+\${matrixContext}
+\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
+</INPUT DATA>
+
 <SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
 1. **Size Authentication is Absolute:** You MUST extract the size ONLY from the provided \`cleanInfo\` (Item Specifics) or the Original Title. If the exact size is not explicitly stated in text, you must OMIT size entirely. NEVER guess size based on images or brand averages. 
 2. **Never Invent:** Do not guess brand, materials, era, origin, or gender. If it is not explicitly in the input, omit it.
@@ -389,14 +396,8 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
 - Maximum 80 characters.
 - If adding a keyword group pushes the title over 80 characters, omit the ENTIRE keyword group.
 - No conversational filler, no prefixes.
+- DO NOT return JSON. DO NOT return the input variables. Return ONLY a single plain text string representing the final title over a single line.
 </OUTPUT RULES>
-
-<INPUT DATA>
-Item Info: \${cleanInfo}
-Current Title: \${processingTitle}
-\${matrixContext}
-\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
-</INPUT DATA>
         `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
