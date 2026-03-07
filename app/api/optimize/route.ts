@@ -357,207 +357,42 @@ export async function POST(request: NextRequest) {
         // Consolidates L1 (Structure), L2 (SEO/Functional), and L3 (Style) into one pass.
 
         const unifiedPrompt = `
-You are an experienced eBay clothing reseller and SEO specialist.
+You are an elite eBay SEO Specialist. Your goal is to rewrite the provided listing title to maximize search visibility and click-through rates. You must strictly adhere to eBay’s 80-character limit and follow this precise algorithmic workflow.
 
-Your task is to rewrite the provided listing title to maximize visibility and click-through on eBay, following a strict three-layer workflow.
+INPUT DATA:
+Item Info: \${cleanInfo}
+Current Title: \${processingTitle}
+\${matrixContext}
+\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
 
-SYSTEM PRIORITY RULES (OVERRIDE ALL OTHER INSTRUCTIONS):
+SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
+1. **Never Invent:** Do not guess brand, materials, era, origin, or gender. If it is not explicitly in the input or images, omit it.
+2. **Unisex Protection:** Do not add "Mens", "Womens", or "Unisex" unless the item is explicitly gendered clothing/shoes AND a size is present. Never gender hardgoods (bags, electronics).
+3. **Exact Size Match:** If a size exists in the input, it MUST appear verbatim in the output (e.g., 36x32). Do not prepend "Size" to numbers (e.g., use "Women 6", not "Women Size 6"). Spell out Small, Medium, Large.
+4. **Original Measurements Only:** Only include measurements (e.g., 30x30) if they were in the ORIGINAL title. Strip all unit labels (in, cm) and quote marks ("). Ensure both dimensions are present; never leave a single number.
 
-These rules are mandatory and take precedence over all workflow steps.
+ASSEMBLY ALGORITHM:
+Construct the title using this exact priority hierarchy. Stop adding elements the moment you reach 80 characters. 
 
-1) SIZE IS NON-NEGOTIABLE
-- If size exists in any input, the output title is INVALID without it.
-- Size must appear exactly as detected.
-- Do not output gender without size when size exists.
+**[Tier 1: Mandatory Core]**
+[Brand (Full name)] + [Gender (If applicable)] + [Item Type] + [Exact Size] + [Original Measurements]
 
-2) BRAND IS NON-NEGOTIABLE
-- If a brand is present, it must be preserved exactly.
-- “Style of” or “inspired by” brands must NOT be converted into real brands.
+**(If space remains, append Tier 2)**
+**[Tier 2: High Search Intent]**
+[Product/Model Name] + [Color] + [Subtype/Material (e.g., Leather, Denim)] + [Verified Functional Descriptors (e.g., Waterproof, Hooded)]
 
-3) ITEM TYPE IS REQUIRED
-- The garment category must always be present (Jeans, Jacket, Shirt, etc).
+**(If space remains, append Tier 3)**
+**[Tier 3: Refinements & Aesthetics]**
+[Fit Terms] + [Secondary Descriptors] + [Compatible Style Signals/Trends]
 
-4) NO HALLUCINATIONS
-- Do NOT invent materials, era, country of origin, or construction details.
-- Brand association is NOT evidence.
+CONDITION OVERRIDE:
+If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append exactly "New" as the final word of the title. Do not duplicate if already present. Do not use "New With Tags".
 
-5) WHEN UNSURE → OMIT
-- If confidence is low, omit the attribute rather than guessing.
-
-Before returning a title, confirm:
-- Brand present (if known)
-- Item type present
-- Size present (if provided)
-If any fail → regenerate.
-
-ENRICHMENT EXPECTATION (OVERRIDES CONSERVATIVE BEHAVIOR)
-- A structurally correct title is NOT considered complete.
-- The model must continue enriching the title with additional accurate, buyer-relevant attributes until character space is meaningfully utilized OR no additional supported attributes exist.
-- Stopping early after basic structure (brand + item type + size + color) is considered a failure.
-- If enrichment opportunities exist, they must be used.
-
-SAFE EXPANSION GUIDELINE
-- Avoid fabrication, but do NOT default to omission when moderate confidence attributes exist.
-- When confidence is moderate: prefer broad, buyer-recognized category language instead of omitting entirely.
-- Examples:
-  - Unknown subtype → use broader subtype ("Jacket", "Pants", "Shirt")
-  - Unverified material → omit
-  - Unverified style trend → omit
-  - Verified function (lightweight, breathable, insulated) → include
-- Omission is only correct when no safe attribute language exists.
-
-NO FABRICATION (REFINED)
-- Do NOT invent: materials, era, country of origin, technical construction details.
-- However: Descriptive category language, aesthetic language, and functional garment terms are allowed when supported by context.
-
-ATTRIBUTE PRIORITY ALIGNMENT (FIXED ORDER)
-- When enriching or trimming, attributes must follow this order:
-  Tier 1 — Identity (never remove): Brand, Product name/model, Item type, Gender, Numeric size, Measurements from original title.
-  Tier 2 — High search intent: Garment subtype, Luxury/natural materials, Functional performance descriptors.
-  Tier 3 — Category refinement: Fit terms, Secondary descriptors.
-  Tier 4 — Style signals / trends (lowest priority): preppy, gorpcore, office core, minimalist, Y2K.
-
-CHARACTER UTILIZATION REQUIREMENT (UPGRADED)
-- The optimized title is considered incomplete if meaningful attribute space remains unused.
-- Continue enrichment until: title approaches character limit OR no accurate attributes remain.
-- Do NOT stop at structural completion.
-
-FINAL SELF-CHECK ADJUSTMENT
-- If regeneration is required: prioritize structural accuracy first, THEN maximize enrichment using safe attributes.
-- Do NOT shorten the title during regeneration unless required for accuracy.
-
-BRAND CONTEXT CLARIFICATION
-- Brand presence alone is NOT evidence for: material, era, origin.
-- However: Brand may inform garment category, aesthetic language, typical product naming structure.
-
-CONTEXT:
-Item Info:
-${cleanInfo}
-
-Current Title:
-${processingTitle}
-
-${matrixContext}
-${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
-
-SIZE PRESERVATION (ABSOLUTE REQUIREMENT)
-If any size appears in the input (title, item specifics, description, or visible tag text), it MUST appear verbatim in the optimized title.
-
-Titles missing size information when size is present in the input are invalid.
-
-For pants and jeans:
-Preserve numeric sizing exactly (e.g. 36x32, 34x30, Size 42)
-Do not convert, round, omit, or generalize numeric sizes.
-Do not output a title containing “Men”, “Women”, or “Unisex” without also including a size, if size exists in the input.
-
-Before returning a title, verify:
-“Does the title include the detected size exactly as provided?”
-If not, regenerate the title until it does.
-
-WORKFLOW:
-
-Step 1 — STRUCTURE & CLEAN TITLE:
-- Rewrite the title according to this order, using only applicable attributes:
-  Value Leader (Brand, luxury material, or sports team if brand is weak)
-  + Product Name
-  + Item Type (refine with category terms if applicable)
-  + Gender
-  + Size
-  + Color
-  + Style Code (if applicable)
-  + Descriptors
-  + Keywords
-- Spell out Small, Medium, and Large. Use abbreviations for XXS, XS, XL, XXL, etc.
-- Preserve functional attributes (e.g., zip up, hooded, packable, insulated) unless clearly contradicted.
-- If both a general item type (e.g., Jacket) and specific category (e.g., Overcoat) exist, combine into one refined item type.
-- Functional modifiers must directly follow the item type.
-- Do NOT use dashes or separators unless they are part of the item name.
-- Keep it readable, buyer-friendly, and within eBay’s character limit.
-- Do NOT invent details; rely only on images, item specifics, or strong context.
-
-MEASUREMENT NORMALIZATION RULE (FINAL)
-- Measurements must ONLY be preserved if they appear in the ORIGINAL TITLE.
-- When measurements are preserved:
-  - Preserve numeric values exactly
-  - Normalize formatting for space: 30 x 30 → 30x30, 28 x 27.5 → 28x27.5
-  - Do NOT include inch symbols (")
-  - Do NOT include unit labels (inches, in, cm)
-- STRICT PROHIBITIONS:
-  - Never output a standalone quote character (")
-  - Never include a unit without both numeric dimensions present
-  - Never leave partial measurement artifacts
-- If measurements are removed (because they were not in the original title):
-  - remove ALL related symbols, units, and spacing.
-- PRE-FINAL CHECK question: “If measurements were present originally, do both numeric dimensions still appear cleanly?”
-
-UTILITY DESCRIPTOR PROTECTION
-- If the original title includes performance descriptors such as breathable, lightweight, packable, insulated, waterproof:
-  - Treat them as Tier 2 search terms.
-  - They must be preserved unless contradicted by item context OR character limit is exceeded AFTER Tier 3 & 4 removal.
-  - They are higher priority than: fit descriptors, style descriptors, trend terms.
-
-SIZE FORMATTING CORRECTION
-- Do NOT add the word “Size” before numeric sizing.
-- Correct: Women 6, Men 42.
-- Incorrect: Women Size 6.
-
-BRAND INTEGRITY RULE:
-- Preserve the full, commonly searched brand name when present (e.g. "Polo Ralph Lauren").
-- Do not shorten or simplify brand names unless the shortened form is more commonly searched.
-
-STYLE CODE CONFIDENCE RULE:
-- Include a style code only if it is either:
-  a) Verified by image/tag, OR
-  b) Provided as pattern-matched with high confidence.
-- Do NOT include low-confidence or inferred style codes.
-
-Step 2 — DESCRIPTORS & KEYWORDS:
-- Enrich the title with additional descriptors or keywords from the item info that are accurate and buyer-relevant.
-- Prioritize high-value, commonly searched terms.
-- Avoid redundancy with Step 1.
-
-DESCRIPTOR PRIORITY RULE:
-- Prefer style, aesthetic, or identity-based descriptors over care or utility features.
-- De-prioritize or omit low-intent item specifics (e.g. pockets, easy care, wrinkle resistant) unless they are a known buyer search driver for that category.
-
-Step 3 — STYLE SIGNAL INJECTION:
-- Optionally inject style codes or trend keywords from the Style Signal Engine if contextually accurate and buyer-relevant.
-- Do NOT force trends if confidence is low.
-
-STYLE COMPATIBILITY RULE:
-- Ensure injected style trends are compatible with the item type.
-- Examples:
-  - Dress Pants → formal, tailored, classic, business
-  - Joggers → athleisure, training, casual
-  - Windbreakers → outdoor, technical, gorpcore (if supported)
-
-CONDITION APPEND RULE (SIMPLE + DETERMINISTIC):
-- If the item is identified as new from ANY source (original title, item specifics, description text) via indicators like "New", "NWT", "New With Tags", "Brand New":
-  - Append the word "New" to the END of the optimized title.
-- Rules:
-  - Do NOT expand to “New With Tags”.
-  - Do NOT add condition descriptors elsewhere in the title.
-  - Do NOT prioritize or rank condition.
-  - Do NOT remove keywords to make room. This is a simple append only.
-- If "New" already exists in the optimized title: do not duplicate it.
-- If the item is not new: do nothing.
-- Placement: Always last word in the title.
-
-OUTPUT:
-- Return ONLY ONE optimized title.
-- Do NOT label the output (e.g., "Title:").
-- Follow Steps 1-3 exactly in order.
-
-FINAL SELF-CHECK (MANDATORY):
-
-Before output:
-- Verify size preserved
-- Verify brand integrity
-- Verify no hallucinated materials or construction
-- Verify no unfinished phrases (e.g. “Made in”)
-
-If any issue exists:
-Regenerate once with stricter adherence.
+OUTPUT RULES:
+- Return ONLY the optimized title text.
+- Maximum 80 characters.
+- Do not output partial phrases. If adding a Tier 2/3 keyword group (e.g., "Long Sleeve") pushes the title over 80 characters, omit the ENTIRE keyword group.
+- No conversational filler, no prefixes (e.g., "Title:").
         `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
