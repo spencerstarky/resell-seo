@@ -367,31 +367,33 @@ Current Title: \${processingTitle}
 </INPUT DATA>
 
 <SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
-1. **THE SIZE FIREWALL (CRITICAL):**
-   - You MUST extract the size ONLY from the \`cleanInfo\` (Item Specifics).
-   - The brand name "Lululemon" is NOT a size indication. Do not extract "L" or "Large" from the brand name.
-   - If \`cleanInfo\` says "Medium" or "M", you MUST output "Medium" or "M".
-   - If \`cleanInfo\` contains NO size information, you MUST OMIT size entirely. 
-   - NEVER guess size or use image analysis to determine size.
-2. **Never Invent:** Do not guess brand, materials, era, origin, or gender. 
-3. **Product Model Protection:** Look closely at the \`processingTitle\`. If it contains a specific name like "Basic Tee", "Align", or "501", this is a Product Model. You MUST preserve it exactly. Do not overwrite it with a generic term like "T-Shirt".
+1. **THE SIZE FIREWALL:**
+   - You MUST extract the size ONLY from the \`cleanInfo\` (Item Specifics) or the Original Title.
+   - If the size is "S", "M", or "L", you MUST expand it and spell it out completely: "Small", "Medium", "Large".
+   - NEVER use the word "Size" or "Sz" in the output title.
+
+2. **Never Invent:** Do not guess brand, materials, era, origin, or gender. If it is not explicitly in the input, omit it.
+
+3. **Product Model Protection:** Preserve specific model names (e.g., "Basic Tee", "Synchilla") exactly as written in the original title.
 </SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
 
 <ASSEMBLY ALGORITHM>
-Construct the title using this exact priority hierarchy. You **MUST** maximize the 80-character limit. If the title is under 75 characters after Tier 2, you are REQUIRED to aggressively inject Tier 3 keywords until the limit is reached. 
+Construct the title using this exact priority hierarchy. You **MUST** maximize the 80-character limit safely. 
 
-**[Tier 1: Mandatory Core]**
-[Brand (Full name)] + [Gender] + [PRESERVE Product Model/Line from Original Title (e.g., "Basic Tee")] + [Verified Size from \`cleanInfo\` ONLY]
+**[Tier 1: Mandatory SYNTAX LOCK]**
+You must combine Gender, Size, and Item Type into a single fluent phrase (Never use the word "Size").
+FORMAT: [Brand] + [Product Model (if exists)] + [Gender] + [Exact Size (Spelled Out)] + [Item Type]
+*(Example: "Patagonia Womens Small Pullover Jacket" NOT "Patagonia Womens Jacket Size S")*
 
 **(If under 80 chars, append Tier 2)**
 **[Tier 2: Structural & Visual Facts]**
-[Color] + [Anatomy (e.g., Short Sleeve, Crewneck)] + [Verified Subtype/Material] + [Functional Descriptors (e.g., Waterproof)]
+[Color] + [Anatomy/Fastenings (e.g., Full Zip, Thumb Holes)] + [Subtype/Material]
 
-**(If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT REQUIRED)**
+**(If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)**
 **[Tier 3: Style Signals & High-Intent Synonyms]**
-If you have unused characters, you MUST inject the following until you hit 80 characters (or as close as possible without exceeding):
-1. **Style Signals:** Prioritize injecting style trends from the provided \`matrixContext\` (e.g., "Gorpcore", "Y2K", "Minimalist") if they are compatible with the item.
-2. **End-Use/Synonyms:** Add universally accurate, high-intent category synonyms (e.g., "Workout", "Gym", "Activewear", "Running", "Office", "Vintage").
+If you have unused characters (especially if under 75), you MUST inject the following until you hit 80 characters:
+1. **Style Signals:** Prioritize injecting style trends from \`matrixContext\` (e.g., "Gorpcore", "Y2K").
+2. **End-Use/Synonyms:** Add universally accurate, high-intent synonyms (e.g., "Workout", "Gym", "Activewear", "Running").
 </ASSEMBLY ALGORITHM>
 
 <CONDITION OVERRIDE>
@@ -400,10 +402,10 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
 
 <OUTPUT RULES>
 - Return ONLY the optimized title text.
-- Maximum 80 characters. **DO NOT EXCEED.**
-- If adding a keyword/style signal pushes the title to 81+ characters, drop that specific keyword and try a shorter one, or omit it entirely to stay under 80.
-- NO explicit labels like "Size L" or "Size M". Output the raw value (e.g., "Medium").
-- No conversational filler, quotes, or prefixes.
+- Maximum 80 characters.
+- If a keyword pushes the title to 81+ characters, drop it entirely to stay under 80.
+- ABSOLUTELY NO use of the word "Size" or "Sz".
+- NO single-letter abbreviations for S/M/L. Spell them out (Small, Medium, Large).
 - DO NOT return JSON. DO NOT return the input variables. Return ONLY a single plain text string representing the final title over a single line.
 </OUTPUT RULES>
         `;
