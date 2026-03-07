@@ -359,19 +359,14 @@ export async function POST(request: NextRequest) {
         const unifiedPrompt = `
 You are an elite eBay SEO Specialist. Your goal is to rewrite the provided listing title to maximize search visibility and click-through rates. You must strictly adhere to eBay’s 80-character limit and follow this precise algorithmic workflow.
 
-INPUT DATA:
-Item Info: \${cleanInfo}
-Current Title: \${processingTitle}
-\${matrixContext}
-\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
-
-SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
+<SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
 1. **Never Invent:** Do not guess brand, materials, era, origin, or gender. If it is not explicitly in the input or images, omit it.
 2. **Unisex Protection:** Do not add "Mens", "Womens", or "Unisex" unless the item is explicitly gendered clothing/shoes AND a size is present. Never gender hardgoods (bags, electronics).
 3. **Exact Size Match:** If a size exists in the input, it MUST appear verbatim in the output (e.g., 36x32). Do not prepend "Size" to numbers (e.g., use "Women 6", not "Women Size 6"). Spell out Small, Medium, Large.
 4. **Original Measurements Only:** Only include measurements (e.g., 30x30) if they were in the ORIGINAL title. Strip all unit labels (in, cm) and quote marks ("). Ensure both dimensions are present; never leave a single number.
+</SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS)>
 
-ASSEMBLY ALGORITHM:
+<ASSEMBLY ALGORITHM>
 Construct the title using this exact priority hierarchy. Stop adding elements the moment you reach 80 characters. 
 
 **[Tier 1: Mandatory Core]**
@@ -384,15 +379,25 @@ Construct the title using this exact priority hierarchy. Stop adding elements th
 **(If space remains, append Tier 3)**
 **[Tier 3: Refinements & Aesthetics]**
 [Fit Terms] + [Secondary Descriptors] + [Compatible Style Signals/Trends]
+</ASSEMBLY ALGORITHM>
 
-CONDITION OVERRIDE:
+<CONDITION OVERRIDE>
 If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append exactly "New" as the final word of the title. Do not duplicate if already present. Do not use "New With Tags".
+</CONDITION OVERRIDE>
 
-OUTPUT RULES:
+<OUTPUT RULES>
 - Return ONLY the optimized title text.
 - Maximum 80 characters.
 - Do not output partial phrases. If adding a Tier 2/3 keyword group (e.g., "Long Sleeve") pushes the title over 80 characters, omit the ENTIRE keyword group.
 - No conversational filler, no prefixes (e.g., "Title:").
+</OUTPUT RULES>
+
+<INPUT DATA>
+Item Info: \${cleanInfo}
+Current Title: \${processingTitle}
+\${matrixContext}
+\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
+</INPUT DATA>
         `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
