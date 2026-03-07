@@ -402,10 +402,9 @@ If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append ex
 
 ==== INPUTS ====
 Current Title: \${processingTitle}
-Current Title: ${processingTitle}
-Item Info: ${cleanInfo}
-${matrixContext}
-${detectedBrand ? `Detected Brand: ${detectedBrand}` : ''}
+Item Info: \${cleanInfo}
+\${matrixContext}
+\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
 
 Provide your optimized title below this line:
 [FINAL TITLE]:`;
