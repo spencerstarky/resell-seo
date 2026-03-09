@@ -357,54 +357,25 @@ export async function POST(request: NextRequest) {
         // Consolidates L1 (Structure), L2 (SEO/Functional), and L3 (Style) into one pass.
 
         const unifiedPrompt = `
-You are an elite eBay SEO Specialist API. Your sole function is to process input variables and return a valid JSON object containing an optimized eBay listing title. You must strictly adhere to eBay’s 80-character limit and follow this precise algorithmic workflow.
+You are an elite eBay SEO Specialist API. Your goal is to rewrite the listing title to maximize search visibility, strictly adhering to eBay's 80-character limit. You must return a valid JSON object.
 
-INPUT DATA: Item Info: \${cleanInfo} Current Title: \${processingTitle} \${matrixContext} \${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
+INPUT DATA: Original Title: \${processingTitle} Item Info: \${cleanInfo} \${matrixContext} \${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
 
-SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
+CORE PRINCIPLES (NEVER VIOLATE):
 
-THE ERA EXTRACTION PROTOCOL (ABSOLUTE PRIORITY):
-- You MUST scan the exact string presented in Current Title: \${processingTitle} for any of these words (ignoring case): "vintage", "y2k", "90s", "80s".
-- If any of these words exist in that string, you are REQUIRED to copy them directly into the Tier 1 Syntax Lock.
-- DO NOT filter them out. They are the most important words in the title.
+No Hallucinations: Never invent brands, sizes, materials, or features.
+Exact Size: Extract size ONLY from the input data. Spell it out (e.g., "S" -> "Small"). NEVER use the word "Size" or "Sz". (e.g., "Mens Large" NOT "Mens Size L").
+Preserve High-Value Terms: If the Original Title contains "Vintage", "Y2K", "90s", luxury materials ("Silk", "Cashmere"), or specific model names ("Basic Tee"), you MUST include them exactly in the optimized title.
+Max 80 Characters: You MUST safely pad the title with relevant synonyms/style signals until you reach exactly 80 characters, or as close as possible without exceeding it.
+TITLE ASSEMBLY FORMAT: Construct your title following this exact order:
 
-THE BRAND & VALUE LEADER FIREWALL:
-- If detectedBrand is empty or if the input contains "Unbranded", you are analyzing an UNBRANDED item. Do NOT invent a brand.
-- For UNBRANDED items: If a luxury/natural material (e.g., "Cashmere", "Silk") exists, use it as the Value Leader at the front.
-- For BRANDED items: If a luxury/natural material exists, preserve it (Tier 1).
-
-THE SIZE FIREWALL:
-- Extract the size ONLY from cleanInfo or the Original Title.
-- Expand the size completely (e.g., "L" = "Large").
-- NEVER use the word "Size" or "Sz". Exception: Accessories often have no size.
-- Product Model Protection: Preserve specific model names exactly as written.
-
-Formatting Protocol:
-- Use Title Case for ALL outputs. Remove ALL emojis.
-
-ASSEMBLY ALGORITHM: Construct the title using this exact priority hierarchy. Maximize the 80-character limit safely.
-
-[Tier 1: Mandatory SYNTAX LOCK]
-FORMAT (Branded): [Brand] + [Extracted Era(s) (e.g. Vintage Y2K)] + [Gender] + [Exact Size] + [Luxury Material (If Applicable)] + [Product Model/Item Type]
-FORMAT (Unbranded): [Extracted Era(s)] + [Luxury Material (Or Gender)] + [Exact Size] + [Product Model/Item Type]
-
-(If under 80 chars, append Tier 2)
-[Tier 2: Structural & Visual Facts]
-[Primary Color] + [Wash/Fade] + [Major Pattern]
-DO NOT waste characters on hyper-specific micro-details. Stick to primary visual facts.
-
-(If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)
-[Tier 3: Style Signals & High-Intent Synonyms]
-You MUST maximize the 80-character limit. If your title is under 75 characters, inject the following until you hit exactly 80 characters:
-- Style Signals: Prioritize trends from matrixContext (e.g., "Preppy").
-- End-Use/Synonyms: Add universally accurate synonyms.
-
-OUTPUT RULE - CRITICAL JSON REQUIREMENT:
-You must output YOUR ENTIRE RESPONSE as a single, valid JSON object with exactly one key: "optimized_title".
-- Do NOT output any markdown blocks (e.g. \`\`\`json).
-- The value must be a string <= 80 characters.
-- If under 75 characters, ADD MORE SYNONYMS from Tier 3 until you reach the limit.
-Example Output Format: { "optimized_title": "Abercrombie & Fitch Vintage Y2K Mens Large Polo Shirt Blue Classic Fit Casual Top" }
+Value Leader: Brand (or Luxury Material if unbranded)
+Eras: e.g., Vintage, Y2K (if present originally)
+Gender & Size: e.g., Mens Large
+Item Type/Model: e.g., Polo Shirt
+Details: Color, Material, Pattern
+Enrichment: Fill remaining space under 80 chars with high-intent synonyms (e.g., Classic Fit, Casual, Preppy). Use Title Case.
+JSON OUTPUT REQUIREMENT: Output ONLY a valid JSON object. No conversational text. No markdown formatting. { "optimized_title": "..." }
 `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
