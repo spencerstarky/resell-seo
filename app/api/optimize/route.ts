@@ -368,15 +368,16 @@ THE BRAND & VALUE LEADER FIREWALL:
 - For UNBRANDED items: If a luxury/natural material (e.g., "Cashmere", "Silk", "Leather") exists, use it as the Value Leader at the front.
 - For BRANDED items: If a luxury/natural material exists, you MUST preserve it within the title (Tier 1).
 
-THE VINTAGE PROTECTION (CRITICAL):
-- If the Original Title or input explicitly contains the word "Vintage", "Y2K", or "90s", you MUST preserve it in the optimized title. Never drop "Vintage" to make room for other synonyms.
+THE ERA PROTECTION (CRITICAL):
+- If the Original Title or input explicitly contains era keywords like "Vintage", "Y2K", "90s", or "80s" (case-insensitive), you MUST preserve ALL of them in the optimized title.
+- Never drop these high-value era keywords. They are Tier 1 mandatory attributes.
 
 THE SIZE FIREWALL:
 - Extract the size ONLY from cleanInfo or the Original Title.
 - Expand the size completely (e.g., "L" = "Large").
 - NEVER use the word "Size" or "Sz". Exception: Accessories like Ties/Hats often have no size. Do not invent one.
 
-Product Model Protection: Preserve specific model names (e.g., "Chore Jacket", "Synchilla") exactly as written.
+Product Model Protection: Preserve specific model names exactly as written.
 
 Formatting Protocol:
 - Use Title Case for ALL outputs. Remove ALL emojis.
@@ -385,26 +386,27 @@ Formatting Protocol:
 ASSEMBLY ALGORITHM: Construct the title using this exact priority hierarchy. Maximize the 80-character limit safely.
 
 [Tier 1: Mandatory SYNTAX LOCK]
-FORMAT (Branded): [Brand] + [Vintage (If Applicable)] + [Gender] + [Exact Size] + [Luxury Material (If Applicable)] + [Product Model/Item Type]
-FORMAT (Unbranded): [Vintage (If Applicable)] + [Luxury Material (Or Gender)] + [Exact Size] + [Product Model/Item Type]
-(Example: "Vintage Lee Mens Large 100% Cotton Denim Chore Jacket")
+FORMAT (Branded): [Brand] + [Preserved Era(s) (e.g. Vintage Y2K)] + [Gender] + [Exact Size] + [Luxury Material (If Applicable)] + [Product Model/Item Type]
+FORMAT (Unbranded): [Preserved Era(s)] + [Luxury Material (Or Gender)] + [Exact Size] + [Product Model/Item Type]
+(Example: "Abercrombie & Fitch Vintage Y2K Mens Large Polo Shirt")
 
 (If under 80 chars, append Tier 2)
 [Tier 2: Structural & Visual Facts]
-[Color] + [Wash/Fade (e.g., Light Bleach Wash)] + [Pattern/Fastenings]
+[Primary Color] + [Wash/Fade] + [Major Pattern (e.g. Striped, Plaid)]
+DO NOT waste characters on hyper-specific micro-details (e.g., "Salmon Trim", "Blue Thread", "Yellow Buttons"). Stick to primary, highly searched visual facts.
 
 (If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)
 [Tier 3: Style Signals & High-Intent Synonyms]
 You MUST maximize the 80-character limit. If your title is under 75 characters, inject the following until you hit exactly 80 characters (safely):
-- Style Signals: Prioritize trends from matrixContext (e.g., "Workwear").
-- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Barn Coat", "Trucker").
+- Style Signals: Prioritize trends from matrixContext (e.g., "Preppy").
+- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Classic Fit", "Casual", "Top").
 
 OUTPUT RULE - CRITICAL JSON REQUIREMENT:
 You must output YOUR ENTIRE RESPONSE as a single, valid JSON object with exactly one key: "optimized_title".
 - Do NOT output any markdown blocks (e.g. \`\`\`json).
 - The value must be a string <= 80 characters.
 - Stay above 75 characters by aggressively (but safely) enriching from Tier 3.
-Example Output Format: { "optimized_title": "Vintage Lee Mens Large 100% Cotton Denim Chore Jacket Light Bleach Wash Workwear" }
+Example Output Format: { "optimized_title": "Abercrombie & Fitch Vintage Y2K Mens Large Polo Shirt Blue Classic Fit Casual Top" }
 `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
