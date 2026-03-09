@@ -363,43 +363,47 @@ INPUT DATA: Item Info: \${cleanInfo} Current Title: \${processingTitle} \${matri
 
 SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
 
-THE BRAND FIREWALL & VALUE LEADER:
+THE BRAND & VALUE LEADER FIREWALL:
 - If detectedBrand is empty or if the input contains "Unbranded" or "No Brand", you are analyzing an UNBRANDED item.
 - You MUST NOT guess or inject any brand names into an UNBRANDED item.
-- For UNBRANDED items: If the original title or item info mentions a luxury/natural material (e.g., "Cashmere", "Silk", "Linen", "Leather"), you MUST use it as the Value Leader at the very front of the title (e.g., "100% Cashmere"). Do NOT start with Gender if a luxury material exists.
+- For UNBRANDED items: If a luxury/natural material (e.g., "Cashmere", "Silk", "Linen", "Leather") exists in the input, use it as the Value Leader at the very front of the title. Do NOT start with Gender.
+- For BRANDED items: If a luxury/natural material exists (e.g., "Silk", "Cashmere"), you MUST preserve it within the title. It is a Tier 1 attribute. Do not drop it.
 
-THE SIZE FIREWALL (CRITICAL CHECK):
-- Extract the size ONLY from cleanInfo or the Original Title. Check both carefully. If the Original Title says "XL", do not hallucinate "Medium".
-- Expand the size completely: "S" = "Small", "M" = "Medium", "L" = "Large", "XL" = "Extra Large".
-- NEVER use the word "Size" or "Sz" in the output title.
+THE SIZE FIREWALL:
+- Extract the size ONLY from cleanInfo or the Original Title.
+- Expand the size completely (e.g., "M" = "Medium").
+- NEVER use the word "Size" or "Sz".
+- Exception: Accessories like Ties often have no size. Do not invent one.
 
 Product Model Protection: Preserve specific model names exactly as written in the original title.
 
 Formatting Protocol:
 - Use Title Case for ALL outputs.
-- DO NOT use the words "Unbranded", "No Brand", or "Custom".
+- DO NOT use the words "Unbranded" or "No Brand".
 
 ASSEMBLY ALGORITHM: Construct the title using this exact priority hierarchy. Maximize the 80-character limit safely.
 
 [Tier 1: Mandatory SYNTAX LOCK]
-FORMAT: [Brand (or Luxury Material if unbranded)] + [Gender] + [Exact Size (Spelled Out)] + [Item Type] (Example: "100% Cashmere Womens Extra Large V-Neck Sweater")
+FORMAT (Branded): [Brand] + [Gender] + [Exact Size (If Applicable)] + [Luxury Material (If Applicable)] + [Item Type]
+FORMAT (Unbranded): [Luxury Material (Or Gender)] + [Exact Size] + [Item Type]
+(Example Branded: "Brooks Brothers Mens 100% Silk Tie")
 
 (If under 80 chars, append Tier 2)
 [Tier 2: Structural & Visual Facts]
-[Color (Title Case)] + [Anatomy/Fastenings] + [Subtype/Material]
+[Color (Title Case)] + [Pattern/Fastenings (e.g., Geometric)] + [Subtype/Era (e.g., Vintage)]
 
 (If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)
 [Tier 3: Style Signals & High-Intent Synonyms]
-You MUST maximize the 80-character limit. If your title is under 75 characters, you MUST inject the following until you hit exactly 80 characters (or as close as possible safely):
+You MUST maximize the 80-character limit. Inject the following until you hit exactly 80 characters (safely):
 - Style Signals: Prioritize trends from matrixContext.
-- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Cozy", "Winter", "Office", "Classic", "Knit", "Top", "Pullover").
+- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Office", "Formal", "Classic", "Necktie").
 
 OUTPUT RULE - CRITICAL JSON REQUIREMENT:
 You must output YOUR ENTIRE RESPONSE as a single, valid JSON object with exactly one key: "optimized_title".
 - Do NOT output any markdown blocks (e.g. \`\`\`json).
-- The value must be a string <= 80 characters, maximizing the space.
+- The value must be a string <= 80 characters.
 - ALL caps must be converted to Title Case.
-Example Output Format: { "optimized_title": "100% Cashmere Womens Extra Large V-Neck Sweater Coral Knit Top Cozy Winter" }
+Example Output Format: { "optimized_title": "Brooks Brothers Mens 100% Silk Tie Red Geometric Vintage Formal Classic Necktie" }
 `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
