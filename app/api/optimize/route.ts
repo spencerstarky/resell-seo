@@ -364,46 +364,47 @@ INPUT DATA: Item Info: \${cleanInfo} Current Title: \${processingTitle} \${matri
 SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
 
 THE BRAND & VALUE LEADER FIREWALL:
-- If detectedBrand is empty or if the input contains "Unbranded" or "No Brand", you are analyzing an UNBRANDED item.
-- You MUST NOT guess or inject any brand names into an UNBRANDED item.
-- For UNBRANDED items: If a luxury/natural material (e.g., "Cashmere", "Silk", "Linen", "Leather") exists in the input, use it as the Value Leader at the very front of the title. Do NOT start with Gender.
-- For BRANDED items: If a luxury/natural material exists (e.g., "Silk", "Cashmere"), you MUST preserve it within the title. It is a Tier 1 attribute. Do not drop it.
+- If detectedBrand is empty or if the input contains "Unbranded", you are analyzing an UNBRANDED item. Do NOT invent a brand.
+- For UNBRANDED items: If a luxury/natural material (e.g., "Cashmere", "Silk", "Leather") exists, use it as the Value Leader at the front.
+- For BRANDED items: If a luxury/natural material exists, you MUST preserve it within the title (Tier 1).
+
+THE VINTAGE PROTECTION (CRITICAL):
+- If the Original Title or input explicitly contains the word "Vintage", "Y2K", or "90s", you MUST preserve it in the optimized title. Never drop "Vintage" to make room for other synonyms.
 
 THE SIZE FIREWALL:
 - Extract the size ONLY from cleanInfo or the Original Title.
-- Expand the size completely (e.g., "M" = "Medium").
-- NEVER use the word "Size" or "Sz".
-- Exception: Accessories like Ties often have no size. Do not invent one.
+- Expand the size completely (e.g., "L" = "Large").
+- NEVER use the word "Size" or "Sz". Exception: Accessories like Ties/Hats often have no size. Do not invent one.
 
-Product Model Protection: Preserve specific model names exactly as written in the original title.
+Product Model Protection: Preserve specific model names (e.g., "Chore Jacket", "Synchilla") exactly as written.
 
 Formatting Protocol:
-- Use Title Case for ALL outputs.
+- Use Title Case for ALL outputs. Remove ALL emojis.
 - DO NOT use the words "Unbranded" or "No Brand".
 
 ASSEMBLY ALGORITHM: Construct the title using this exact priority hierarchy. Maximize the 80-character limit safely.
 
 [Tier 1: Mandatory SYNTAX LOCK]
-FORMAT (Branded): [Brand] + [Gender] + [Exact Size (If Applicable)] + [Luxury Material (If Applicable)] + [Item Type]
-FORMAT (Unbranded): [Luxury Material (Or Gender)] + [Exact Size] + [Item Type]
-(Example Branded: "Brooks Brothers Mens 100% Silk Tie")
+FORMAT (Branded): [Brand] + [Vintage (If Applicable)] + [Gender] + [Exact Size] + [Luxury Material (If Applicable)] + [Product Model/Item Type]
+FORMAT (Unbranded): [Vintage (If Applicable)] + [Luxury Material (Or Gender)] + [Exact Size] + [Product Model/Item Type]
+(Example: "Vintage Lee Mens Large 100% Cotton Denim Chore Jacket")
 
 (If under 80 chars, append Tier 2)
 [Tier 2: Structural & Visual Facts]
-[Color (Title Case)] + [Pattern/Fastenings (e.g., Geometric)] + [Subtype/Era (e.g., Vintage)]
+[Color] + [Wash/Fade (e.g., Light Bleach Wash)] + [Pattern/Fastenings]
 
 (If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)
 [Tier 3: Style Signals & High-Intent Synonyms]
-You MUST maximize the 80-character limit. Inject the following until you hit exactly 80 characters (safely):
-- Style Signals: Prioritize trends from matrixContext.
-- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Office", "Formal", "Classic", "Necktie").
+You MUST maximize the 80-character limit. If your title is under 75 characters, inject the following until you hit exactly 80 characters (safely):
+- Style Signals: Prioritize trends from matrixContext (e.g., "Workwear").
+- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Barn Coat", "Trucker").
 
 OUTPUT RULE - CRITICAL JSON REQUIREMENT:
 You must output YOUR ENTIRE RESPONSE as a single, valid JSON object with exactly one key: "optimized_title".
 - Do NOT output any markdown blocks (e.g. \`\`\`json).
 - The value must be a string <= 80 characters.
-- ALL caps must be converted to Title Case.
-Example Output Format: { "optimized_title": "Brooks Brothers Mens 100% Silk Tie Red Geometric Vintage Formal Classic Necktie" }
+- Stay above 75 characters by aggressively (but safely) enriching from Tier 3.
+Example Output Format: { "optimized_title": "Vintage Lee Mens Large 100% Cotton Denim Chore Jacket Light Bleach Wash Workwear" }
 `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
