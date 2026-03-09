@@ -357,69 +357,73 @@ export async function POST(request: NextRequest) {
         // Consolidates L1 (Structure), L2 (SEO/Functional), and L3 (Style) into one pass.
 
         const unifiedPrompt = `
-You are an elite eBay SEO Specialist. 
+You are an elite eBay SEO Specialist API. Your sole function is to process input variables and return a valid JSON object containing an optimized eBay listing title. You must strictly adhere to eBay’s 80-character limit and follow this precise algorithmic workflow.
 
-**TASK:** Based on the RULES below, rewrite the CURRENT TITLE using the ITEM INFO to create a highly optimized, 80-character maximum eBay listing title. YOU MUST ONLY OUTPUT THE NEW TITLE.
+INPUT DATA: Item Info: \${cleanInfo} Current Title: \${processingTitle} \${matrixContext} \${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
 
-### RULES: SYSTEM FAIL-SAFES (ZERO TOLERANCE)
-1. **THE SIZE FIREWALL:**
-   - You MUST extract the size ONLY from the \`cleanInfo\` (Item Specifics) or the Original Title.
-   - If the size is "S", "M", or "L", you MUST expand it and spell it out completely: "Small", "Medium", "Large".
-   - NEVER use the word "Size" or "Sz" in the output title.
+SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
 
-2. **Never Invent:** Do not guess brand, materials, era, origin, or gender. If it is not explicitly in the input, omit it.
+THE BRAND FIREWALL:
+- If detectedBrand is empty or if the input contains "Unbranded", "No Brand", or "Custom", you are analyzing an UNBRANDED item.
+- You MUST NOT guess or inject any brand names (e.g., "Cable & Gauge", "J.Crew") into an UNBRANDED item.
+- For UNBRANDED items, start the title with a Luxury/Value Material (e.g., "100% Cashmere") or Gender.
 
-3. **Product Model Protection:** Preserve specific model names (e.g., "Basic Tee", "Synchilla") exactly as written in the original title.
+THE SIZE FIREWALL:
+- Extract the size ONLY from cleanInfo or the Original Title.
+- If the size is "S", "M", "L", or "XL", expand it completely: "Small", "Medium", "Large", "Extra Large".
+- NEVER use the word "Size" or "Sz" in the output title.
 
-### RULES: ASSEMBLY ALGORITHM
-Construct the title using this exact priority hierarchy. You **MUST** maximize the 80-character limit safely. 
+Product Model Protection: Preserve specific model names exactly as written in the original title.
 
-**[Tier 1: Mandatory SYNTAX LOCK]**
-Combine Gender, Size, and Item Type into a single fluent phrase.
-FORMAT: [Brand] + [Product Model (if exists)] + [Gender] + [Exact Size (Spelled Out)] + [Item Type]
-*(Example: "Patagonia Womens Small Pullover Jacket" NOT "Patagonia Womens Jacket Size S")*
+Formatting Protocol:
+- Use Title Case for ALL outputs.
+- DO NOT use the words "Unbranded", "No Brand", or "Custom".
 
-**(If under 80 chars, append Tier 2)**
-**[Tier 2: Structural & Visual Facts]**
-[Color] + [Anatomy/Fastenings (e.g., Full Zip, Thumb Holes)] + [Subtype/Material]
+ASSEMBLY ALGORITHM: Construct the title using this exact priority hierarchy. Maximize the 80-character limit safely.
 
-**(If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)**
-**[Tier 3: Style Signals & High-Intent Synonyms]**
-If you have unused characters (especially if under 75), you MUST inject the following until you hit 80 characters:
-1. **Style Signals:** Prioritize injecting style trends from \`matrixContext\` (e.g., "Gorpcore", "Y2K").
-2. **End-Use/Synonyms:** Add universally accurate, high-intent synonyms (e.g., "Workout", "Gym", "Activewear", "Running").
+[Tier 1: Mandatory SYNTAX LOCK]
+FORMAT: [Brand (or Luxury Material)] + [Gender] + [Exact Size (Spelled Out)] + [Item Type]
 
-### RULES: CONDITION OVERRIDE
-If "New", "NWT", "NWOT", or "Brand New" appears anywhere in the input: append exactly "New" as the final word of the title. Do not duplicate if already present. Do not use "New With Tags".
+(If under 80 chars, append Tier 2)
+[Tier 2: Structural & Visual Facts]
+[Color (Title Case)] + [Anatomy/Fastenings] + [Subtype/Material]
 
-### RULES: OUTPUT FORMAT
-- Return ONLY the optimized title text.
-- Maximum 80 characters.
-- If a keyword pushes the title to 81+ characters, drop it entirely to stay under 80.
-- ABSOLUTELY NO use of the word "Size" or "Sz".
-- NO single-letter abbreviations for S/M/L. Spell them out (Small, Medium, Large).
-- DO NOT return JSON. DO NOT echo instructions.
+(If under 80 chars, append Tier 3)
+[Tier 3: Style Signals & High-Intent Synonyms]
+- Style Signals: Prioritize trends from matrixContext.
+- End-Use/Synonyms: Add universally accurate synonyms.
 
-==== INPUTS ====
-Current Title: \${processingTitle}
-Item Info: \${cleanInfo}
-\${matrixContext}
-\${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
-
-Provide your optimized title below this line:
-[FINAL TITLE]:`;
+OUTPUT RULE - CRITICAL JSON REQUIREMENT:
+You must output YOUR ENTIRE RESPONSE as a single, valid JSON object with exactly one key: "optimized_title".
+- Do NOT output any markdown blocks (\`\`\`json ... \`\`\`).
+- Do NOT output conversational text, explanations, or labels like "[FINAL TITLE]:".
+- The value must be a string <= 80 characters.
+- ALL caps must be converted to Title Case.
+Example Output Format: { "optimized_title": "100% Cashmere Womens Extra Large V-Neck Sweater Coral" }
+`;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
         try {
-            pipelineTitle = await callGeminiLayer('Unified', unifiedPrompt, true); // Pass images
+            const rawResponse = await callGeminiLayer('Unified', unifiedPrompt, true); // Pass images
+            console.log(`> Unified Raw LLM Output: ${rawResponse}`);
 
-            // Aggressive Cleanup
-            pipelineTitle = pipelineTitle
-                .replace(/^(Title|Output|Optimized Title|FINAL TITLE|\\[FINAL TITLE\\]):/i, '')
-                .trim()
-                .replace(/^"|"$/g, '');
+            // Clean markdown blocks if the LLM hallucinated them
+            const cleanedResp = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
 
-            console.log(`> Unified Result: ${pipelineTitle}`);
+            try {
+                const parsed = JSON.parse(cleanedResp);
+                if (parsed && typeof parsed.optimized_title === 'string') {
+                    pipelineTitle = parsed.optimized_title;
+                } else {
+                    console.warn('JSON parsed but optimized_title missing or not a string.');
+                    pipelineTitle = cleanedResp; // Fallback
+                }
+            } catch (jsonErr) {
+                console.error('Failed to parse JSON response:', jsonErr);
+                pipelineTitle = cleanedResp; // Fallback
+            }
+
+            console.log(`> Unified Result Parsed: ${pipelineTitle}`);
         } catch (e: any) {
             console.error('Unified Prompt Failed', e);
             debugLastError = e.message;
