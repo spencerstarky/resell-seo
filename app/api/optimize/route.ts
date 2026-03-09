@@ -363,49 +363,47 @@ INPUT DATA: Item Info: \${cleanInfo} Current Title: \${processingTitle} \${matri
 
 SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
 
+THE ERA EXTRACTION PROTOCOL (ABSOLUTE PRIORITY):
+- You MUST scan the exact string presented in Current Title: \${processingTitle} for any of these words (ignoring case): "vintage", "y2k", "90s", "80s".
+- If any of these words exist in that string, you are REQUIRED to copy them directly into the Tier 1 Syntax Lock.
+- DO NOT filter them out. They are the most important words in the title.
+
 THE BRAND & VALUE LEADER FIREWALL:
 - If detectedBrand is empty or if the input contains "Unbranded", you are analyzing an UNBRANDED item. Do NOT invent a brand.
-- For UNBRANDED items: If a luxury/natural material (e.g., "Cashmere", "Silk", "Leather") exists, use it as the Value Leader at the front.
-- For BRANDED items: If a luxury/natural material exists, you MUST preserve it within the title (Tier 1).
-
-THE ERA PROTECTION (CRITICAL):
-- If the Original Title or input explicitly contains era keywords like "Vintage", "Y2K", "90s", or "80s" (case-insensitive), you MUST preserve ALL of them in the optimized title.
-- Never drop these high-value era keywords. They are Tier 1 mandatory attributes.
+- For UNBRANDED items: If a luxury/natural material (e.g., "Cashmere", "Silk") exists, use it as the Value Leader at the front.
+- For BRANDED items: If a luxury/natural material exists, preserve it (Tier 1).
 
 THE SIZE FIREWALL:
 - Extract the size ONLY from cleanInfo or the Original Title.
 - Expand the size completely (e.g., "L" = "Large").
-- NEVER use the word "Size" or "Sz". Exception: Accessories like Ties/Hats often have no size. Do not invent one.
-
-Product Model Protection: Preserve specific model names exactly as written.
+- NEVER use the word "Size" or "Sz". Exception: Accessories often have no size.
+- Product Model Protection: Preserve specific model names exactly as written.
 
 Formatting Protocol:
 - Use Title Case for ALL outputs. Remove ALL emojis.
-- DO NOT use the words "Unbranded" or "No Brand".
 
 ASSEMBLY ALGORITHM: Construct the title using this exact priority hierarchy. Maximize the 80-character limit safely.
 
 [Tier 1: Mandatory SYNTAX LOCK]
-FORMAT (Branded): [Brand] + [Preserved Era(s) (e.g. Vintage Y2K)] + [Gender] + [Exact Size] + [Luxury Material (If Applicable)] + [Product Model/Item Type]
-FORMAT (Unbranded): [Preserved Era(s)] + [Luxury Material (Or Gender)] + [Exact Size] + [Product Model/Item Type]
-(Example: "Abercrombie & Fitch Vintage Y2K Mens Large Polo Shirt")
+FORMAT (Branded): [Brand] + [Extracted Era(s) (e.g. Vintage Y2K)] + [Gender] + [Exact Size] + [Luxury Material (If Applicable)] + [Product Model/Item Type]
+FORMAT (Unbranded): [Extracted Era(s)] + [Luxury Material (Or Gender)] + [Exact Size] + [Product Model/Item Type]
 
 (If under 80 chars, append Tier 2)
 [Tier 2: Structural & Visual Facts]
-[Primary Color] + [Wash/Fade] + [Major Pattern (e.g. Striped, Plaid)]
-DO NOT waste characters on hyper-specific micro-details (e.g., "Salmon Trim", "Blue Thread", "Yellow Buttons"). Stick to primary, highly searched visual facts.
+[Primary Color] + [Wash/Fade] + [Major Pattern]
+DO NOT waste characters on hyper-specific micro-details. Stick to primary visual facts.
 
 (If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)
 [Tier 3: Style Signals & High-Intent Synonyms]
-You MUST maximize the 80-character limit. If your title is under 75 characters, inject the following until you hit exactly 80 characters (safely):
+You MUST maximize the 80-character limit. If your title is under 75 characters, inject the following until you hit exactly 80 characters:
 - Style Signals: Prioritize trends from matrixContext (e.g., "Preppy").
-- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Classic Fit", "Casual", "Top").
+- End-Use/Synonyms: Add universally accurate synonyms.
 
 OUTPUT RULE - CRITICAL JSON REQUIREMENT:
 You must output YOUR ENTIRE RESPONSE as a single, valid JSON object with exactly one key: "optimized_title".
 - Do NOT output any markdown blocks (e.g. \`\`\`json).
 - The value must be a string <= 80 characters.
-- Stay above 75 characters by aggressively (but safely) enriching from Tier 3.
+- If under 75 characters, ADD MORE SYNONYMS from Tier 3 until you reach the limit.
 Example Output Format: { "optimized_title": "Abercrombie & Fitch Vintage Y2K Mens Large Polo Shirt Blue Classic Fit Casual Top" }
 `;
 
