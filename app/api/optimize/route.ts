@@ -363,14 +363,14 @@ INPUT DATA: Item Info: \${cleanInfo} Current Title: \${processingTitle} \${matri
 
 SYSTEM FAIL-SAFES (ZERO TOLERANCE FOR HALLUCINATIONS):
 
-THE BRAND FIREWALL:
-- If detectedBrand is empty or if the input contains "Unbranded", "No Brand", or "Custom", you are analyzing an UNBRANDED item.
-- You MUST NOT guess or inject any brand names (e.g., "Cable & Gauge", "J.Crew") into an UNBRANDED item.
-- For UNBRANDED items, start the title with a Luxury/Value Material (e.g., "100% Cashmere") or Gender.
+THE BRAND FIREWALL & VALUE LEADER:
+- If detectedBrand is empty or if the input contains "Unbranded" or "No Brand", you are analyzing an UNBRANDED item.
+- You MUST NOT guess or inject any brand names into an UNBRANDED item.
+- For UNBRANDED items: If the original title or item info mentions a luxury/natural material (e.g., "Cashmere", "Silk", "Linen", "Leather"), you MUST use it as the Value Leader at the very front of the title (e.g., "100% Cashmere"). Do NOT start with Gender if a luxury material exists.
 
-THE SIZE FIREWALL:
-- Extract the size ONLY from cleanInfo or the Original Title.
-- If the size is "S", "M", "L", or "XL", expand it completely: "Small", "Medium", "Large", "Extra Large".
+THE SIZE FIREWALL (CRITICAL CHECK):
+- Extract the size ONLY from cleanInfo or the Original Title. Check both carefully. If the Original Title says "XL", do not hallucinate "Medium".
+- Expand the size completely: "S" = "Small", "M" = "Medium", "L" = "Large", "XL" = "Extra Large".
 - NEVER use the word "Size" or "Sz" in the output title.
 
 Product Model Protection: Preserve specific model names exactly as written in the original title.
@@ -382,24 +382,24 @@ Formatting Protocol:
 ASSEMBLY ALGORITHM: Construct the title using this exact priority hierarchy. Maximize the 80-character limit safely.
 
 [Tier 1: Mandatory SYNTAX LOCK]
-FORMAT: [Brand (or Luxury Material)] + [Gender] + [Exact Size (Spelled Out)] + [Item Type]
+FORMAT: [Brand (or Luxury Material if unbranded)] + [Gender] + [Exact Size (Spelled Out)] + [Item Type] (Example: "100% Cashmere Womens Extra Large V-Neck Sweater")
 
 (If under 80 chars, append Tier 2)
 [Tier 2: Structural & Visual Facts]
 [Color (Title Case)] + [Anatomy/Fastenings] + [Subtype/Material]
 
-(If under 80 chars, append Tier 3)
+(If under 80 chars, append Tier 3 - AGGRESSIVE ENRICHMENT)
 [Tier 3: Style Signals & High-Intent Synonyms]
+You MUST maximize the 80-character limit. If your title is under 75 characters, you MUST inject the following until you hit exactly 80 characters (or as close as possible safely):
 - Style Signals: Prioritize trends from matrixContext.
-- End-Use/Synonyms: Add universally accurate synonyms.
+- End-Use/Synonyms: Add universally accurate synonyms (e.g., "Cozy", "Winter", "Office", "Classic", "Knit", "Top", "Pullover").
 
 OUTPUT RULE - CRITICAL JSON REQUIREMENT:
 You must output YOUR ENTIRE RESPONSE as a single, valid JSON object with exactly one key: "optimized_title".
-- Do NOT output any markdown blocks (\`\`\`json ... \`\`\`).
-- Do NOT output conversational text, explanations, or labels like "[FINAL TITLE]:".
-- The value must be a string <= 80 characters.
+- Do NOT output any markdown blocks (e.g. \`\`\`json).
+- The value must be a string <= 80 characters, maximizing the space.
 - ALL caps must be converted to Title Case.
-Example Output Format: { "optimized_title": "100% Cashmere Womens Extra Large V-Neck Sweater Coral" }
+Example Output Format: { "optimized_title": "100% Cashmere Womens Extra Large V-Neck Sweater Coral Knit Top Cozy Winter" }
 `;
 
         console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
