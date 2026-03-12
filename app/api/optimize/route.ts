@@ -359,6 +359,8 @@ export async function POST(request: NextRequest) {
         const unifiedPrompt = `
 You are an expert eBay SEO listing optimizer. Your goal is to analyze provided item information (and images) to generate a highly optimized, high-converting eBay listing title designed specifically for maximum discoverability on eBay's Cassini search engine.
 
+INPUT DATA: Original Title: \${processingTitle} Item Info: \${cleanInfo} \${matrixContext} \${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
+
 # Workflow
 1. Extract all visual and provided attributes about the item.
 2. Score your confidence for each attribute (see below).
