@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V5.0",
+            Unified: "V6.0",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -366,26 +366,24 @@ INPUT DATA: Original Title: \${processingTitle} Item Info: \${cleanInfo} \${matr
 2. Score your confidence for each attribute (see below).
 3. Select the highest-impact keywords based on buyer intent.
 4. Draft an optimized title following strict Cassini best practices.
-5. Verify length and truncate if necessary to meet the 80-character limit.
+5. Maximize the length safely up to the 80-character limit.
 
-# Attribute Confidence Scoring
+# Attribute Confidence Scoring & Hallucination Prevention
 Before drafting the title, internally assign a confidence score (0-100) to every potential attribute:
 
-- 80-100: Visible (clearly seen or explicitly stated in specifics)
-- 60-79: Inferred (deducted from strong context)
-- 40-59: Guess (weak context)
-- <40: Weak Never guess on brand, size, or material.
+- 100: Explicitly stated in the text or completely obvious visually (e.g., Color).
+- 60-99: Safe, universally true category synonyms or style trends (e.g., calling a Linen Shirt "Casual", "Summer", "Preppy").
+- <60: Guessed specific features, materials, sizes, or condition.
+CRITICAL: You must NEVER guess brand, size, material, or physical features (e.g., "zip-off"). If they are not scored 100, OMIT them. However, you MUST use structurally safe category synonyms and style trends (60-99 score) to aggressively enrich the title.
 
 # Title Instructions & Cassini Rules
-- **CRITICAL LENGTH RULE**: The title MUST be 80 characters or fewer. NEVER exceed 80 characters. 
-- If your drafted title exceeds 80 characters, you must drop the lowest-confidence or least important attributes (like secondary colors or minor aesthetic details) until it fits.
-- **Cassini Hierarchy**: Front-load your title. Cassini gives more weight to the first 3-5 words. Order your keywords logically: \`[Brand] + [Gender/Size] + [Style/Model] + [Color/Material] + [Defining Features]\`.
-- Include the brand, model or type, color, style, and model/serial number if available (e.g., "Pull&Bear" or "AB0011-234").
-- **Formatting**: Capitalize the first letter of each significant word. Do NOT use ALL CAPS. 
-- **Punctuation**: Do not waste characters on commas, hyphens, or periods unless it is strictly part of a model number. Use spaces between keywords. Reserve special characters for search terms (prefer "Mens" over "Men's").
+- **CRITICAL LENGTH RULE**: The title MUST be 80 characters or fewer. NEVER exceed 80 characters.
+- **Aggressive Padding (Safe Enrichment)**: If your drafted title is under 75 characters, you MUST pad it with highly searched, universally true synonyms or relevant style trends (e.g., "Preppy", "Office", "Casual", "Summer"). You MUST maximize the character count. Do not leave empty space if safe keywords exist.
+- **Cassini Hierarchy**: Front-load your title. Order your keywords logically: \`[Brand] + [Gender/Size] + [Style/Model] + [Color/Material] + [Defining Features] + [Style Signals/Synonyms]\`.
+- **Formatting**: Capitalize the first letter of each significant word. Do NOT use ALL CAPS.
 - **Size Protocol (CRITICAL)**: Spell out all sizes completely (e.g., "Large Tall", "Medium"). NEVER output the word "Size" by itself. (e.g., "Mens Large Tall", never "Mens Size LT").
-- **Abbreviations**: Use high-value eBay abbreviations ONLY for condition/eras (e.g., "NWT", "NWOT", "VTG", "Y2K"). Do NOT abbreviate descriptive anatomy like "Short Sleeve" to "SS" or "Long Sleeve" to "LS", as buyers rarely search those terms.
-- **Banned Words**: Do not use generic filler words that waste character space ("Beautiful", "Nice", "L@@K", "Authentic", "Rare").
+- **Abbreviations**: Use high-value eBay abbreviations ONLY for condition/eras (e.g., "NWT", "NWOT", "VTG", "Y2K"). Do NOT abbreviate descriptive anatomy like "Short Sleeve" to "SS" or "Long Sleeve" to "LS".
+- **Banned Words**: Do not use generic filler words that waste character space ("Beautiful", "Nice", "L@@K").
 
 # Condition Handling
 - If NEW with tags: Add "NWT" to the end of the title.
