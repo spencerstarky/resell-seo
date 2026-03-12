@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V4.0",
+            Unified: "V5.0",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -370,11 +370,11 @@ INPUT DATA: Original Title: \${processingTitle} Item Info: \${cleanInfo} \${matr
 
 # Attribute Confidence Scoring
 Before drafting the title, internally assign a confidence score (0-100) to every potential attribute:
+
 - 80-100: Visible (clearly seen or explicitly stated in specifics)
 - 60-79: Inferred (deducted from strong context)
 - 40-59: Guess (weak context)
-- <40: Weak
- Never guess on brand, size, or material.
+- <40: Weak Never guess on brand, size, or material.
 
 # Title Instructions & Cassini Rules
 - **CRITICAL LENGTH RULE**: The title MUST be 80 characters or fewer. NEVER exceed 80 characters. 
@@ -383,7 +383,8 @@ Before drafting the title, internally assign a confidence score (0-100) to every
 - Include the brand, model or type, color, style, and model/serial number if available (e.g., "Pull&Bear" or "AB0011-234").
 - **Formatting**: Capitalize the first letter of each significant word. Do NOT use ALL CAPS. 
 - **Punctuation**: Do not waste characters on commas, hyphens, or periods unless it is strictly part of a model number. Use spaces between keywords. Reserve special characters for search terms (prefer "Mens" over "Men's").
-- **Abbreviations**: Use high-value eBay abbreviations to save space when necessary (e.g., "NWT", "NWOT", "VTG", "Y2K", "LS", "SS").
+- **Size Protocol (CRITICAL)**: Spell out all sizes completely (e.g., "Large Tall", "Medium"). NEVER output the word "Size" by itself. (e.g., "Mens Large Tall", never "Mens Size LT").
+- **Abbreviations**: Use high-value eBay abbreviations ONLY for condition/eras (e.g., "NWT", "NWOT", "VTG", "Y2K"). Do NOT abbreviate descriptive anatomy like "Short Sleeve" to "SS" or "Long Sleeve" to "LS", as buyers rarely search those terms.
 - **Banned Words**: Do not use generic filler words that waste character space ("Beautiful", "Nice", "L@@K", "Authentic", "Rare").
 
 # Condition Handling
