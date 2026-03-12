@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V3.0",
+            Unified: "V4.0",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -359,8 +359,6 @@ export async function POST(request: NextRequest) {
         const unifiedPrompt = `
 You are an expert eBay SEO listing optimizer. Your goal is to analyze provided item information (and images) to generate a highly optimized, high-converting eBay listing title designed specifically for maximum discoverability on eBay's Cassini search engine.
 
-INPUT DATA: Original Title: \${processingTitle} Item Info: \${cleanInfo} \${matrixContext} \${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
-
 # Workflow
 1. Extract all visual and provided attributes about the item.
 2. Score your confidence for each attribute (see below).
@@ -368,12 +366,13 @@ INPUT DATA: Original Title: \${processingTitle} Item Info: \${cleanInfo} \${matr
 4. Draft an optimized title following strict Cassini best practices.
 5. Verify length and truncate if necessary to meet the 80-character limit.
 
-# Attribute Confidence Scoring (ZERO TOLERANCE FOR HALLUCINATIONS)
+# Attribute Confidence Scoring
 Before drafting the title, internally assign a confidence score (0-100) to every potential attribute:
-
-- 100: Explicitly stated in the provided text or unambiguously visible.
-- <100: Inferred, guessed, or weak context.
-CRITICAL: Only use attributes with a confidence score of 100 in your final title. NEVER guess or infer brand, size, material, condition (NWT/NWOT), or physical features (e.g., "zip-off", "waterproof", "hooded"). If the exact feature is not explicitly in the text or completely obvious in the photo, you MUST omit it.
+- 80-100: Visible (clearly seen or explicitly stated in specifics)
+- 60-79: Inferred (deducted from strong context)
+- 40-59: Guess (weak context)
+- <40: Weak
+ Never guess on brand, size, or material.
 
 # Title Instructions & Cassini Rules
 - **CRITICAL LENGTH RULE**: The title MUST be 80 characters or fewer. NEVER exceed 80 characters. 
@@ -382,14 +381,13 @@ CRITICAL: Only use attributes with a confidence score of 100 in your final title
 - Include the brand, model or type, color, style, and model/serial number if available (e.g., "Pull&Bear" or "AB0011-234").
 - **Formatting**: Capitalize the first letter of each significant word. Do NOT use ALL CAPS. 
 - **Punctuation**: Do not waste characters on commas, hyphens, or periods unless it is strictly part of a model number. Use spaces between keywords. Reserve special characters for search terms (prefer "Mens" over "Men's").
-- **Abbreviations**: Use high-value eBay abbreviations to save space when necessary (e.g., "VTG", "Y2K", "LS", "SS").
+- **Abbreviations**: Use high-value eBay abbreviations to save space when necessary (e.g., "NWT", "NWOT", "VTG", "Y2K", "LS", "SS").
 - **Banned Words**: Do not use generic filler words that waste character space ("Beautiful", "Nice", "L@@K", "Authentic", "Rare").
 
-# Condition Handling (STRICT COMPLIANCE REQUIRED)
-Do not assume an item is new. You must only add condition abbreviations if there is absolute, explicit proof in the text inputs.
-- If EXPLICITLY stated as NEW with tags in the input: Add "NWT" to the end (or beginning) of the title.
-- If EXPLICITLY stated as NEW without tags in the input: Add "NWOT".
-- If USED (Excellent, Good, Fair) or the condition is unstated: Do NOT explicitly write "Used" or "Pre-owned", and ABSOLUTELY DO NOT hallucinate "NWT/NWOT". Reserve those characters for highly searched descriptive keywords.
+# Condition Handling
+- If NEW with tags: Add "NWT" to the end of the title.
+- If NEW without tags: Add "NWOT".
+- If USED (Excellent, Good, Fair): Do not explicitly write "Used" or "Pre-owned" in the title. Reserve those characters for highly searched descriptive keywords.
 
 JSON OUTPUT REQUIREMENT: Output ONLY a valid JSON object. No conversational text. No markdown formatting. { "optimized_title": "..." }
 `;
