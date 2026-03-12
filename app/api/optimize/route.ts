@@ -232,7 +232,8 @@ export async function POST(request: NextRequest) {
 
         // Version Control for Prompts
         const PROMPT_VERSIONS = {
-            Unified: "V6.0",
+            Extraction: "V1.0",
+            SEO: "V1.0",
             L1: "V1.2",
             L2: "V1.4",
             L3: "V0.8"
@@ -349,258 +350,169 @@ export async function POST(request: NextRequest) {
         };
 
 
-        // 3. EXECUTE LAYERS
-        let pipelineTitle = processingTitle || ''; // Start with original (fetched or provided)
+        // 3. EXECUTE LAYERS (3-Stage PRD Architecture)
         let optimizedTitle = '';
 
-        // --- UNIFIED PROMPT (V1.0) ---
-        // Consolidates L1 (Structure), L2 (SEO/Functional), and L3 (Style) into one pass.
+        // --- STAGE 1: ATTRIBUTE EXTRACTION ---
+        const prompt1_extraction = `
+You are an eBay listing attribute extraction engine.
 
-        const unifiedPrompt = `
-You are an expert eBay SEO listing optimizer. Your goal is to analyze provided item information (and images) to generate a highly optimized, high-converting eBay listing title designed specifically for maximum discoverability on eBay's Cassini search engine.
+Your task is to analyze the provided item information and extract structured attributes.
 
-INPUT DATA: Original Title: \${processingTitle} Item Info: \${cleanInfo} \${matrixContext} \${detectedBrand ? \`Detected Brand: \${detectedBrand}\` : ''}
+Rules:
+- Only extract attributes explicitly stated in the input.
+- NEVER guess brand, size, material, color, or features.
+- If an attribute is not explicitly present, return null.
+- Return ONLY valid JSON.
+- Do not include explanations.
 
-# Workflow
-1. Extract all visual and provided attributes about the item.
-2. Score your confidence for each attribute (see below).
-3. Select the highest-impact keywords based on buyer intent.
-4. Draft an optimized title following strict Cassini best practices.
-5. Maximize the length safely up to the 80-character limit.
+Return JSON with these exact keys:
+brand
+item_type
+gender
+size
+color
+material
+features
+style
+condition
 
-# Attribute Confidence Scoring & Hallucination Prevention
-Before drafting the title, internally assign a confidence score (0-100) to every potential attribute:
+User Input Template:
+Item Info:
+${cleanInfo}
 
-- 100: Explicitly stated in the text or completely obvious visually (e.g., Color).
-- 60-99: Safe, universally true category synonyms or style trends (e.g., calling a Linen Shirt "Casual", "Summer", "Preppy").
-- <60: Guessed specific features, materials, sizes, or condition.
-CRITICAL: You must NEVER guess brand, size, material, or physical features (e.g., "zip-off"). If they are not scored 100, OMIT them. However, you MUST use structurally safe category synonyms and style trends (60-99 score) to aggressively enrich the title.
+Original Title:
+${processingTitle}
 
-# Title Instructions & Cassini Rules
-- **CRITICAL LENGTH RULE**: The title MUST be 80 characters or fewer. NEVER exceed 80 characters.
-- **Aggressive Padding (Safe Enrichment)**: If your drafted title is under 75 characters, you MUST pad it with highly searched, universally true synonyms or relevant style trends (e.g., "Preppy", "Office", "Casual", "Summer"). You MUST maximize the character count. Do not leave empty space if safe keywords exist.
-- **Cassini Hierarchy**: Front-load your title. Order your keywords logically: \`[Brand] + [Gender/Size] + [Style/Model] + [Color/Material] + [Defining Features] + [Style Signals/Synonyms]\`.
-- **Formatting**: Capitalize the first letter of each significant word. Do NOT use ALL CAPS.
-- **Size Protocol (CRITICAL)**: Spell out all sizes completely (e.g., "Large Tall", "Medium"). NEVER output the word "Size" by itself. (e.g., "Mens Large Tall", never "Mens Size LT").
-- **Abbreviations**: Use high-value eBay abbreviations ONLY for condition/eras (e.g., "NWT", "NWOT", "VTG", "Y2K"). Do NOT abbreviate descriptive anatomy like "Short Sleeve" to "SS" or "Long Sleeve" to "LS".
-- **Banned Words**: Do not use generic filler words that waste character space ("Beautiful", "Nice", "L@@K").
-
-# Condition Handling
-- If NEW with tags: Add "NWT" to the end of the title.
-- If NEW without tags: Add "NWOT".
-- If USED (Excellent, Good, Fair): Do not explicitly write "Used" or "Pre-owned" in the title. Reserve those characters for highly searched descriptive keywords.
-
-JSON OUTPUT REQUIREMENT: Output ONLY a valid JSON object. No conversational text. No markdown formatting. { "optimized_title": "..." }
+Detected Brand:
+${detectedBrand}
 `;
 
-        console.log(`--- EXECUTE UNIFIED PROMPT (${PROMPT_VERSIONS.Unified}) ---`);
+        console.log(`--- STAGE 1: EXTRACTION (${PROMPT_VERSIONS.Extraction}) ---`);
+        let extractedAttrs: any = {};
         try {
-            const rawResponse = await callGeminiLayer('Unified', unifiedPrompt, true); // Pass images
-            console.log(`> Unified Raw LLM Output: ${rawResponse}`);
-
-            // Clean markdown blocks if the LLM hallucinated them
-            const cleanedResp = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-            try {
-                const parsed = JSON.parse(cleanedResp);
-                if (parsed && typeof parsed.optimized_title === 'string') {
-                    pipelineTitle = parsed.optimized_title;
-                } else {
-                    console.warn('JSON parsed but optimized_title missing or not a string.');
-                    pipelineTitle = cleanedResp; // Fallback
-                }
-            } catch (jsonErr) {
-                console.error('Failed to parse JSON response:', jsonErr);
-                pipelineTitle = cleanedResp; // Fallback
-            }
-
-            console.log(`> Unified Result Parsed: ${pipelineTitle}`);
+            const rawResp1 = await callGeminiLayer('Extraction', prompt1_extraction, true);
+            const cleanedResp1 = rawResp1.replace(/```json/gi, '').replace(/```/g, '').trim();
+            extractedAttrs = JSON.parse(cleanedResp1);
+            console.log('> Stage 1 Extracted:', extractedAttrs);
         } catch (e: any) {
-            console.error('Unified Prompt Failed', e);
+            console.error('Stage 1 Failed:', e);
+            // Fallback: If extraction fails completely, we just use the original title as the base
+            extractedAttrs = { item_type: processingTitle };
             debugLastError = e.message;
         }
 
+        // --- STAGE 2: SEO KEYWORD GENERATOR ---
+        const prompt2_keywords = `
+You are an eBay SEO keyword generator.
 
+Generate safe style or trend keywords that improve search discoverability for eBay clothing listings.
 
-        optimizedTitle = pipelineTitle;
+Rules:
+- Only generate broad style or trend keywords.
+- Do NOT invent materials, sizes, brands, or physical features.
+- Use universally safe descriptors such as style, occasion, or fashion trends.
+- Return exactly 8 keywords.
+- Return JSON only.
 
-        // --- POST-PROCESSING SAFETY FILTER ---
-        if (optimizedTitle) {
-            // 0. CLEANUP MARKDOWN & LABELS
-            // Remove markdown code blocks (```text, ```)
-            optimizedTitle = optimizedTitle.replace(/```[a - z] *\s * /gi, '').replace(/```/g, '').trim();
+Output format:
+{
+ "keywords": []
+}
 
-            // Remove explicit labels if the model added them
-            optimizedTitle = optimizedTitle.replace(/^(OUTPUT|Final Title|Title|Optimized Title):\s*/i, '');
+User Input Template:
+Item Attributes:
+Brand: ${extractedAttrs.brand || 'Unknown'}
+Item Type: ${extractedAttrs.item_type || 'Unknown'}
+Gender: ${extractedAttrs.gender || 'Unknown'}
+Style: ${extractedAttrs.style || 'Unknown'}
+        `;
 
-            // 0.5. CLEANUP INTERNAL MONOLOGUE (AI forgot to be silent)
-            if (optimizedTitle.includes('PHASE') || optimizedTitle.includes('STEP')) {
-                console.log('[Filter] Detected Internal Monologue. Cleaning...');
-                const lines = optimizedTitle.split('\n');
-                // Look for the last substantial line that DOES NOT contain internal keywords
-                const cleanLine = lines.reverse().find(l =>
-                    l.trim().length > 10 &&
-                    !l.includes('PHASE') &&
-                    !l.includes('STEP') &&
-                    !l.includes('Input:')
-                );
-                if (cleanLine) optimizedTitle = cleanLine.trim();
+        console.log(`--- STAGE 2: SEO GENERATION (${PROMPT_VERSIONS.SEO}) ---`);
+        let generatedKeywords: string[] = [];
+        try {
+            // Text only for speed, no images needed for keyword expansion
+            const rawResp2 = await callGeminiLayer('SEO', prompt2_keywords, false);
+            const cleanedResp2 = rawResp2.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsedKeywords = JSON.parse(cleanedResp2);
+            if (parsedKeywords && Array.isArray(parsedKeywords.keywords)) {
+                generatedKeywords = parsedKeywords.keywords;
             }
+            console.log('> Stage 2 Keywords:', generatedKeywords);
+        } catch (e: any) {
+            console.error('Stage 2 Failed:', e);
+            // Not a fatal error, just means no padding
+        }
 
-            // AI models (especially Flash) are stubborn about adding "Mens Medium" to bags.
-            const lowerOrig = (title || '').toLowerCase();
-            const lowerOpt = optimizedTitle.toLowerCase();
-            const isBagOrTech = /backpack|bag|tote|purse|wallet|camera|laptop|phone|monitor|console|remote/.test(lowerOrig);
+        // --- STAGE 3: DETERMINISTIC TITLE CONSTRUCTION (App Logic) ---
+        console.log(`--- STAGE 3: TITLE ASSEMBLY ---`);
 
-            if (isBagOrTech) {
-                // 1. Check for Phantom Size
-                if (!lowerOrig.includes('medium') && !lowerOrig.includes('med ') && lowerOpt.includes('medium')) {
-                    console.log('[Filter] Removing hallucinated "Medium"');
-                    optimizedTitle = optimizedTitle.replace(/\bMedium\b/gi, '').replace(/\s+/g, ' ').trim();
-                }
-                if (!lowerOrig.includes('large') && !lowerOrig.includes('lg ') && lowerOpt.includes('large')) {
-                    console.log('[Filter] Removing hallucinated "Large"');
-                    optimizedTitle = optimizedTitle.replace(/\bLarge\b/gi, '').replace(/\s+/g, ' ').trim();
-                }
+        // 1. Assemble Core Base
+        const baseComponents = [
+            extractedAttrs.brand,
+            extractedAttrs.gender,
+            extractedAttrs.size,
+            extractedAttrs.material,
+            extractedAttrs.item_type,
+            extractedAttrs.color,
+            extractedAttrs.features,
+            extractedAttrs.style,
+            extractedAttrs.condition
+        ];
 
-                // 2. Check for Phantom Gender
-                if (!lowerOrig.includes('men') && lowerOpt.includes('mens')) {
-                    console.log('[Filter] Removing hallucinated "Mens"');
-                    optimizedTitle = optimizedTitle.replace(/\bMens\b/gi, '').replace(/\s+/g, ' ').trim();
-                }
-                if (!lowerOrig.includes('women') && lowerOpt.includes('womens')) {
-                    console.log('[Filter] Removing hallucinated "Womens"');
-                    optimizedTitle = optimizedTitle.replace(/\bWomens\b/gi, '').replace(/\s+/g, ' ').trim();
-                }
-            }
+        // Filter out nulls/undefined and join
+        let coreKeywords = baseComponents.filter(c => c && typeof c === 'string').map(c => c.trim().replace(/\s+/g, ' '));
 
-            // 3. CHECK FOR HALLUCINATED MEASUREMENTS (NxN format)
-            const measRegex = /\b(\d+(?:\.\d+)?)\s*["']?\s*[xX]\s*(\d+(?:\.\d+)?)\s*["']?\b/g;
-            // Create a "clean" original title for comparison (remove spaces/punctuation to fuzzy match numbers)
-            const cleanOrig = lowerOrig.replace(/[^0-9x.]/g, '');
+        // Remove duplicates case-insensitively just in case extraction duped a word
+        coreKeywords = coreKeywords.filter((word, index, self) =>
+            index === self.findIndex((t) => (
+                t.toLowerCase() === word.toLowerCase()
+            ))
+        );
 
-            // We must loop manually because replace with global regex behaves partly on iteration
-            optimizedTitle = optimizedTitle.replace(measRegex, (fullMatch, n1, n2) => {
-                // Check if this n1 x n2 combo exists in original
-                const simpleLook = `${n1}x${n2} `;
-                if (cleanOrig.includes(simpleLook)) return fullMatch;
+        let currentTitle = coreKeywords.join(' ');
 
-                // Strict Check:
-                const hasSpaced = new RegExp(`${n1} \\s * [xX]\\s * ${n2} `).test(lowerOrig);
-                if (hasSpaced) return fullMatch;
+        // 2. Padding Logic
+        // If title < 70 characters: append next SEO keyword until near 80 characters
+        for (const kw of generatedKeywords) {
+            // Safety check: don't pad if already long enough
+            if (currentTitle.length >= 75) break;
 
-                console.log(`[Filter] Removing hallucinated measurement: ${fullMatch} `);
-                return ''; // Remove it
-            });
-
-            // 4. CHECK FOR HALLUCINATED SINGLE MEASUREMENTS (e.g. 26", 29")
-            // Pattern: Number followed by quote (26", 26')
-            // fixed regex: Remove trailing boundary \b to match 24" followed by space
-            const singleMeasRegex = /\b(\d+(?:\.\d+)?)\s*["'\u201C\u201D\u2033\u2036]/g;
-            optimizedTitle = optimizedTitle.replace(singleMeasRegex, (fullMatch, num) => {
-                // Check if this number exists in the original title
-                // We verify if "26" exists as a whole word in lowerOrig
-                const val = num.trim();
-                // Simple check: does the original title contain this number? 
-                // We use a boundary check regex for the number
-                if (new RegExp(`\\b${val} \\b`).test(lowerOrig)) {
-                    return fullMatch;
-                }
-
-                // Also check if original had it with quote (e.g. 26")
-                if (lowerOrig.includes(fullMatch.toLowerCase().trim())) {
-                    return fullMatch;
-                }
-
-                console.log(`[Filter] Removing hallucinated single measurement: ${fullMatch} `);
-                return '';
-            });
-
-            // 5. ORPHAN KEYWORD CLEANUP
-            // Remove "Sleeve" if it is not preceded by "Short" or "Long"
-            if (/\b(?<!Short\s)(?<!Long\s)Sleeve\b/i.test(optimizedTitle)) {
-                // Check if "Sleeve" was in original title alone? If not, remove it.
-                if (!lowerOrig.includes(' sleeve ')) {
-                    console.log('[Filter] Removing orphan "Sleeve"');
-                    optimizedTitle = optimizedTitle.replace(/\b(?<!Short\s)(?<!Long\s)Sleeve\b/gi, '').trim();
-                }
-            }
-
-            // 6. CONTEXTUAL MEASUREMENT CLEANUP (Aggressive)
-            // If we see a pattern like "38 Length" or "Pit 24" where the number was NOT in the original title, nuke it.
-            const measKeywords = ['Pit', 'P2P', 'Length', 'Width', 'Inseam', 'Rise', 'Waist', 'Chest', 'Bust', 'Sleeve', 'Shoulder'];
-
-            measKeywords.forEach(kw => {
-                // Regex to find "NumberKW" or "KWNumber"
-                // Match: (Number) (Possible Unit) (Keyword) OR (Keyword) (Number)
-                const patterns = [
-                    new RegExp(`\\b(\\d + (?: \\.\\d +) ?) \\s * (?: ["']|in|cm)?\\s*${kw}\\b`, 'gi'), // "38 Length"
-                    new RegExp(`\\b${kw}\\s*:?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:["']|in|cm)?\\b`, 'gi') // "Length: 38"
-                ];
-
-                patterns.forEach(regex => {
-                    optimizedTitle = optimizedTitle.replace(regex, (match, num) => {
-                        // Check if the number (e.g. "38") is in the original title.
-                        // Use strict boundary check.
-                        if (num && new RegExp(`\\b${num.trim()}\\b`).test(lowerOrig)) {
-                            return match; // It's valid (e.g. original said "38 Length")
-                        }
-                        console.log(`[Filter] Removing contextual measurement hallucination: ${match}`);
-                        return '';
-                    });
-                });
-            });
-
-            // 7. ORPHAN MEASUREMENT LABEL CHECK
-            // Clean up any surviving labels (e.g. "Pit to Pit") that lost their numbers
-            const orphanLabels = [
-                /\bPit\s+To\s+Pit\b/gi,
-                /\bP2P\b/gi,
-                /\b(Shoulder\s+)?To\s+(Shoulder|Hem|Cuff)\b/gi,
-                /\bLength\b/gi,
-                /\bInseam\b/gi,
-                /\bWidth\b/gi,
-                /\bRise\b/gi
-            ];
-            orphanLabels.forEach(regex => {
-                const matches = optimizedTitle.match(regex);
-                if (matches) {
-                    matches.forEach(m => {
-                        if (!lowerOrig.includes(m.toLowerCase())) {
-                            console.log(`[Filter] Removing orphan label: ${m}`);
-                            optimizedTitle = optimizedTitle.replace(m, '').trim();
-                        }
-                    });
-                }
-            });
-
-            // 8. FINAL UNIT SWEEP
-            // Catch "24in" or "24cm" leftovers
-            const unitRegex = /\b(\d+(?:\.\d+)?)\s*(?:in|inch|inches|cm|mm)\b/gi;
-            optimizedTitle = optimizedTitle.replace(unitRegex, (match, num) => {
-                if (new RegExp(`\\b${num.trim()}\\b`).test(lowerOrig)) return match;
-                console.log(`[Filter] Removing unit measurement: ${match}`);
-                return '';
-            });
-
-            // Clean up double spaces left by removal
-            optimizedTitle = optimizedTitle.replace(/\s+/g, ' ').trim();
-
-            // 4. CHECK FOR FALSE "NEW" (Strict eBay Rule)
-            // If the AI inserts "New" but the original text has NO mention of "New", "NWT", or "NWOT", strip it.
-            // We assume "Excellent", "Mint", "Great" != "New".
-            const lowerInfo = (additionalInfo || '').toLowerCase(); // Check Item Specifics too
-            const combinedSource = lowerOrig + ' ' + lowerInfo;
-
-            if (/\bNew\b/i.test(optimizedTitle)) {
-                // If source does NOT contain "new", "nwt", "nwot", or strong indicators like "nib", "tags", "unused"
-                if (!/\b(new|nwt|nwot|nib|tags|unused|sealed|box)\b/i.test(combinedSource)) {
-                    console.log('[Filter] Removing hallucinated "New" keyword');
-                    // Remove "New" (case-insensitive) but keep surrounding spaces clean
-                    optimizedTitle = optimizedTitle.replace(/\bNew\b/gi, '').replace(/\s+/g, ' ').trim();
+            // Safety check: don't add duplicate keywords
+            if (!currentTitle.toLowerCase().includes(kw.toLowerCase())) {
+                const potentialTitle = `${currentTitle} ${kw}`;
+                // Only add if it doesn't push us over limits (we leave a small buffer, 
+                // but the hard truncation step below will catch actual overflow)
+                if (potentialTitle.length <= 80) {
+                    currentTitle = potentialTitle;
                 }
             }
         }
+
+        optimizedTitle = currentTitle;
+
+        // If for some reason we still exceed 80 (e.g. core attributes were massive), hard truncate
+        if (optimizedTitle.length > 80) {
+            const words = optimizedTitle.split(' ');
+            let truncatedTitle = '';
+            for (const word of words) {
+                const testTitle = truncatedTitle ? `${truncatedTitle} ${word}` : word;
+                if (testTitle.length <= 80) {
+                    truncatedTitle = testTitle;
+                } else {
+                    break;
+                }
+            }
+            optimizedTitle = truncatedTitle;
+        }
+
+        // Capitalize Words (Formatting)
+        optimizedTitle = optimizedTitle.split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+
+        console.log('> Final Assembled Title:', optimizedTitle);
+
         // -------------------------------------
 
         if (!optimizedTitle) {
