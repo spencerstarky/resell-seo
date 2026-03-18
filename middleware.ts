@@ -51,6 +51,7 @@ export async function middleware(request: NextRequest) {
         pathname.startsWith('/about') ||
         pathname.startsWith('/contact') ||
         pathname.startsWith('/auth') ||
+        pathname.startsWith('/resell-assistant') || // Extension Landing Page
         pathname.includes('.'); // Exclude files (robots.txt, etc)
 
     if (!isAppRoute) {
