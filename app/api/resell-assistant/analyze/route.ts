@@ -4,6 +4,10 @@ import { searchActiveListings } from '@/lib/resell-assistant/services/ebayServic
 import { computeMarketData } from '@/lib/resell-assistant/services/analysisService';
 import { generateTitle } from '@/lib/resell-assistant/services/titleService';
 
+// Vercel Hobby Tier: Increase serverless execution timeout to max 60 seconds.
+// Gemini analyzing 4+ images often exceeds the default 15s limit.
+export const maxDuration = 60;
+
 // Allow CORS preflight specifically for this endpoint (so the Chrome ext can call it)
 export async function OPTIONS() {
     const response = new NextResponse(null, { status: 204 });
