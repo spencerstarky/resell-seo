@@ -77,7 +77,13 @@ Examples:
 
 Be as specific as possible. Include brand names, model numbers, and distinguishing features visible in the photos.`;
 
-    const result = await model.generateContent([prompt, ...imageParts]);
+    let result;
+    try {
+        result = await model.generateContent([prompt, ...imageParts]);
+    } catch (geminiError: any) {
+        console.error('[Vision Error]', geminiError);
+        throw new Error(`Google Gemini Error: ${geminiError.message || 'Unknown API Error'}`);
+    }
     const responseText = result.response.text().trim();
 
     // Parse JSON from response (handle markdown code blocks)

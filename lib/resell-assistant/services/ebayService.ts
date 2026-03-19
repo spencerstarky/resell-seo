@@ -22,16 +22,22 @@ async function getEbayToken(): Promise<string> {
 
     const credentials = Buffer.from(`${appId}:${certId}`).toString('base64');
 
-    const response = await axios.post(
-        'https://api.ebay.com/identity/v1/oauth2/token',
-        'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope',
-        {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${credentials}`,
-            },
-        }
-    );
+    let response;
+    try {
+        response = await axios.post(
+            'https://api.ebay.com/identity/v1/oauth2/token',
+            'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope',
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Basic ${credentials}`,
+                },
+            }
+        );
+    } catch (authError: any) {
+        console.error('[eBay Auth Error]', authError.response?.data || authError.message);
+        throw new Error(`eBay API Authentication Failed: ${JSON.stringify(authError.response?.data || authError.message)}`);
+    }
 
     cachedToken = response.data.access_token;
     // Expire 5 minutes early to be safe
