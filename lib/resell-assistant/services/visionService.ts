@@ -14,25 +14,28 @@ export interface DetectedItem {
  * Analyze product images using Gemini's multimodal capabilities.
  * Adapted for Next.js native File objects from FormData (instead of multer).
  */
-export async function identifyProduct(files: File[]): Promise<DetectedItem> {
+export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem> {
     if (!process.env.GEMINI_API_KEY) {
         throw new Error('GEMINI_API_KEY is not configured. Please add it to your .env file.');
     }
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    // Convert HEIC/HEIF files to JPEG before sending to Gemini
+    // Download images from Supabase Storage and covert HEIC to JPEG if necessary
     const processedFiles = await Promise.all(
-        files.map(async (file) => {
-            const ext = file.name?.split('.').pop()?.toLowerCase();
-            const isHeic = file.type === 'image/heic' || file.type === 'image/heif' || ext === 'heic' || ext === 'heif';
+        imageUrls.map(async (url) => {
+            const ext = url.split('?')[0].split('.').pop()?.toLowerCase();
+            const isHeic = ext === 'heic' || ext === 'heif';
 
-            const arrayBuffer = await file.arrayBuffer();
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`[Vision] Failed to pull image from storage: ${url}`);
+
+            const arrayBuffer = await res.arrayBuffer();
             let buffer = Buffer.from(arrayBuffer);
-            let mimeType = file.type;
+            let mimeType = res.headers.get('content-type') || 'image/jpeg';
 
             if (isHeic) {
-                console.log(`[Vision] Converting HEIC file: ${file.name}`);
+                console.log(`[Vision] Converting HEIC URL: ${url}`);
                 const jpegBuffer = await convert({
                     buffer: buffer,
                     format: 'JPEG',
