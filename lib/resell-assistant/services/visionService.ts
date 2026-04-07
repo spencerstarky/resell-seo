@@ -51,22 +51,34 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
         
         // Ultimate Failsafe: Throw explicit error if the key is structurally invalid before calling Vertex Auth
         if (!cleanPrivateKey.includes('BEGIN PRIVATE KEY')) {
-            throw new Error(`The GCP_PRIVATE_KEY is missing or invalid! It does not contain 'BEGIN PRIVATE KEY'. Length is ${cleanPrivateKey.length}. Please check your Vercel Environment Variables.`);
+            throw new Error(`[Diagnosis] Missing BEGIN tag. Raw GCP_PRIVATE_KEY length: ${process.env.GCP_PRIVATE_KEY?.length || 0}. Reconstructed length: ${cleanPrivateKey.length}. Please check Vercel.`);
+        }
+        
+        // Let's verify our email and project ID too
+        const email = process.env.GCP_CLIENT_EMAIL || '';
+        const project = process.env.GCP_PROJECT_ID || '';
+        if (!email.includes('@')) {
+            throw new Error(`[Diagnosis] Client Email is invalid or missing: "${email}"`);
         }
 
-        vertex_ai = new VertexAI({
-            project: process.env.GCP_PROJECT_ID as string,
-            location: 'us-central1', // default Google Cloud region for Vertex
-            googleAuthOptions: {
-                credentials: {
-                    client_email: process.env.GCP_CLIENT_EMAIL as string,
-                    private_key: cleanPrivateKey,
+        try {
+            vertex_ai = new VertexAI({
+                project: project as string,
+                location: 'us-central1', // default Google Cloud region for Vertex
+                googleAuthOptions: {
+                    credentials: {
+                        client_email: email as string,
+                        private_key: cleanPrivateKey,
+                    }
                 }
-            }
-        });
+            });
+            // Force the auth library to validate credentials instantly
+            const authClient = await vertex_ai.preview.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
+        } catch (authInitError: any) {
+            throw new Error(`[Diagnosis] Auth Init Crash. KeyLength: ${cleanPrivateKey.length}. Project: ${project}. Error: ${authInitError.message}`);
+        }
     }
 
-    // Initialize the model - we use 1.5 flash as it is widely available and stable on Vertex
     const model = vertex_ai.preview.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
 
     // Download images from Supabase Storage and covert HEIC to JPEG if necessary
