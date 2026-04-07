@@ -107,7 +107,7 @@ Be as specific as possible. Include brand names, model numbers, and distinguishi
         console.error('[Vision Error]', geminiError);
         throw new Error(`Google Gemini Error: ${geminiError.message || 'Unknown API Error'}`);
     }
-    const responseText = result.response.text().trim();
+    const responseText = result.response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
     // Parse JSON from response (handle markdown code blocks)
     let parsed;
