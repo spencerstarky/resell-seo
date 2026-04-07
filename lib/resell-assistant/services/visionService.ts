@@ -21,13 +21,18 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
     }
 
     if (!vertex_ai) {
+        // Aggressively clean the private key string to prevent Vercel environment serialization bugs
+        let rawKey = process.env.GCP_PRIVATE_KEY || '';
+        rawKey = rawKey.replace(/^"|"$/g, '').replace(/^'|'$/g, ''); // Strip accidental quotes
+        const cleanPrivateKey = rawKey.replace(/\\n/g, '\n'); // Enforce real linebreaks
+
         vertex_ai = new VertexAI({
             project: process.env.GCP_PROJECT_ID as string,
             location: 'us-central1', // default Google Cloud region for Vertex
             googleAuthOptions: {
                 credentials: {
                     client_email: process.env.GCP_CLIENT_EMAIL as string,
-                    private_key: process.env.GCP_PRIVATE_KEY?.replace(/\\n/g, '\n') as string,
+                    private_key: cleanPrivateKey,
                 }
             }
         });
