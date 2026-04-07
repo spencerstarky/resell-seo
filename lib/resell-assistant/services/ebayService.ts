@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ApifyClient } from 'apify-client';
 import { Listing } from './analysisService';
 
 let cachedToken: string | null = null;
@@ -82,12 +83,36 @@ export async function searchActiveListings(query: string, limit = 50): Promise<L
 }
 
 /**
- * Placeholder for sold listings retrieval.
- * Will be implemented once Marketplace Insights API access is granted.
+ * Fetch sold listings via Apify to bypass eBay's restricted Marketplace Insights API.
  */
-export async function searchSoldListings(query: string, limit = 50): Promise<Listing[]> {
-    // TODO: Implement once eBay Marketplace Insights API access is approved
-    // For now, return empty array
-    console.log('[eBay] Sold listings search not yet available — Marketplace Insights API access pending');
-    return [];
+export async function searchSoldListings(query: string, limit = 15): Promise<Listing[]> {
+    if (!process.env.APIFY_API_TOKEN) {
+        console.warn('[eBay] Missing APIFY_API_TOKEN in environment variables. Cannot fetch sold comps.');
+        return [];
+    }
+
+    try {
+        console.log(`[eBay/Apify] Starting scrape for sold items matching: "${query}"`);
+        const client = new ApifyClient({ token: process.env.APIFY_API_TOKEN });
+
+        const run = await client.actor('dvadeset/ebay-scraper').call({
+            search: query,
+            soldItems: true,
+            maxItems: limit
+        });
+
+        const { items } = await client.dataset(run.defaultDatasetId).listItems();
+        
+        return items.map((item: any) => ({
+            title: item.title || '',
+            price: item.price ? parseFloat(item.price) : 0,
+            currency: item.currency || 'USD',
+            image: item.image || item.imageUrl || null,
+            itemWebUrl: item.url || '#',
+            condition: item.condition || null,
+        }));
+    } catch (err: any) {
+        console.error('[eBay/Apify] Error fetching sold comps:', err.message);
+        return [];
+    }
 }

@@ -1,8 +1,9 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { VertexAI } from '@google-cloud/vertexai';
 // @ts-ignore - heic-convert lacks TypeScript definitions
 import convert from 'heic-convert';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// We initialize this inside the function to ensure env vars are loaded
+let vertex_ai: VertexAI | null = null;
 
 export interface DetectedItem {
     productName: string;
@@ -15,11 +16,25 @@ export interface DetectedItem {
  * Adapted for Next.js native File objects from FormData (instead of multer).
  */
 export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem> {
-    if (!process.env.GEMINI_API_KEY) {
-        throw new Error('GEMINI_API_KEY is not configured. Please add it to your .env file.');
+    if (!process.env.GCP_PROJECT_ID || !process.env.GCP_PRIVATE_KEY || !process.env.GCP_CLIENT_EMAIL) {
+        throw new Error('Google Cloud credentials are missing. Please add GCP_PROJECT_ID, GCP_CLIENT_EMAIL, and GCP_PRIVATE_KEY to your .env file.');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    if (!vertex_ai) {
+        vertex_ai = new VertexAI({
+            project: process.env.GCP_PROJECT_ID as string,
+            location: 'us-central1', // default Google Cloud region for Vertex
+            googleAuthOptions: {
+                credentials: {
+                    client_email: process.env.GCP_CLIENT_EMAIL as string,
+                    private_key: process.env.GCP_PRIVATE_KEY?.replace(/\\n/g, '\n') as string,
+                }
+            }
+        });
+    }
+
+    // Initialize the model - we use 1.5 flash as it is widely available and stable on Vertex
+    const model = vertex_ai.preview.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
 
     // Download images from Supabase Storage and covert HEIC to JPEG if necessary
     const processedFiles = await Promise.all(

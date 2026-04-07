@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { identifyProduct } from '@/lib/resell-assistant/services/visionService';
-import { searchActiveListings } from '@/lib/resell-assistant/services/ebayService';
+import { searchActiveListings, searchSoldListings } from '@/lib/resell-assistant/services/ebayService';
 import { computeMarketData } from '@/lib/resell-assistant/services/analysisService';
 import { generateTitle } from '@/lib/resell-assistant/services/titleService';
 import { createClient } from '@supabase/supabase-js';
@@ -36,19 +36,24 @@ export async function POST(req: NextRequest) {
         const detectedItem = await identifyProduct(imageUrls);
         console.log('[Analyze] Detected item:', detectedItem.productName);
 
-        // Step 2: Search eBay for comparable active listings
+        // Step 2: Search eBay for comparable listings (Active + Sold via Apify)
         const searchQuery = detectedItem.keywords || detectedItem.productName;
-        const activeListings = await searchActiveListings(searchQuery);
-        console.log(`[Analyze] Found ${activeListings.length} active listing(s)`);
+        // Run both searches in parallel for maximum speed!
+        const [activeListings, soldListings] = await Promise.all([
+            searchActiveListings(searchQuery),
+            searchSoldListings(searchQuery, 15)
+        ]);
+        console.log(`[Analyze] Found ${activeListings.length} active and ${soldListings.length} sold listing(s)`);
 
-        // Step 3: Compute market analytics
-        const marketData = computeMarketData(activeListings);
+        // Step 3: Compute market analytics. Pass sold listings too so it calculates sell-through rate and true market floor.
+        const marketData = computeMarketData(activeListings, soldListings);
 
         // Step 4: Generate optimized title from listing data
         const suggestedTitle = generateTitle(activeListings, detectedItem);
 
-        // Step 5: Pick top comps to display
-        const comparables = activeListings.slice(0, 10).map(listing => ({
+        // Step 5: Pick top comps to display (Prioritize Sold listings for Top Comps!)
+        const compsData = soldListings.length > 0 ? soldListings : activeListings;
+        const comparables = compsData.slice(0, 10).map(listing => ({
             title: listing.title,
             price: listing.price,
             image: listing.image,
