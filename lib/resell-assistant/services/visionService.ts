@@ -24,7 +24,17 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
         // Aggressively clean the private key string to prevent Vercel environment serialization bugs
         let rawKey = process.env.GCP_PRIVATE_KEY || '';
         rawKey = rawKey.replace(/^"|"$/g, '').replace(/^'|'$/g, ''); // Strip accidental quotes
-        const cleanPrivateKey = rawKey.replace(/\\n/g, '\n'); // Enforce real linebreaks
+        let cleanPrivateKey = rawKey.replace(/\\n/g, '\n'); // Enforce real linebreaks
+        
+        // Vercel often completely flattens keys, stripping all '\n' entirely and replacing them with spaces.
+        if (!cleanPrivateKey.includes('\n')) {
+            cleanPrivateKey = cleanPrivateKey.replace(/(-----BEGIN PRIVATE KEY-----)\s*/, '$1\n');
+            cleanPrivateKey = cleanPrivateKey.replace(/\s*(-----END PRIVATE KEY-----)/, '\n$1');
+            const match = cleanPrivateKey.match(/(-----BEGIN PRIVATE KEY-----\n)(.*)(\n-----END PRIVATE KEY-----)/);
+            if (match) {
+                cleanPrivateKey = match[1] + match[2].replace(/\s+/g, '\n') + match[3];
+            }
+        }
 
         vertex_ai = new VertexAI({
             project: process.env.GCP_PROJECT_ID as string,
