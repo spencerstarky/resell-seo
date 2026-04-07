@@ -1,9 +1,8 @@
-import { VertexAI } from '@google-cloud/vertexai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 // @ts-ignore - heic-convert lacks TypeScript definitions
 import convert from 'heic-convert';
 
-// We initialize this inside the function to ensure env vars are loaded
-let vertex_ai: VertexAI | null = null;
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export interface DetectedItem {
     productName: string;
@@ -16,75 +15,11 @@ export interface DetectedItem {
  * Adapted for Next.js native File objects from FormData (instead of multer).
  */
 export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem> {
-    if (!process.env.GCP_PROJECT_ID || !process.env.GCP_PRIVATE_KEY || !process.env.GCP_CLIENT_EMAIL) {
-        throw new Error('Google Cloud credentials are missing. Please add GCP_PROJECT_ID, GCP_CLIENT_EMAIL, and GCP_PRIVATE_KEY to your .env file.');
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error('GEMINI_API_KEY is not configured. Please add it to your Vercel Environment variables.');
     }
 
-    if (!vertex_ai) {
-        // Aggressively clean the private key string to prevent Vercel environment serialization bugs
-        let rawKey = process.env.GCP_PRIVATE_KEY || '';
-        
-        // Failsafe: Did they accidentally paste the entire Service Account JSON file into Vercel?
-        if (rawKey.trim().startsWith('{')) {
-            try {
-                const parsedJSON = JSON.parse(rawKey);
-                if (parsedJSON.private_key) {
-                    rawKey = parsedJSON.private_key;
-                }
-            } catch(e) {
-                console.error('[Vision] Failed to parse assumed JSON private key');
-            }
-        }
-        
-        rawKey = rawKey.replace(/^"|"$/g, '').replace(/^'|'$/g, ''); // Strip accidental quotes
-        let cleanPrivateKey = rawKey.replace(/\\n/g, '\n'); // Enforce real linebreaks
-        
-        // Vercel often completely flattens keys, stripping all '\n' entirely and replacing them with spaces.
-        if (!cleanPrivateKey.includes('\n')) {
-            cleanPrivateKey = cleanPrivateKey.replace(/(-----BEGIN PRIVATE KEY-----)\s*/, '$1\n');
-            cleanPrivateKey = cleanPrivateKey.replace(/\s*(-----END PRIVATE KEY-----)/, '\n$1');
-            const match = cleanPrivateKey.match(/(-----BEGIN PRIVATE KEY-----\n)(.*)(\n-----END PRIVATE KEY-----)/);
-            if (match) {
-                cleanPrivateKey = match[1] + match[2].replace(/\s+/g, '\n') + match[3];
-            }
-        }
-        
-        // Ultimate Failsafe: Throw explicit error if the key is structurally invalid before calling Vertex Auth
-        if (!cleanPrivateKey.includes('BEGIN PRIVATE KEY')) {
-            throw new Error(`[Diagnosis] Missing BEGIN tag. Raw GCP_PRIVATE_KEY length: ${process.env.GCP_PRIVATE_KEY?.length || 0}. Reconstructed length: ${cleanPrivateKey.length}. Please check Vercel.`);
-        }
-        
-        // Let's verify our email and project ID too
-        const email = process.env.GCP_CLIENT_EMAIL || '';
-        const project = process.env.GCP_PROJECT_ID || '';
-        if (!email.includes('@')) {
-            throw new Error(`[Diagnosis] Client Email is invalid or missing: "${email}"`);
-        }
-
-        try {
-            // Force Google Auth to parse it natively from disk to bypass the Vertex SDK object-dropping bug
-            const tmpPath = '/tmp/gcp-key.json';
-            const authJSON = {
-                type: "service_account",
-                project_id: project,
-                private_key: cleanPrivateKey,
-                client_email: email,
-            };
-            require('fs').writeFileSync(tmpPath, JSON.stringify(authJSON));
-            process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpPath;
-
-            vertex_ai = new VertexAI({
-                project: project as string,
-                location: 'us-central1', // default Google Cloud region for Vertex
-            });
-            // Force the auth library to validate credentials instantly
-            const authClient = await vertex_ai.preview.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
-        } catch (authInitError: any) {
-            throw new Error(`[Diagnosis] Auth Init Crash. KeyLength: ${cleanPrivateKey.length}. Project: ${project}. Error: ${authInitError.message}`);
-        }
-    }
-
-    const model = vertex_ai.preview.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Download images from Supabase Storage and covert HEIC to JPEG if necessary
     const processedFiles = await Promise.all(
@@ -147,17 +82,12 @@ Be as specific as possible. Include brand names, model numbers, and distinguishi
 
     let result;
     try {
-        result = await model.generateContent({
-            contents: [{
-                role: 'user',
-                parts: [{ text: prompt }, ...imageParts]
-            }]
-        });
+        result = await model.generateContent([prompt, ...imageParts]);
     } catch (geminiError: any) {
         console.error('[Vision Error]', geminiError);
         throw new Error(`Google Gemini Error: ${geminiError.message || 'Unknown API Error'}`);
     }
-    const responseText = result.response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    const responseText = result.response.text().trim();
 
     // Parse JSON from response (handle markdown code blocks)
     let parsed;
