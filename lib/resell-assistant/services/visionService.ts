@@ -97,7 +97,12 @@ Be as specific as possible. Include brand names, model numbers, and distinguishi
 
     let result;
     try {
-        result = await model.generateContent([prompt, ...imageParts]);
+        result = await model.generateContent({
+            contents: [{
+                role: 'user',
+                parts: [{ text: prompt }, ...imageParts]
+            }]
+        });
     } catch (geminiError: any) {
         console.error('[Vision Error]', geminiError);
         throw new Error(`Google Gemini Error: ${geminiError.message || 'Unknown API Error'}`);
