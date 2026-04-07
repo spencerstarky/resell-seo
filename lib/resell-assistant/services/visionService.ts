@@ -62,15 +62,20 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
         }
 
         try {
+            // Force Google Auth to parse it natively from disk to bypass the Vertex SDK object-dropping bug
+            const tmpPath = '/tmp/gcp-key.json';
+            const authJSON = {
+                type: "service_account",
+                project_id: project,
+                private_key: cleanPrivateKey,
+                client_email: email,
+            };
+            require('fs').writeFileSync(tmpPath, JSON.stringify(authJSON));
+            process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpPath;
+
             vertex_ai = new VertexAI({
                 project: project as string,
                 location: 'us-central1', // default Google Cloud region for Vertex
-                googleAuthOptions: {
-                    credentials: {
-                        client_email: email as string,
-                        private_key: cleanPrivateKey,
-                    }
-                }
             });
             // Force the auth library to validate credentials instantly
             const authClient = await vertex_ai.preview.getGenerativeModel({ model: 'gemini-1.5-flash-002' });
