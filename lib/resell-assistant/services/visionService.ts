@@ -23,6 +23,19 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
     if (!vertex_ai) {
         // Aggressively clean the private key string to prevent Vercel environment serialization bugs
         let rawKey = process.env.GCP_PRIVATE_KEY || '';
+        
+        // Failsafe: Did they accidentally paste the entire Service Account JSON file into Vercel?
+        if (rawKey.trim().startsWith('{')) {
+            try {
+                const parsedJSON = JSON.parse(rawKey);
+                if (parsedJSON.private_key) {
+                    rawKey = parsedJSON.private_key;
+                }
+            } catch(e) {
+                console.error('[Vision] Failed to parse assumed JSON private key');
+            }
+        }
+        
         rawKey = rawKey.replace(/^"|"$/g, '').replace(/^'|'$/g, ''); // Strip accidental quotes
         let cleanPrivateKey = rawKey.replace(/\\n/g, '\n'); // Enforce real linebreaks
         
@@ -34,6 +47,11 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
             if (match) {
                 cleanPrivateKey = match[1] + match[2].replace(/\s+/g, '\n') + match[3];
             }
+        }
+        
+        // Ultimate Failsafe: Throw explicit error if the key is structurally invalid before calling Vertex Auth
+        if (!cleanPrivateKey.includes('BEGIN PRIVATE KEY')) {
+            throw new Error(`The GCP_PRIVATE_KEY is missing or invalid! It does not contain 'BEGIN PRIVATE KEY'. Length is ${cleanPrivateKey.length}. Please check your Vercel Environment Variables.`);
         }
 
         vertex_ai = new VertexAI({
