@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { searchSoldListings } from '../../../lib/resell-assistant/services/ebayService';
+import { searchSoldListings } from '@/lib/resell-assistant/services/ebayService';
 
 export const maxDuration = 60; // Allow enough time for the native fetch to run
 
