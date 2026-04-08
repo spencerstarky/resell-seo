@@ -51,23 +51,25 @@ export async function POST(req: NextRequest) {
         // Step 4: Generate optimized title from listing data
         const suggestedTitle = generateTitle(activeListings, detectedItem);
 
-        // Step 5: Pick top comps to display (Prioritize Sold listings for Top Comps!)
-        const compsData = soldListings.length > 0 ? soldListings : activeListings;
-        const comparables = compsData.slice(0, 10).map(listing => ({
+        // Step 5: Format both sets of comparables for the UI toggle
+        const mapListing = (listing: any) => ({
             title: listing.title,
             price: listing.price,
             image: listing.image,
             itemWebUrl: listing.itemWebUrl,
             condition: listing.condition,
-        }));
+        });
+
+        const activeComparables = activeListings.slice(0, 10).map(mapListing);
+        const soldComparables = soldListings.slice(0, 10).map(mapListing);
 
         // Return combined results with CORS header
         const result = {
             detectedItem,
             marketData,
             suggestedTitle,
-            comparables,
-            compsType: soldListings.length > 0 ? 'sold' : 'active'
+            activeComparables,
+            soldComparables
         };
 
         // Ephemeral Storage Lifecycle: Clean up the massive files from the bucket to retain $0 cloud costs!
