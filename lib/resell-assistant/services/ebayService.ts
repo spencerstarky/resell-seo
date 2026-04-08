@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ApifyClient } from 'apify-client';
+import * as cheerio from 'cheerio';
 import { Listing } from './analysisService';
 
 let cachedToken: string | null = null;
@@ -83,61 +83,53 @@ export async function searchActiveListings(query: string, limit = 50): Promise<L
 }
 
 export async function searchSoldListings(query: string, limit = 15): Promise<Listing[]> {
-    if (!process.env.APIFY_API_TOKEN) {
-        console.warn('[eBay] Missing APIFY_API_TOKEN in environment variables. Cannot fetch sold comps.');
-        return [];
-    }
-
     try {
-        console.log(`[eBay/Apify] Starting Playwright scrape for sold items matching: "${query}"`);
-        const client = new ApifyClient({ token: process.env.APIFY_API_TOKEN });
-
+        console.log(`[eBay/Native] Starting native Serverless scrape for sold items: "${query}"`);
         const searchUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_Sold=1&LH_Complete=1`;
 
-        // We use Apify's official universal Playwright scraper to bypass 3rd party deprecation!
-        const run = await client.actor('apify/playwright-scraper').call({
-            startUrls: [{ url: searchUrl }],
-            pageFunction: `async function pageFunction(context) {
-                const { page } = context;
-                // Wait for eBay's React hydration to guarantee items are rendered
-                await page.waitForSelector('.s-item__title', { timeout: 15000 }).catch(() => {});
-                
-                const items = await page.$$eval('.s-item', nodes => nodes.map(n => {
-                    const title = n.querySelector('.s-item__title')?.innerText?.trim() || '';
-                    if (!title || title.includes("Shop on eBay") || title.length < 3) return null;
-                    
-                    let priceText = n.querySelector('.s-item__price')?.innerText?.trim() || '';
-                    if (priceText.includes('to')) priceText = priceText.split('to')[0];
-                    const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
-                    
-                    return {
-                        title: title,
-                        price: price,
-                        currency: 'USD',
-                        image: n.querySelector('.s-item__image-img')?.src || null,
-                        itemWebUrl: n.querySelector('.s-item__link')?.href || '#',
-                        condition: n.querySelector('.SECONDARY_INFO')?.innerText || null
-                    };
-                }).filter(Boolean));
-                
-                return items.slice(0, 15); // Return top requested limit
-            }`,
-            proxyConfiguration: { useApifyProxy: true }
+        // Native fetch with a hyper-specific iOS Safari User-Agent to bypass Datacenter IP blocking!
+        const res = await fetch(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            }
         });
 
-        const { items } = await client.dataset(run.defaultDatasetId).listItems();
-        
-        if (!items || items.length === 0) {
-            console.warn('[eBay/Apify] No sold items found by playwright for query:', query);
+        const html = await res.text();
+        const $ = cheerio.load(html);
+        const items: Listing[] = [];
+
+        $('.s-item__wrapper').each((i, el) => {
+            const title = $(el).find('.s-item__title').text().trim();
+            if (!title || title.includes("Shop on eBay") || title.length < 3) return;
+
+            let priceText = $(el).find('.s-item__price').text().trim() || '';
+            if (priceText.includes('to')) priceText = priceText.split('to')[0];
+            const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+
+            if (price > 0 && title) {
+                items.push({
+                    title: title,
+                    price: price,
+                    currency: 'USD',
+                    image: $(el).find('.s-item__image-img').attr('src') || undefined,
+                    itemWebUrl: $(el).find('.s-item__link').attr('href') || '#',
+                    condition: $(el).find('.SECONDARY_INFO').text().trim() || undefined
+                });
+            }
+        });
+
+        if (items.length === 0) {
+            console.warn('[eBay/Native] No sold items found natively for query:', query);
             return [];
         }
 
-        console.log(`[eBay/Apify] Successfully executed dynamic script! Retrieved ${items.length} items`);
+        console.log(`[eBay/Native] Successfully executed native serverless bypass! Retrieved ${items.length} items`);
         
-        // Items are already perfectly formatted by our custom pageFunction script!
-        return items as unknown as Listing[];
+        return items.slice(0, limit);
     } catch (err: any) {
-        console.error('[eBay/Apify] Error fetching sold comps via playwright:', err.message);
+        console.error('[eBay/Native] Error fetching sold comps natively:', err.message);
         return [];
     }
 }
