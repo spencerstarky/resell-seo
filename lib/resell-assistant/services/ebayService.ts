@@ -135,7 +135,7 @@ export async function searchSoldListings(query: string, limit = 15): Promise<Lis
         console.log(`[eBay/Apify] Successfully executed dynamic script! Retrieved ${items.length} items`);
         
         // Items are already perfectly formatted by our custom pageFunction script!
-        return items as Listing[];
+        return items as unknown as Listing[];
     } catch (err: any) {
         console.error('[eBay/Apify] Error fetching sold comps via playwright:', err.message);
         return [];
