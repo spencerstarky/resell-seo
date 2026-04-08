@@ -100,21 +100,23 @@ export async function searchSoldListings(query: string, limit = 15): Promise<Lis
         const $ = cheerio.load(html);
         const items: Listing[] = [];
 
-        $('.s-item__wrapper').each((i, el) => {
-            const title = $(el).find('.s-item__title').text().trim();
+        $('.s-card__title').each((i, el) => {
+            const title = $(el).text().trim();
             if (!title || title.includes("Shop on eBay") || title.length < 3) return;
 
-            let priceText = $(el).find('.s-item__price').text().trim() || '';
+            const wrapper = $(el).closest('.s-card, .su-card-container');
+            let priceText = wrapper.find('.s-item__price, [class*="price"]').text().trim() || '';
             if (priceText.includes('to')) priceText = priceText.split('to')[0];
             const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
 
             if (price > 0 && title) {
+                const imgEl = wrapper.find('img');
                 items.push({
                     title: title,
                     price: price,
-                    image: $(el).find('.s-item__image-img').attr('src') || undefined,
-                    itemWebUrl: $(el).find('.s-item__link').attr('href') || '#',
-                    condition: $(el).find('.SECONDARY_INFO').text().trim() || undefined
+                    image: imgEl.attr('data-src') || imgEl.attr('src') || undefined,
+                    itemWebUrl: wrapper.find('a').attr('href') || '#',
+                    condition: wrapper.find('.SECONDARY_INFO').text().trim() || undefined
                 });
             }
         });
