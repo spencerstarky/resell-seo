@@ -112,7 +112,6 @@ export async function searchSoldListings(query: string, limit = 15): Promise<Lis
                 items.push({
                     title: title,
                     price: price,
-                    currency: 'USD',
                     image: $(el).find('.s-item__image-img').attr('src') || undefined,
                     itemWebUrl: $(el).find('.s-item__link').attr('href') || '#',
                     condition: $(el).find('.SECONDARY_INFO').text().trim() || undefined
