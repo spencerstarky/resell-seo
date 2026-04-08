@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
             marketData,
             suggestedTitle,
             comparables,
+            compsType: soldListings.length > 0 ? 'sold' : 'active'
         };
 
         // Ephemeral Storage Lifecycle: Clean up the massive files from the bucket to retain $0 cloud costs!
