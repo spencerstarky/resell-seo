@@ -82,9 +82,6 @@ export async function searchActiveListings(query: string, limit = 50): Promise<L
     }));
 }
 
-/**
- * Fetch sold listings via Apify to bypass eBay's restricted Marketplace Insights API.
- */
 export async function searchSoldListings(query: string, limit = 15): Promise<Listing[]> {
     if (!process.env.APIFY_API_TOKEN) {
         console.warn('[eBay] Missing APIFY_API_TOKEN in environment variables. Cannot fetch sold comps.');
@@ -92,27 +89,55 @@ export async function searchSoldListings(query: string, limit = 15): Promise<Lis
     }
 
     try {
-        console.log(`[eBay/Apify] Starting scrape for sold items matching: "${query}"`);
+        console.log(`[eBay/Apify] Starting Playwright scrape for sold items matching: "${query}"`);
         const client = new ApifyClient({ token: process.env.APIFY_API_TOKEN });
 
-        const run = await client.actor('getdataforme/ebay-scraper').call({
-            search: query,
-            soldItems: true,
-            maxItems: limit
+        const searchUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_Sold=1&LH_Complete=1`;
+
+        // We use Apify's official universal Playwright scraper to bypass 3rd party deprecation!
+        const run = await client.actor('apify/playwright-scraper').call({
+            startUrls: [{ url: searchUrl }],
+            pageFunction: `async function pageFunction(context) {
+                const { page } = context;
+                // Wait for eBay's React hydration to guarantee items are rendered
+                await page.waitForSelector('.s-item__title', { timeout: 15000 }).catch(() => {});
+                
+                const items = await page.$$eval('.s-item', nodes => nodes.map(n => {
+                    const title = n.querySelector('.s-item__title')?.innerText?.trim() || '';
+                    if (!title || title.includes("Shop on eBay") || title.length < 3) return null;
+                    
+                    let priceText = n.querySelector('.s-item__price')?.innerText?.trim() || '';
+                    if (priceText.includes('to')) priceText = priceText.split('to')[0];
+                    const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
+                    
+                    return {
+                        title: title,
+                        price: price,
+                        currency: 'USD',
+                        image: n.querySelector('.s-item__image-img')?.src || null,
+                        itemWebUrl: n.querySelector('.s-item__link')?.href || '#',
+                        condition: n.querySelector('.SECONDARY_INFO')?.innerText || null
+                    };
+                }).filter(Boolean));
+                
+                return items.slice(0, 15); // Return top requested limit
+            }`,
+            proxyConfiguration: { useApifyProxy: true }
         });
 
         const { items } = await client.dataset(run.defaultDatasetId).listItems();
         
-        return items.map((item: any) => ({
-            title: item.title || '',
-            price: item.price ? parseFloat(item.price) : 0,
-            currency: item.currency || 'USD',
-            image: item.image || item.imageUrl || null,
-            itemWebUrl: item.url || '#',
-            condition: item.condition || null,
-        }));
+        if (!items || items.length === 0) {
+            console.warn('[eBay/Apify] No sold items found by playwright for query:', query);
+            return [];
+        }
+
+        console.log(`[eBay/Apify] Successfully executed dynamic script! Retrieved ${items.length} items`);
+        
+        // Items are already perfectly formatted by our custom pageFunction script!
+        return items as Listing[];
     } catch (err: any) {
-        console.error('[eBay/Apify] Error fetching sold comps:', err.message);
+        console.error('[eBay/Apify] Error fetching sold comps via playwright:', err.message);
         return [];
     }
 }
