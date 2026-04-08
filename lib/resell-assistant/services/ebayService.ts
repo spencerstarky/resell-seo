@@ -95,7 +95,7 @@ export async function searchSoldListings(query: string, limit = 15): Promise<Lis
         console.log(`[eBay/Apify] Starting scrape for sold items matching: "${query}"`);
         const client = new ApifyClient({ token: process.env.APIFY_API_TOKEN });
 
-        const run = await client.actor('dvadeset/ebay-scraper').call({
+        const run = await client.actor('getdataforme/ebay-scraper').call({
             search: query,
             soldItems: true,
             maxItems: limit
