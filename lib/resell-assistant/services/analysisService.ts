@@ -18,13 +18,16 @@ export interface MarketData {
 /**
  * Compute market analytics from listing data.
  */
-export function computeMarketData(activeListings: Listing[], soldListings: Listing[] = []): MarketData {
-    const activePrices = activeListings
+export function computeMarketData(
+    activeData: { items: Listing[], totalCount: number }, 
+    soldData: { items: Listing[], totalCount: number }
+): MarketData {
+    const activePrices = activeData.items
         .map(l => l.price)
         .filter(p => p > 0)
         .sort((a, b) => a - b);
 
-    const soldPrices = soldListings
+    const soldPrices = soldData.items
         .map(l => l.price)
         .filter(p => p > 0)
         .sort((a, b) => a - b);
@@ -40,16 +43,18 @@ export function computeMarketData(activeListings: Listing[], soldListings: Listi
         ? calculateMedian(pricingData)
         : null;
 
-    // Sell-through rate: sold / (sold + active)
-    const sellThroughRate = soldListings.length > 0
-        ? soldListings.length / (soldListings.length + activeListings.length)
+    // Sell-through rate: soldTotal / (soldTotal + activeTotal)
+    const activeTotal = activeData.totalCount;
+    const soldTotal = soldData.totalCount;
+    const sellThroughRate = soldTotal > 0
+        ? soldTotal / (soldTotal + activeTotal)
         : null;
 
     return {
         averagePrice,
         medianPrice,
-        activeCount: activeListings.length,
-        soldCount: soldListings.length || null,
+        activeCount: activeTotal,
+        soldCount: soldTotal || null,
         sellThroughRate,
         priceSource: soldPrices.length > 0 ? 'sold' : 'active',
     };

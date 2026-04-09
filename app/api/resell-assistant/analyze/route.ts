@@ -39,17 +39,17 @@ export async function POST(req: NextRequest) {
         // Step 2: Search eBay for comparable listings (Active + Sold natively via cheerio)
         const searchQuery = detectedItem.compingQuery || detectedItem.productName;
         // Run both searches in parallel for maximum speed!
-        const [activeListings, soldListings] = await Promise.all([
+        const [activeResult, soldResult] = await Promise.all([
             searchActiveListings(searchQuery),
             searchSoldListings(searchQuery, 15)
         ]);
-        console.log(`[Analyze] Found ${activeListings.length} active and ${soldListings.length} sold listing(s)`);
+        console.log(`[Analyze] Market Extraction Complete. True Active: ${activeResult.totalCount} | True Sold: ${soldResult.totalCount}`);
 
-        // Step 3: Compute market analytics. Pass sold listings too so it calculates sell-through rate and true market floor.
-        const marketData = computeMarketData(activeListings, soldListings);
+        // Step 3: Compute market analytics using the TRUE uncapped totals!
+        const marketData = computeMarketData(activeResult, soldResult);
 
         // Step 4: Generate optimized title from listing data
-        const suggestedTitle = generateTitle(activeListings, detectedItem);
+        const suggestedTitle = generateTitle(activeResult.items, detectedItem);
 
         // Step 5: Format both sets of comparables for the UI toggle
         const mapListing = (listing: any) => ({
@@ -60,8 +60,8 @@ export async function POST(req: NextRequest) {
             condition: listing.condition,
         });
 
-        const activeComparables = activeListings.slice(0, 10).map(mapListing);
-        const soldComparables = soldListings.slice(0, 10).map(mapListing);
+        const activeComparables = activeResult.items.slice(0, 10).map(mapListing);
+        const soldComparables = soldResult.items.slice(0, 10).map(mapListing);
 
         // Return combined results with CORS header
         const result = {

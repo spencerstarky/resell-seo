@@ -49,9 +49,9 @@ async function getEbayToken(): Promise<string> {
 
 /**
  * Search for active listings on eBay using the Browse API.
- * Returns normalized listing objects.
+ * Returns normalized listing objects and the true numerical market total.
  */
-export async function searchActiveListings(query: string, limit = 50): Promise<Listing[]> {
+export async function searchActiveListings(query: string, limit = 50): Promise<{ items: Listing[], totalCount: number }> {
     const token = await getEbayToken();
 
     const response = await axios.get(
@@ -70,8 +70,9 @@ export async function searchActiveListings(query: string, limit = 50): Promise<L
     );
 
     const items = response.data.itemSummaries || [];
+    const totalCount = response.data.total || items.length;
 
-    return items.map((item: any) => ({
+    const mappedItems = items.map((item: any) => ({
         title: item.title || '',
         price: item.price?.value ? parseFloat(item.price.value) : 0,
         currency: item.price?.currency || 'USD',
@@ -80,9 +81,11 @@ export async function searchActiveListings(query: string, limit = 50): Promise<L
         condition: item.condition || null,
         itemId: item.itemId,
     }));
+
+    return { items: mappedItems, totalCount };
 }
 
-export async function searchSoldListings(query: string, limit = 15): Promise<Listing[]> {
+export async function searchSoldListings(query: string, limit = 15): Promise<{ items: Listing[], totalCount: number }> {
     try {
         console.log(`[eBay/Native] Starting native Serverless scrape for sold items: "${query}"`);
         const searchUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_Sold=1&LH_Complete=1`;
@@ -99,6 +102,15 @@ export async function searchSoldListings(query: string, limit = 15): Promise<Lis
         const html = await res.text();
         const $ = cheerio.load(html);
         const items: Listing[] = [];
+
+        // Market Velocity Fix: Extract the true global count of sold listings!
+        let totalCount = 0;
+        const countText = $('.srp-controls__count-heading').text() || $('[class*="count-heading"]').text();
+        if (countText) {
+            // "36 results" or "1,234 results" -> remove commas and parse
+            const match = countText.replace(/,/g, '').match(/(\d+)/);
+            if (match) totalCount = parseInt(match[1], 10);
+        }
 
         $('.s-card__title').each((i, el) => {
             const title = $(el).text().trim();
@@ -123,14 +135,18 @@ export async function searchSoldListings(query: string, limit = 15): Promise<Lis
 
         if (items.length === 0) {
             console.warn('[eBay/Native] No sold items found natively for query:', query);
-            return [];
+            return { items: [], totalCount: 0 };
         }
 
-        console.log(`[eBay/Native] Successfully executed native serverless bypass! Retrieved ${items.length} items`);
+        if (totalCount === 0) {
+            totalCount = items.length; // Fallback
+        }
+
+        console.log(`[eBay/Native] Bypass Success! Scraped ${items.length} items. True Market Total: ${totalCount}`);
         
-        return items.slice(0, limit);
+        return { items: items.slice(0, limit), totalCount };
     } catch (err: any) {
         console.error('[eBay/Native] Error fetching sold comps natively:', err.message);
-        return [];
+        return { items: [], totalCount: 0 };
     }
 }
