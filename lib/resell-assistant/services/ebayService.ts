@@ -51,16 +51,21 @@ async function getEbayToken(): Promise<string> {
  * Search for active listings on eBay using the Browse API.
  * Returns normalized listing objects and the true numerical market total.
  */
-export async function searchActiveListings(query: string, limit = 50): Promise<{ items: Listing[], totalCount: number }> {
+export async function searchActiveListings(query: string, limit = 50, condition: string = 'all'): Promise<{ items: Listing[], totalCount: number }> {
     const token = await getEbayToken();
+
+    const requestParams: any = { q: query, limit };
+    if (condition === 'new') {
+        requestParams.filter = 'conditionIds:{1000}';
+    } else if (condition === 'used') {
+        // Appends broadly Pre-Owned and corresponding conditions mathematically
+        requestParams.filter = 'conditionIds:{3000|4000|5000|6000}';
+    }
 
     const response = await axios.get(
         'https://api.ebay.com/buy/browse/v1/item_summary/search',
         {
-            params: {
-                q: query,
-                limit,
-            },
+            params: requestParams,
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_US',
@@ -85,10 +90,16 @@ export async function searchActiveListings(query: string, limit = 50): Promise<{
     return { items: mappedItems, totalCount };
 }
 
-export async function searchSoldListings(query: string, limit = 15): Promise<{ items: Listing[], totalCount: number }> {
+export async function searchSoldListings(query: string, limit = 15, condition: string = 'all'): Promise<{ items: Listing[], totalCount: number }> {
     try {
-        console.log(`[eBay/Native] Starting native Serverless scrape for sold items: "${query}"`);
-        const searchUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_Sold=1&LH_Complete=1`;
+        console.log(`[eBay/Native] Starting Serverless scrape: "${query}" | Condition: ${condition}`);
+        
+        let searchUrl = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_Sold=1&LH_Complete=1`;
+        if (condition === 'new') {
+            searchUrl += '&LH_ItemCondition=1000';
+        } else if (condition === 'used') {
+            searchUrl += '&LH_ItemCondition=3000'; // Target explicit 'Pre-owned' 
+        }
 
         // Native fetch with a hyper-specific iOS Safari User-Agent to bypass Datacenter IP blocking!
         const res = await fetch(searchUrl, {
