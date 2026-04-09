@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const listings = await searchSoldListings(keyword, 20);
 
     // Map the returned dataset into the legacy format expected by this endpoint
-    const comps = listings.map((item: any) => ({
+    const comps = listings.items.map((item: any) => ({
       title: item.title,
       price: item.price,
       currency: 'USD',
