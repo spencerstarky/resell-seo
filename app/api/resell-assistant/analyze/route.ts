@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
         const detectedItem = await identifyProduct(imageUrls);
         console.log('[Analyze] Detected item:', detectedItem.productName);
 
-        // Step 2: Search eBay for comparable listings (Active + Sold via Apify)
-        const searchQuery = detectedItem.keywords || detectedItem.productName;
+        // Step 2: Search eBay for comparable listings (Active + Sold natively via cheerio)
+        const searchQuery = detectedItem.compingQuery || detectedItem.productName;
         // Run both searches in parallel for maximum speed!
         const [activeListings, soldListings] = await Promise.all([
             searchActiveListings(searchQuery),

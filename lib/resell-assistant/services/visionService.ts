@@ -7,6 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 export interface DetectedItem {
     productName: string;
     category: string | null;
+    compingQuery: string;
     keywords: string;
 }
 
@@ -52,7 +53,7 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
         })
     );
 
-    // Prepare image parts for the multimodal request
+    // Prep base64 data for Gemini
     const imageParts = processedFiles.map(file => ({
         inlineData: {
             data: file.buffer.toString('base64'),
@@ -60,23 +61,57 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
         },
     }));
 
+    // Google Lens Context Shield
+    let lensContext = "";
+    if (process.env.SERPAPI_API_KEY && imageUrls.length > 0) {
+        try {
+            console.log("[Vision/Lens] Executing Visual Matching indexing tunnel...");
+            const targetUrl = imageUrls[0];
+            const lensApiUrl = `https://serpapi.com/search.json?engine=google_lens&url=${encodeURIComponent(targetUrl)}&api_key=${process.env.SERPAPI_API_KEY}`;
+            const lensRes = await fetch(lensApiUrl);
+            
+            if (lensRes.ok) {
+                const lensData = await lensRes.json();
+                if (lensData.visual_matches && lensData.visual_matches.length > 0) {
+                    const topMatches = lensData.visual_matches
+                        .slice(0, 5) // Take top 5 definitive matches
+                        .map((m: any) => m.title)
+                        .filter(Boolean);
+                        
+                    if (topMatches.length > 0) {
+                        lensContext = `\n\nCRITICAL CONTEXT: A Google Lens reverse-image search executed on this exact photo yielded these 100% exact web matches: [ ${topMatches.join(' | ')} ]. Use these hardcoded web-grounding clues to definitively compute the EXACT Brand and Manufacturer Model Name, rather than guessing based strictly on visuals.`;
+                        console.log("[Vision/Lens] Successfully bridged Web Grounding Context:", topMatches);
+                    }
+                }
+            } else {
+                console.warn("[Vision/Lens] SerpAPI rejected request. Check limits/keys.");
+            }
+        } catch (lensErr) {
+            console.warn("[Vision/Lens] Non-fatal Google Lens API bypass:", lensErr);
+        }
+    } else {
+        console.log("[Vision/Lens] SERPAPI_API_KEY not found or no URL available. Operating heuristically.");
+    }
+
     const prompt = `You are a product identification expert specializing in secondhand and vintage items commonly sold on eBay.
 
 Analyze the provided product photo(s) and identify:
 1. The specific product name (include brand, model, style, and key features)
 2. The product category (e.g., "Men's Jackets", "Women's Shoes", "Vintage Electronics")
-3. A keyword string optimized for eBay search (include brand, item type, key attributes like color, size indicators, material, era/vintage if applicable)
+3. A hyper-strict 3-4 word "compingQuery". This must ONLY contain the Brand, the exact Model Name, and the most critical identifier (like Gender or Size). Do NOT include generic adjectives like 'elastic', 'gray', or 'vintage' which dilute exact-match searches.
+4. A large keyword string optimized for eBay search SEO (include brand, item type, key attributes like color, size indicators, material, era/vintage if applicable)${lensContext}
 
 Respond ONLY in this exact JSON format, with no additional text:
 {
   "productName": "Brand Model/Style Description",
   "category": "Category Name",
+  "compingQuery": "Brand Exact-Model Gender/Size",
   "keywords": "brand model style color material key-features"
 }
 
 Examples:
-- A Carhartt jacket photo → {"productName": "Carhartt Detroit Jacket Blanket Lined", "category": "Men's Jackets & Coats", "keywords": "Carhartt Detroit Jacket Blanket Lined Workwear"}
-- A pair of Nike shoes → {"productName": "Nike Air Max 90 Essential", "category": "Men's Athletic Shoes", "keywords": "Nike Air Max 90 Essential Running Shoes"}
+- A Carhartt jacket photo → {"productName": "Carhartt Detroit Jacket Blanket Lined", "category": "Men's Jackets & Coats", "compingQuery": "Carhartt Detroit Jacket Men's", "keywords": "Carhartt Detroit Jacket Blanket Lined Workwear"}
+- A pair of Nike shoes → {"productName": "Nike Air Max 90 Essential", "category": "Men's Athletic Shoes", "compingQuery": "Nike Air Max 90", "keywords": "Nike Air Max 90 Essential Running Shoes"}
 
 Be as specific as possible. Include brand names, model numbers, and distinguishing features visible in the photos.`;
 
@@ -102,6 +137,7 @@ Be as specific as possible. Include brand names, model numbers, and distinguishi
     return {
         productName: parsed.productName || 'Unknown Item',
         category: parsed.category || null,
+        compingQuery: parsed.compingQuery || parsed.productName || 'Unknown Item',
         keywords: parsed.keywords || parsed.productName || 'Unknown Item',
     };
 }
