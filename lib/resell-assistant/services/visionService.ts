@@ -98,7 +98,7 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
 Analyze the provided product photo(s) and identify:
 1. The specific product name (include brand, model, style, and key features)
 2. The product category (e.g., "Men's Jackets", "Women's Shoes", "Vintage Electronics")
-3. A hyper-strict 3-4 word "compingQuery". This must ONLY contain the Brand, the exact Model Name, and the most critical identifier (like Gender or Size). Do NOT include generic adjectives like 'elastic', 'gray', or 'vintage' which dilute exact-match searches.
+3. A highly accurate, human-readable 2-4 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Consumer Collection/Line] + [Core Silhouette/Type]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).
 4. A large keyword string optimized for eBay search SEO (include brand, item type, key attributes like color, size indicators, material, era/vintage if applicable)${lensContext}
 
 Respond ONLY in this exact JSON format, with no additional text:
@@ -110,7 +110,8 @@ Respond ONLY in this exact JSON format, with no additional text:
 }
 
 Examples:
-- A Carhartt jacket photo → {"productName": "Carhartt Detroit Jacket Blanket Lined", "category": "Men's Jackets & Coats", "compingQuery": "Carhartt Detroit Jacket Men's", "keywords": "Carhartt Detroit Jacket Blanket Lined Workwear"}
+- A Tasc t-shirt photo → {"productName": "tasc Carrollton Performance T-Shirt TM110 Dark Heather Blue", "category": "Men's Athletic T-Shirts", "compingQuery": "tasc Carrollton T-Shirt", "keywords": "tasc Carrollton Performance T-Shirt TM110 Dark Heather Blue Bamboo Viscose Blend"}
+- A Carhartt jacket photo → {"productName": "Carhartt Detroit Jacket Blanket Lined", "category": "Men's Jackets & Coats", "compingQuery": "Carhartt Detroit Jacket", "keywords": "Carhartt Detroit Jacket Blanket Lined Workwear"}
 - A pair of Nike shoes → {"productName": "Nike Air Max 90 Essential", "category": "Men's Athletic Shoes", "compingQuery": "Nike Air Max 90", "keywords": "Nike Air Max 90 Essential Running Shoes"}
 
 Be as specific as possible. Include brand names, model numbers, and distinguishing features visible in the photos.`;
