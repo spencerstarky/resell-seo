@@ -123,11 +123,19 @@ export async function searchSoldListings(query: string, limit = 15, condition: s
             if (match) totalCount = parseInt(match[1], 10);
         }
 
+        const seenUrls = new Set<string>();
+
         $('.s-card__title').each((i, el) => {
             const title = $(el).text().trim();
             if (!title || title.includes("Shop on eBay") || title.length < 3) return;
 
             const wrapper = $(el).closest('.s-card, .su-card-container');
+            const itemUrl = wrapper.find('a').attr('href') || '#';
+
+            // Prevent duplicate DOM counting if eBay renders multiple title nodes inside the same wrapper
+            if (seenUrls.has(itemUrl)) return;
+            seenUrls.add(itemUrl);
+
             let priceText = wrapper.find('.s-item__price, [class*="price"]').text().trim() || '';
             if (priceText.includes('to')) priceText = priceText.split('to')[0];
             const price = parseFloat(priceText.replace(/[^0-9.]/g, '')) || 0;
@@ -138,7 +146,7 @@ export async function searchSoldListings(query: string, limit = 15, condition: s
                     title: title,
                     price: price,
                     image: imgEl.attr('data-src') || imgEl.attr('src') || undefined,
-                    itemWebUrl: wrapper.find('a').attr('href') || '#',
+                    itemWebUrl: itemUrl,
                     condition: wrapper.find('.SECONDARY_INFO').text().trim() || undefined
                 });
             }
