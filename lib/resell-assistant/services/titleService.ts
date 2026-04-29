@@ -87,6 +87,11 @@ function toTitleCase(str: string): string {
         return str.split('-').map(toTitleCase).join('-');
     }
     
+    // Handle slashed words (e.g., "Cotton/Linen")
+    if (str.includes('/')) {
+        return str.split('/').map(toTitleCase).join('/');
+    }
+    
     // Handle dotted words (e.g., "J.Crew")
     if (str.includes('.')) {
         return str.split('.').map(toTitleCase).join('.');
