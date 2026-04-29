@@ -38,8 +38,9 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
     let currentLength = 0;
 
     for (const rawAttr of orderedAttributes) {
-        // Clean and title-case the entire attribute string as an atomic unit
+        // Clean commas and title-case the entire attribute string as an atomic unit
         const formattedAttr = rawAttr
+            .replace(/,/g, '')
             .trim()
             .split(/\s+/)
             .map(toTitleCase)
