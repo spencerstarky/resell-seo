@@ -26,6 +26,7 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
     const orderedAttributes: string[] = [
         attr.brand,
         attr.model_or_style,
+        attr.item_type,
         attr.gender_department,
         attr.size,
         attr.color,
@@ -58,7 +59,7 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
 }
 
 /**
- * Convert a word to Title Case, preserving strict capitalized abbreviations.
+ * Convert a word to Title Case, preserving strict capitalized abbreviations and internal punctuation.
  */
 function toTitleCase(str: string): string {
     if (!str) return '';
@@ -67,6 +68,16 @@ function toTitleCase(str: string): string {
     // Reserve specific uppercase codes common in fashion/hardgoods
     if (['XL', 'XXL', 'S', 'M', 'L', 'US', 'UK', 'EU', 'NWT', 'NWOT', 'Y2K', 'AOP'].includes(upperStr)) {
         return upperStr;
+    }
+    
+    // Handle hyphenated words (e.g., "Short-Sleeve")
+    if (str.includes('-')) {
+        return str.split('-').map(toTitleCase).join('-');
+    }
+    
+    // Handle dotted words (e.g., "J.Crew")
+    if (str.includes('.')) {
+        return str.split('.').map(toTitleCase).join('.');
     }
     
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

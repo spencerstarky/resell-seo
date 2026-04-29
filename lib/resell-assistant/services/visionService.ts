@@ -7,6 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 export interface StructuredAttributes {
     brand: string | null;
     model_or_style: string | null;
+    item_type: string | null;
     gender_department: string | null;
     size: string | null;
     color: string | null;
@@ -107,7 +108,7 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
     const prompt = `You are a product identification expert specializing in secondhand and vintage items commonly sold on eBay.
 
 Analyze the provided product photo(s) and identify:
-1. The structured SEO attributes (brand, model_or_style, gender_department, size, color, material, key_features). Return \`null\` for ANY attribute you cannot explicitly verify in the photo (e.g., if there is no physical size tag or gender tag, you MUST return null for size/gender to prevent hallucination).
+1. The structured SEO attributes (brand, model_or_style, item_type, gender_department, size, color, material, key_features). Return \`null\` for ANY attribute you cannot explicitly verify in the photo (e.g., if there is no physical size tag or gender tag, you MUST return null for size/gender to prevent hallucination).
 2. The product category (e.g., "Men's Jackets", "Women's Shoes", "Vintage Electronics")
 3. A highly accurate, human-readable 2-4 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Consumer Collection/Line] + [Core Silhouette/Type]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).${lensContext}
 
@@ -118,6 +119,7 @@ Respond ONLY in this exact JSON format, with no additional text:
   "structuredAttributes": {
      "brand": "string | null",
      "model_or_style": "string | null",
+     "item_type": "string | null (e.g., Shirt, Jacket, Sneakers)",
      "gender_department": "string | null",
      "size": "string | null",
      "color": "string | null",
@@ -150,7 +152,7 @@ Be as specific as possible. Include brand names, model numbers, and distinguishi
     // Fallback UI generation logic (synthesizes productName/keywords from structured attributes)
     const attr = parsed.structuredAttributes || {};
     const featuresStr = Array.isArray(attr.key_features) ? attr.key_features.join(' ') : '';
-    const generatedProductName = [attr.brand, attr.model_or_style, attr.gender_department, attr.size, attr.color, attr.material, featuresStr]
+    const generatedProductName = [attr.brand, attr.model_or_style, attr.item_type, attr.gender_department, attr.size, attr.color, attr.material, featuresStr]
         .filter(Boolean).join(' ');
 
     return {
