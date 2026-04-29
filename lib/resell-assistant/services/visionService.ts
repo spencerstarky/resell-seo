@@ -4,11 +4,22 @@ import convert from 'heic-convert';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+export interface StructuredAttributes {
+    brand: string | null;
+    model_or_style: string | null;
+    gender_department: string | null;
+    size: string | null;
+    color: string | null;
+    material: string | null;
+    key_features: string[];
+}
+
 export interface DetectedItem {
     productName: string;
     category: string | null;
     compingQuery: string;
     keywords: string;
+    structuredAttributes: StructuredAttributes;
 }
 
 /**
@@ -96,23 +107,24 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
     const prompt = `You are a product identification expert specializing in secondhand and vintage items commonly sold on eBay.
 
 Analyze the provided product photo(s) and identify:
-1. The specific product name (include brand, model, style, and key features)
+1. The structured SEO attributes (brand, model_or_style, gender_department, size, color, material, key_features). Return \`null\` for ANY attribute you cannot explicitly verify in the photo (e.g., if there is no physical size tag or gender tag, you MUST return null for size/gender to prevent hallucination).
 2. The product category (e.g., "Men's Jackets", "Women's Shoes", "Vintage Electronics")
-3. A highly accurate, human-readable 2-4 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Consumer Collection/Line] + [Core Silhouette/Type]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).
-4. A large keyword string optimized for eBay search SEO (include brand, item type, key attributes like color, size indicators, material, era/vintage if applicable)${lensContext}
+3. A highly accurate, human-readable 2-4 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Consumer Collection/Line] + [Core Silhouette/Type]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).${lensContext}
 
 Respond ONLY in this exact JSON format, with no additional text:
 {
-  "productName": "Brand Model/Style Description",
   "category": "Category Name",
   "compingQuery": "Brand Exact-Model Gender/Size",
-  "keywords": "brand model style color material key-features"
+  "structuredAttributes": {
+     "brand": "string | null",
+     "model_or_style": "string | null",
+     "gender_department": "string | null",
+     "size": "string | null",
+     "color": "string | null",
+     "material": "string | null",
+     "key_features": ["array", "of", "strings"]
+  }
 }
-
-Examples:
-- A Tasc t-shirt photo → {"productName": "tasc Carrollton Performance T-Shirt TM110 Dark Heather Blue", "category": "Men's Athletic T-Shirts", "compingQuery": "tasc Carrollton T-Shirt", "keywords": "tasc Carrollton Performance T-Shirt TM110 Dark Heather Blue Bamboo Viscose Blend"}
-- A Carhartt jacket photo → {"productName": "Carhartt Detroit Jacket Blanket Lined", "category": "Men's Jackets & Coats", "compingQuery": "Carhartt Detroit Jacket", "keywords": "Carhartt Detroit Jacket Blanket Lined Workwear"}
-- A pair of Nike shoes → {"productName": "Nike Air Max 90 Essential", "category": "Men's Athletic Shoes", "compingQuery": "Nike Air Max 90", "keywords": "Nike Air Max 90 Essential Running Shoes"}
 
 Be as specific as possible. Include brand names, model numbers, and distinguishing features visible in the photos.`;
 
@@ -135,10 +147,17 @@ Be as specific as possible. Include brand names, model numbers, and distinguishi
         throw new Error('Image recognition failed. Please try again or enter a manual search query.');
     }
 
+    // Fallback UI generation logic (synthesizes productName/keywords from structured attributes)
+    const attr = parsed.structuredAttributes || {};
+    const featuresStr = Array.isArray(attr.key_features) ? attr.key_features.join(' ') : '';
+    const generatedProductName = [attr.brand, attr.model_or_style, attr.gender_department, attr.size, attr.color, attr.material, featuresStr]
+        .filter(Boolean).join(' ');
+
     return {
-        productName: parsed.productName || 'Unknown Item',
+        productName: generatedProductName || 'Unknown Item',
         category: parsed.category || null,
-        compingQuery: parsed.compingQuery || parsed.productName || 'Unknown Item',
-        keywords: parsed.keywords || parsed.productName || 'Unknown Item',
+        compingQuery: parsed.compingQuery || generatedProductName || 'Unknown Item',
+        keywords: generatedProductName || 'Unknown Item',
+        structuredAttributes: attr,
     };
 }
