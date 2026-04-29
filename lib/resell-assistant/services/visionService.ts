@@ -123,7 +123,7 @@ Respond ONLY in this exact JSON format, with no additional text:
      "gender_department": "string | null",
      "size": "string | null",
      "color": "string | null (1-2 primary colors or style like 'Multicolor'. NO commas)",
-     "material": "string | null",
+     "material": "string | null (Core material ONLY e.g., 'Wool', 'Silk', 'Wool Blend'. DO NOT output percentages like '80% Wool')",
      "key_features": ["array", "of", "1-3 word", "punchy keywords", "NO sentences"]
   }
 }
