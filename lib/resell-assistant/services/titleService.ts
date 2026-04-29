@@ -38,21 +38,22 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
     let currentLength = 0;
 
     for (const rawAttr of orderedAttributes) {
-        // Break up features like "Short Sleeve" into single tokens to pack tighter
-        const words = rawAttr.trim().split(/\s+/);
+        // Clean and title-case the entire attribute string as an atomic unit
+        const formattedAttr = rawAttr
+            .trim()
+            .split(/\s+/)
+            .map(toTitleCase)
+            .join(' ');
+            
+        // Add +1 for the space (unless it's the very first attribute)
+        const addedLength = titleWords.length === 0 ? formattedAttr.length : formattedAttr.length + 1;
         
-        for (const word of words) {
-            const formattedWord = toTitleCase(word);
-            
-            // Add +1 for the space (unless it's the very first word)
-            const addedLength = titleWords.length === 0 ? formattedWord.length : formattedWord.length + 1;
-            
-            if (currentLength + addedLength <= MAX_TITLE_LENGTH) {
-                titleWords.push(formattedWord);
-                currentLength += addedLength;
-            }
-            // If the next word busts the 80 char limit, it is seamlessly discarded.
+        if (currentLength + addedLength <= MAX_TITLE_LENGTH) {
+            titleWords.push(formattedAttr);
+            currentLength += addedLength;
         }
+        // If the entire attribute (e.g., "Full Button") breaks the 80 char limit, the ENTIRE phrase is discarded.
+        // This prevents orphaned words like "Full" from being injected out of context.
     }
 
     return titleWords.join(' ');
