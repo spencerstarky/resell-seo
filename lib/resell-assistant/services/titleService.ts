@@ -35,16 +35,28 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
     ].filter((val): val is string => Boolean(val));
 
     const titleWords: string[] = [];
+    const usedWords = new Set<string>();
     let currentLength = 0;
 
     for (const rawAttr of orderedAttributes) {
-        // Clean commas and title-case the entire attribute string as an atomic unit
-        const formattedAttr = rawAttr
-            .replace(/,/g, '')
-            .trim()
-            .split(/\s+/)
-            .map(toTitleCase)
-            .join(' ');
+        // Strip commas and split into individual words to scan for duplicates
+        const words = rawAttr.replace(/,/g, '').trim().split(/\s+/);
+        const uniqueWords: string[] = [];
+        
+        for (const word of words) {
+            const normalized = word.toLowerCase();
+            // If the exact word is already anywhere in the title, skip it
+            if (usedWords.has(normalized)) continue;
+            
+            uniqueWords.push(word);
+            usedWords.add(normalized);
+        }
+        
+        // If all words in this attribute were duplicates, skip it entirely
+        if (uniqueWords.length === 0) continue;
+        
+        // Re-join the unique words back into an atomic phrase
+        const formattedAttr = uniqueWords.map(toTitleCase).join(' ');
             
         // Add +1 for the space (unless it's the very first attribute)
         const addedLength = titleWords.length === 0 ? formattedAttr.length : formattedAttr.length + 1;
@@ -53,8 +65,6 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
             titleWords.push(formattedAttr);
             currentLength += addedLength;
         }
-        // If the entire attribute (e.g., "Full Button") breaks the 80 char limit, the ENTIRE phrase is discarded.
-        // This prevents orphaned words like "Full" from being injected out of context.
     }
 
     return titleWords.join(' ');
