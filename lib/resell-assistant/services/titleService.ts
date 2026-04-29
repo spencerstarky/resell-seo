@@ -22,6 +22,13 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
         return detectedItem.productName ? detectedItem.productName.substring(0, MAX_TITLE_LENGTH) : 'Unknown Item';
     }
 
+    // Force exact size expansion just in case Gemini extracts the raw single-letter tag natively
+    if (attr.size) {
+        if (attr.size.toUpperCase() === 'S') attr.size = 'Small';
+        else if (attr.size.toUpperCase() === 'M') attr.size = 'Medium';
+        else if (attr.size.toUpperCase() === 'L') attr.size = 'Large';
+    }
+
     // eBay SEO Documentation Priority Hierarchy
     const orderedAttributes: string[] = [
         attr.brand,

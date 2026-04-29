@@ -121,7 +121,7 @@ Respond ONLY in this exact JSON format, with no additional text:
      "model_or_style": "string | null",
      "item_type": "string | null (Use broad eBay search terms: e.g., 'Shirt' not 'Overshirt', 'Pants' not 'Trousers')",
      "gender_department": "string | null",
-     "size": "string | null (Extract standard US size ONLY, e.g., 'XL' or '32x30'. Omit international equivalents like '/TG' or '/EG')",
+     "size": "string | null (US size only. Spell out 'Small', 'Medium', 'Large'. Keep abbreviations for XS, XL, XXL. NO '/TG')",
      "color": "string | null (1-2 primary colors or style like 'Multicolor'. NO commas)",
      "material": "string | null (Core material ONLY e.g., 'Wool', 'Silk', 'Wool Blend'. DO NOT output percentages like '80% Wool')",
      "key_features": ["array", "of", "1-3 word", "punchy keywords", "NO sentences"]
