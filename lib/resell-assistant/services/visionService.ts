@@ -119,12 +119,12 @@ Respond ONLY in this exact JSON format, with no additional text:
   "structuredAttributes": {
      "brand": "string | null",
      "model_or_style": "string | null",
-     "item_type": "string | null (e.g., Shirt, Jacket, Sneakers)",
+     "item_type": "string | null (Use broad eBay search terms: e.g., 'Shirt' not 'Overshirt', 'Pants' not 'Trousers')",
      "gender_department": "string | null",
      "size": "string | null",
      "color": "string | null (1-2 primary colors or style like 'Multicolor'. NO commas)",
      "material": "string | null",
-     "key_features": ["array", "of", "strings"]
+     "key_features": ["array", "of", "1-3 word", "punchy keywords", "NO sentences"]
   }
 }
 
