@@ -37,6 +37,7 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
         attr.item_type,
         attr.gender_department,
         attr.size,
+        attr.fit_style,
         attr.color,
         attr.material,
         ...(Array.isArray(attr.key_features) ? attr.key_features : [])

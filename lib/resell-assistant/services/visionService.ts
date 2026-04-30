@@ -9,6 +9,7 @@ export interface StructuredAttributes {
     item_type: string | null;
     gender_department: string | null;
     size: string | null;
+    fit_style: string | null;
     color: string | null;
     material: string | null;
     key_features: string[];
@@ -102,7 +103,7 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
     const prompt = `You are a product identification expert specializing in secondhand and vintage items commonly sold on eBay.
 
 Analyze the provided product photo(s) and identify:
-1. The structured SEO attributes (brand, model_or_style, graphic_or_logo, item_type, gender_department, size, color, material, key_features). You may logically infer 'gender_department' from the item's visual cut/style. However, you MUST return \`null\` for 'size' or 'material' if physical tags are not explicitly visible to prevent hallucination.
+1. The structured SEO attributes (brand, model_or_style, graphic_or_logo, item_type, gender_department, size, fit_style, color, material, key_features). You may logically infer 'gender_department' from the item's visual cut/style. However, you MUST return \`null\` for 'size', 'fit_style', or 'material' if physical tags are not explicitly visible to prevent hallucination.
 2. The product category (e.g., "Men's Jackets", "Women's Shoes", "Vintage Electronics")
 3. A highly accurate, human-readable 3-5 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Gender (if applicable)] + [Graphic/Logo (if present)] + [Luxury Material (if 100%)] + [Consumer Collection/Line] + [Core Silhouette]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).${lensContext}
 
@@ -112,11 +113,12 @@ Respond ONLY in this exact JSON format, with no additional text:
   "compingQuery": "Brand Exact-Model Gender/Size",
   "structuredAttributes": {
      "brand": "string | null",
-     "model_or_style": "string | null",
+     "model_or_style": "string | null (General style. DO NOT guess fits like 'Slim' or 'Classic' here)",
      "graphic_or_logo": "string | null (CRITICAL: Transcribe specific text from embroidered logos, graphics, country clubs, or crests. e.g. 'Tobacco Road')",
      "item_type": "string | null (Use broad eBay search terms: e.g., 'Shirt' not 'Overshirt', 'Pants' not 'Trousers')",
      "gender_department": "string | null",
      "size": "string | null (US size only. Spell out 'Small', 'Medium', 'Large'. Keep abbreviations for XS, XL, XXL. NO '/TG')",
+     "fit_style": "string | null (Extract fit/cut ONLY if explicitly printed on a tag, e.g. 'Slim', 'Classic Fit'. DO NOT guess)",
      "color": "string | null (1-2 primary colors or style like 'Multicolor'. NO commas)",
      "material": "string | null (Extract core luxury material. If 100% luxury like Linen, Cashmere, or Silk, output '100% Cashmere' etc. Otherwise DO NOT output mixed percentages, just 'Wool Blend' etc.)",
      "key_features": ["array", "of", "1-3 word", "punchy keywords", "NO sentences"]
@@ -147,7 +149,7 @@ Be as specific as possible. Include brand names, model numbers, and distinguishi
     // Fallback UI generation logic (synthesizes productName/keywords from structured attributes)
     const attr = parsed.structuredAttributes || {};
     const featuresStr = Array.isArray(attr.key_features) ? attr.key_features.join(' ') : '';
-    const generatedProductName = [attr.brand, attr.model_or_style, attr.graphic_or_logo, attr.item_type, attr.gender_department, attr.size, attr.color, attr.material, featuresStr]
+    const generatedProductName = [attr.brand, attr.model_or_style, attr.graphic_or_logo, attr.item_type, attr.gender_department, attr.size, attr.fit_style, attr.color, attr.material, featuresStr]
         .filter(Boolean).join(' ');
 
     return {
