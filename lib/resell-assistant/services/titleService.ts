@@ -33,6 +33,7 @@ export function generateTitle(listings: Listing[], detectedItem: DetectedItem): 
     const orderedAttributes: string[] = [
         attr.brand,
         attr.model_or_style,
+        attr.graphic_or_logo,
         attr.item_type,
         attr.gender_department,
         attr.size,
