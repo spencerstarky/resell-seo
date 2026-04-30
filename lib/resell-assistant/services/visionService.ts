@@ -1,6 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-// @ts-ignore - heic-convert lacks TypeScript definitions
-import convert from 'heic-convert';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -49,14 +47,9 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
             let mimeType = res.headers.get('content-type') || 'image/jpeg';
 
             if (isHeic) {
-                console.log(`[Vision] Converting HEIC URL: ${url}`);
-                const jpegBuffer = await convert({
-                    buffer: buffer,
-                    format: 'JPEG',
-                    quality: 0.9,
-                });
-                buffer = Buffer.from(jpegBuffer);
-                mimeType = 'image/jpeg';
+                // Gemini 1.5 natively supports HEIC/HEIF! We can bypass the Vercel memory crash by
+                // tunneling the raw HEIC buffer directly to Google without converting it.
+                mimeType = ext === 'heif' ? 'image/heif' : 'image/heic';
             }
 
             return {
