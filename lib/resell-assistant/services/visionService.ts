@@ -111,7 +111,7 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
 Analyze the provided product photo(s) and identify:
 1. The structured SEO attributes (brand, model_or_style, graphic_or_logo, item_type, gender_department, size, color, material, key_features). You may logically infer 'gender_department' from the item's visual cut/style. However, you MUST return \`null\` for 'size' or 'material' if physical tags are not explicitly visible to prevent hallucination.
 2. The product category (e.g., "Men's Jackets", "Women's Shoes", "Vintage Electronics")
-3. A highly accurate, human-readable 3-5 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Gender (if applicable)] + [Consumer Collection/Line] + [Core Silhouette]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).${lensContext}
+3. A highly accurate, human-readable 3-5 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Gender (if applicable)] + [Graphic/Logo (if present)] + [Consumer Collection/Line] + [Core Silhouette]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).${lensContext}
 
 Respond ONLY in this exact JSON format, with no additional text:
 {
