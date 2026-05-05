@@ -114,14 +114,14 @@ Respond ONLY in this exact JSON format, with no additional text:
   "structuredAttributes": {
      "brand": "string | null",
      "model_or_style": "string | null (General style. DO NOT guess fits like 'Slim'. DO NOT label 'Cargo' unless side leg pockets are physically visible.)",
-     "graphic_or_logo": "string | null (CRITICAL: Transcribe specific text from embroidered logos, graphics, country clubs, or crests. e.g. 'Tobacco Road')",
+     "graphic_or_logo": "string | null (CRITICAL: Transcribe specific TEXT ONLY from embroidered logos/crests e.g., 'Tobacco Road'. DO NOT describe the visual shapes of standard brand logos like 'dog', 'alligator', or 'swoosh'.)",
      "item_type": "string | null (Use broad eBay terms: 'Shirt', 'Pants'. DO NOT label as 'Cargo Pants' unless large side leg pockets are visible.)",
      "gender_department": "string | null",
      "size": "string | null (US size only. Spell out 'Small', 'Medium', 'Large'. Keep abbreviations for XS, XL, XXL. NO '/TG')",
      "fit_style": "string | null (Extract fit/cut ONLY if explicitly printed on a tag, e.g. 'Slim', 'Classic Fit'. DO NOT guess)",
      "color": "string | null (1-2 primary colors or style like 'Multicolor'. NO commas)",
-     "material": "string | null (Extract core luxury material. If 100% luxury like Linen, Cashmere, or Silk, output '100% Cashmere' etc. Otherwise DO NOT output mixed percentages, just 'Wool Blend' etc.)",
-     "key_features": ["array", "of", "1-3 word", "punchy keywords", "NO sentences", "DO NOT guess fly type (Button/Zip) unless explicitly unzipped/exposed."]
+     "material": "string | null (Extract core luxury material. If 100% Linen, Cashmere, or Silk, output '100% Cashmere' etc. If synthetic blend like Polyester/Spandex, output 'Performance Stretch' instead of the literal blend.)",
+     "key_features": ["array", "of", "1-3 word", "punchy keywords", "NO sentences", "DO NOT guess fly type", "If Polo shirt, prioritize 'Golf' keyword"]
   }
 }
 
