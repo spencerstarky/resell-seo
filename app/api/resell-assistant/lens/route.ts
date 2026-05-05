@@ -59,8 +59,10 @@ export async function POST(req: Request) {
             aiOverview.title = lensData.knowledge_graph[0].title || '';
             aiOverview.subtitle = lensData.knowledge_graph[0].subtitle || '';
         } else if (visualMatches.length > 0) {
-            // Fallback to the top visual match title
-            aiOverview.title = visualMatches[0].title;
+            // Fallback to the top visual match title, but strip the "- SourceName" or "| SourceName" suffix
+            let cleanTitle = visualMatches[0].title;
+            cleanTitle = cleanTitle.split(' - ')[0].split(' | ')[0];
+            aiOverview.title = cleanTitle;
         }
 
         return NextResponse.json({
