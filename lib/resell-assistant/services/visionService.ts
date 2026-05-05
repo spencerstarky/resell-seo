@@ -105,7 +105,7 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
 Analyze the provided product photo(s) and identify:
 1. The structured SEO attributes (brand, model_or_style, graphic_or_logo, item_type, gender_department, size, fit_style, color, material, key_features). You may logically infer 'gender_department' from the item's visual cut/style. However, you MUST return \`null\` for 'size', 'fit_style', or 'material' if physical tags are not explicitly visible to prevent hallucination.
 2. The product category (e.g., "Men's Jackets", "Women's Shoes", "Vintage Electronics")
-3. A highly accurate, human-readable 3-5 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Gender (if applicable)] + [Graphic/Logo (if present)] + [Luxury Material (if 100%)] + [Consumer Collection/Line] + [Core Silhouette]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers if that is how a standard consumer would search).${lensContext}
+3. A highly accurate, human-readable 3-5 word "compingQuery" that explicitly follows this Semantic Market Formula: [Brand] + [Gender (if applicable)] + [Graphic/Logo (if present)] + [Luxury Material (if 100%)] + [Consumer Collection/Line] + [Core Silhouette]. You MUST explicitly BAN alphanumeric factory/clothing tag codes (e.g., "TM110", "RN8921"), obscure material fractions, and descriptive adjectives. DO NOT hallucinate obscure collection names. If you cannot perfectly read a collection name on the tag, omit it and default to a broad utilitarian silhouette (e.g., 'Fishing Shirt'). (Exception: For Electronics/Hardgoods ONLY, you may include exact Model Numbers).${lensContext}
 
 Respond ONLY in this exact JSON format, with no additional text:
 {
@@ -113,9 +113,9 @@ Respond ONLY in this exact JSON format, with no additional text:
   "compingQuery": "Brand Exact-Model Gender/Size",
   "structuredAttributes": {
      "brand": "string | null",
-     "model_or_style": "string | null (General style. DO NOT guess fits like 'Slim'. DO NOT label 'Cargo' unless side leg pockets are physically visible.)",
+     "model_or_style": "string | null (General style. DO NOT guess fits like 'Slim'. DO NOT label 'Cargo' unless side leg pockets are physically visible. DO NOT hallucinate obscure collection names.)",
      "graphic_or_logo": "string | null (CRITICAL: Transcribe specific TEXT ONLY from embroidered logos/crests e.g., 'Tobacco Road'. DO NOT describe the visual shapes of standard brand logos like 'dog', 'alligator', or 'swoosh'.)",
-     "item_type": "string | null (Use broad eBay terms: 'Shirt', 'Pants'. DO NOT label as 'Cargo Pants' unless large side leg pockets are visible.)",
+     "item_type": "string | null (Use broad eBay terms: 'Shirt', 'Pants'. If it's an outdoor utility shirt with chest pockets, prioritize 'Fishing Shirt' or 'Button Up Shirt' over hyper-specific guessed names.)",
      "gender_department": "string | null",
      "size": "string | null (US size only. Spell out 'Small', 'Medium', 'Large'. Keep abbreviations for XS, XL, XXL. NO '/TG')",
      "fit_style": "string | null (Extract fit/cut ONLY if explicitly printed on a tag, e.g. 'Slim', 'Classic Fit'. DO NOT guess)",
