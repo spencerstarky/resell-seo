@@ -2,17 +2,32 @@ import { NextResponse } from 'next/server';
 
 export const maxDuration = 60; // Allow 60 seconds
 
+// Allow CORS preflight specifically for this endpoint (so the Chrome ext can call it)
+export async function OPTIONS() {
+    const response = new NextResponse(null, { status: 204 });
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return response;
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
         const { imageUrls } = body;
 
         if (!imageUrls || imageUrls.length === 0) {
-            return NextResponse.json({ error: 'No image URLs provided' }, { status: 400 });
+            return NextResponse.json(
+                { error: 'No image URLs provided' }, 
+                { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } }
+            );
         }
 
         if (!process.env.SERPAPI_API_KEY) {
-            return NextResponse.json({ error: 'SERPAPI_API_KEY is missing' }, { status: 500 });
+            return NextResponse.json(
+                { error: 'SERPAPI_API_KEY is missing' }, 
+                { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
+            );
         }
 
         const targetUrl = imageUrls[0];
@@ -41,13 +56,15 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             visualMatches
+        }, {
+            headers: { 'Access-Control-Allow-Origin': '*' }
         });
 
     } catch (error: any) {
         console.error('[API Lens Error]', error);
         return NextResponse.json(
             { error: error.message || 'Failed to process Google Lens search' },
-            { status: 500 }
+            { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } }
         );
     }
 }
