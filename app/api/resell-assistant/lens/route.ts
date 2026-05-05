@@ -59,10 +59,16 @@ export async function POST(req: Request) {
             aiOverview.title = lensData.knowledge_graph[0].title || '';
             aiOverview.subtitle = lensData.knowledge_graph[0].subtitle || '';
         } else if (visualMatches.length > 0) {
-            // Fallback to the top visual match title, but strip the "- SourceName" or "| SourceName" suffix
-            let cleanTitle = visualMatches[0].title;
+            // Find the best descriptive title (prioritize eBay/Poshmark as they include the brand)
+            let bestMatch = visualMatches.find(m => 
+                m.source.toLowerCase().includes('ebay') || 
+                m.source.toLowerCase().includes('poshmark')
+            ) || visualMatches[0];
+            
+            let cleanTitle = bestMatch.title;
+            // Strip the "- SourceName" or "| SourceName" suffix
             cleanTitle = cleanTitle.split(' - ')[0].split(' | ')[0];
-            aiOverview.title = cleanTitle;
+            aiOverview.title = cleanTitle.trim();
         }
 
         return NextResponse.json({
