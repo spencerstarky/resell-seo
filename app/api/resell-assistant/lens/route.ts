@@ -53,9 +53,20 @@ export async function POST(req: Request) {
             }));
         }
 
+        // Extract "AI Overview" equivalent from Google Lens Knowledge Graph
+        let aiOverview = { title: '', subtitle: '' };
+        if (lensData.knowledge_graph && lensData.knowledge_graph.length > 0) {
+            aiOverview.title = lensData.knowledge_graph[0].title || '';
+            aiOverview.subtitle = lensData.knowledge_graph[0].subtitle || '';
+        } else if (visualMatches.length > 0) {
+            // Fallback to the top visual match title
+            aiOverview.title = visualMatches[0].title;
+        }
+
         return NextResponse.json({
             success: true,
-            visualMatches
+            visualMatches,
+            aiOverview
         }, {
             headers: { 'Access-Control-Allow-Origin': '*' }
         });
