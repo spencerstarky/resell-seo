@@ -60,7 +60,7 @@ export async function POST(req: Request) {
             aiOverview.subtitle = lensData.knowledge_graph[0].subtitle || '';
         } else if (visualMatches.length > 0) {
             // Find the best descriptive title (prioritize eBay/Poshmark as they include the brand)
-            let bestMatch = visualMatches.find(m => 
+            let bestMatch = visualMatches.find((m: any) => 
                 m.source.toLowerCase().includes('ebay') || 
                 m.source.toLowerCase().includes('poshmark')
             ) || visualMatches[0];
