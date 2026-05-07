@@ -36,32 +36,9 @@ export async function POST(req: Request) {
         const targetUrl = imageUrls[0];
         const lensApiUrl = `https://serpapi.com/search.json?engine=google_lens&url=${encodeURIComponent(targetUrl)}&api_key=${process.env.SERPAPI_API_KEY}`;
         
-        // Parallel Execution: SerpAPI for Visual Grid + Gemini 1.5 Flash for AI Overview
+        // Free Tier Visual Search (Fast)
         const fetchLens = fetch(lensApiUrl).then(res => res.json());
-        
-        const fetchGeminiOverview = async () => {
-            if (!process.env.GEMINI_API_KEY) return null;
-            try {
-                const imgRes = await fetch(targetUrl);
-                const arrayBuffer = await imgRes.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
-                const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
-                
-                const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-                const prompt = "Identify the main product in this image in exactly one short sentence. You MUST read any tags, collars, or logos to definitively state the Brand Name. Start your sentence with 'This appears to be...'. Keep it under 15 words.";
-                
-                const result = await model.generateContent([
-                    prompt, 
-                    { inlineData: { data: buffer.toString('base64'), mimeType } }
-                ]);
-                return result.response.text().trim();
-            } catch (e) {
-                console.error("[Lens API] Gemini parallel fallback failed", e);
-                return null;
-            }
-        };
-
-        const [lensData, geminiOverview] = await Promise.all([fetchLens, fetchGeminiOverview()]);
+        const lensData = await fetchLens;
 
         // Extract top visual matches
         let visualMatches = [];
@@ -75,29 +52,9 @@ export async function POST(req: Request) {
             }));
         }
 
-        // Construct AI Overview
-        let aiOverview = { title: '', subtitle: '' };
-        
-        if (geminiOverview) {
-            // Gemini 1.5 Flash completely bypasses the visual similarity flaw by reading the tag directly!
-            aiOverview.title = geminiOverview;
-        } else if (lensData.knowledge_graph && lensData.knowledge_graph.length > 0) {
-            aiOverview.title = lensData.knowledge_graph[0].title || '';
-            aiOverview.subtitle = lensData.knowledge_graph[0].subtitle || '';
-        } else if (visualMatches.length > 0) {
-            // Absolute last resort fallback
-            let bestMatch = visualMatches.find((m: any) => 
-                m.source.toLowerCase().includes('ebay') || 
-                m.source.toLowerCase().includes('poshmark')
-            ) || visualMatches[0];
-            let cleanTitle = bestMatch.title.split(' - ')[0].split(' | ')[0];
-            aiOverview.title = cleanTitle.trim();
-        }
-
         return NextResponse.json({
             success: true,
-            visualMatches,
-            aiOverview
+            visualMatches
         }, {
             headers: { 'Access-Control-Allow-Origin': '*' }
         });

@@ -32,9 +32,15 @@ export async function POST(req: NextRequest) {
 
         console.log(`[Analyze] Pulling and processing ${imageUrls.length} image(s) from Storage...`);
 
-        // Step 1: Identify product from image URLs using vision model
-        const detectedItem = await identifyProduct(imageUrls);
-        console.log('[Analyze] Detected item:', detectedItem.productName);
+        const preCachedItem = body.preCachedItem;
+
+        // Step 1: Identify product from image URLs using vision model (Bypass if pre-cached!)
+        const detectedItem = preCachedItem || await identifyProduct(imageUrls);
+        if (preCachedItem) {
+            console.log('[Analyze] Bypassing Vision Model. Using Pre-Cached Item:', detectedItem.productName);
+        } else {
+            console.log('[Analyze] Detected item via Vision Model:', detectedItem.productName);
+        }
 
         // Step 2: Search eBay for comparable listings (Active + Sold natively via cheerio)
         const searchQuery = detectedItem.compingQuery || detectedItem.productName;

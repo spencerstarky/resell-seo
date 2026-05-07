@@ -27,7 +27,7 @@ export interface DetectedItem {
  * Analyze product images using Gemini's multimodal capabilities.
  * Adapted for Next.js native File objects from FormData (instead of multer).
  */
-export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem> {
+export async function identifyProduct(imageUrls: string[], prefetchedLensContext?: string[]): Promise<DetectedItem> {
     if (!process.env.GEMINI_API_KEY) {
         throw new Error('GEMINI_API_KEY is not configured. Please add it to your Vercel Environment variables.');
     }
@@ -70,7 +70,11 @@ export async function identifyProduct(imageUrls: string[]): Promise<DetectedItem
 
     // Google Lens Context Shield
     let lensContext = "";
-    if (process.env.SERPAPI_API_KEY && imageUrls.length > 0) {
+    
+    if (prefetchedLensContext && prefetchedLensContext.length > 0) {
+        lensContext = `\n\nCRITICAL CONTEXT: A Google Lens reverse-image search executed on this exact photo yielded these 100% exact web matches: [ ${prefetchedLensContext.join(' | ')} ]. Use these hardcoded web-grounding clues to definitively compute the EXACT Brand and Manufacturer Model Name, rather than guessing based strictly on visuals.`;
+        console.log("[Vision/Lens] Utilizing PREFETCHED Web Grounding Context:", prefetchedLensContext);
+    } else if (process.env.SERPAPI_API_KEY && imageUrls.length > 0) {
         try {
             console.log("[Vision/Lens] Executing Visual Matching indexing tunnel...");
             const targetUrl = imageUrls[0];
